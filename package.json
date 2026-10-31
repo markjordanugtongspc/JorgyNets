@@ -1,0 +1,25 @@
+{
+  "name": "jorgynets",
+  "version": "0.1.50",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "server": "node server.js",
+    "prebuild": "node scripts/bump-version.js",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "tailwindcss": "^4.3.3",
+    "vite": "^8.3.5"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.118.0",
+    "apexcharts": "^8.6.0",
+    "dotenv": "^18.0.9",
+    "flowbite": "^4.0.2",
+    "postgres": "^3.4.9"
+  }
+}

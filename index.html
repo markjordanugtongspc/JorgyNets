@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JorgyNets - Portal Login</title>
+    <!-- Google Fonts: Poppins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <!-- Flowbite Stylesheet -->
+    <link href="https://cdn.jsdelivr.net/npm/flowbite@4.0.2/dist/flowbite.min.css" rel="stylesheet" />
+    <!-- Tailwind CSS v4 Main Stylesheet -->
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body class="bg-slate-50 text-slate-900 font-poppins min-h-screen antialiased flex flex-col justify-center">
+
+    <!-- Mobile-First 2-Column Responsive Layout -->
+    <div id="portal-grid" class="min-h-screen w-full grid grid-cols-1 lg:grid-cols-12 bg-slate-100/70">
+      
+      <!-- LEFT PANEL: Pisonet Real Photo Background Hero Panel -->
+      <section id="left-panel" class="relative hidden lg:flex lg:col-span-7 xl:col-span-8 overflow-hidden items-center justify-center p-8 lg:p-12">
+        <!-- Visual Real Photo Background with Atmospheric Gradient Overlay -->
+        <div id="hero-bg" class="absolute inset-0 z-0">
+          <img id="hero-img" src="/pisonet-hero.jpg" alt="Pisonet Setup" class="w-full h-full object-cover object-center" />
+          <div id="hero-gradient" class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/75 to-blue-950/60 backdrop-blur-[1px]"></div>
+          <div id="hero-dots" class="absolute inset-0 bg-[radial-gradient(#60a5fa_1px,transparent_1px)] [background-size:24px_24px] opacity-25"></div>
+        </div>
+
+        <!-- Hero Content Overlay with Clean Hero Typography -->
+        <div id="hero-content" class="relative z-10 w-full max-w-2xl flex flex-col items-center text-center space-y-4">
+          <div id="title-box" class="space-y-2">
+            <h2 id="hero-title" class="text-4xl xl:text-5xl font-black text-white tracking-tight leading-tight uppercase font-averta drop-shadow-lg">
+              JORGYNETS PISONET
+            </h2>
+          </div>
+
+          <p id="hero-desc" class="text-xs text-slate-300 max-w-md mx-auto leading-relaxed drop-shadow-sm">
+            Kani atong gamiton para ma proper ug monitor ang halin, expenses ug request sa Pisonet
+          </p>
+        </div>
+      </section>
+
+      <!-- RIGHT PANEL: Dirty-White Login Form Area -->
+      <main id="right-panel" class="relative w-full lg:col-span-5 xl:col-span-4 bg-slate-50 flex flex-col justify-between p-6 sm:p-10 lg:p-12 xl:p-16 min-h-screen overflow-hidden">
+        
+        <!-- Dot Grid Mesh Pattern Overlay for Right Dirty-White Panel -->
+        <div id="panel-dots" class="absolute inset-0 bg-[radial-gradient(#94a3b8_1px,transparent_1px)] [background-size:20px_20px] opacity-25 pointer-events-none"></div>
+
+        <!-- Top Spacer -->
+        <div id="top-spacer" class="w-full relative z-10"></div>
+
+        <!-- Center Form Card -->
+        <div id="form-card" class="w-full max-w-md mx-auto space-y-7 relative z-10">
+          
+          <!-- Brand Badge Header -->
+          <div id="brand-header" class="flex items-center space-x-3">
+            <div id="brand-badge" class="w-10 h-10 rounded-full border border-blue-600/30 bg-blue-50 flex items-center justify-center p-2 text-blue-600 shadow-sm">
+              <!-- Philippine Peso (₱) Currency SVG Icon -->
+              <svg id="brand-icon" class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
+                <path d="M9 6h5.5c2.2 0 3.8 1.4 3.8 3.5s-1.6 3.5-3.8 3.5H11v5H9V6zm2 5h3.3c1.1 0 1.9-.6 1.9-1.5s-.8-1.5-1.9-1.5H11V11z"/>
+                <path d="M7.5 8h8.5v1.4H7.5zm0 2.8h8.5v1.4H7.5z"/>
+              </svg>
+            </div>
+            <div id="brand-text-box">
+              <span id="brand-name" class="text-xs font-bold uppercase tracking-wider text-blue-600 font-averta">JORGYNETS NETWORK</span>
+            </div>
+          </div>
+
+          <!-- Main Titles -->
+          <div id="titles-box" class="space-y-1">
+            <h1 id="welcome-title" class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 font-averta">
+              Welcome Back
+            </h1>
+            <p id="welcome-desc" class="text-xs sm:text-sm text-slate-500 leading-relaxed font-poppins">
+              Sign in to monitor coin count, timer sessions, and active pisonet terminals.
+            </p>
+          </div>
+
+          <!-- Login Form (Mobile Responsive) -->
+          <form id="login-form" class="space-y-4">
+            
+            <!-- Username Input Group -->
+            <div id="user-group">
+              <label for="user-field" id="user-label" class="block mb-1.5 text-xs font-bold uppercase tracking-wider text-blue-700 font-averta">
+                Username
+              </label>
+              <input 
+                type="text" 
+                id="user-field" 
+                class="bg-slate-100/90 border border-slate-200 text-slate-900 text-sm rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-blue-600 block w-full p-3 transition duration-150 placeholder:text-slate-400" 
+                placeholder="Enter your username" 
+                required 
+              />
+            </div>
+
+            <!-- Password Input Group -->
+            <div id="pass-group">
+              <div id="pass-header" class="flex items-center justify-between mb-1.5">
+                <label for="pass-field" id="pass-label" class="text-xs font-bold uppercase tracking-wider text-blue-700 font-averta">
+                  Password
+                </label>
+                <a id="forgot-link" href="#" class="text-xs font-medium text-blue-600 hover:underline">
+                  Forgot password?
+                </a>
+              </div>
+              <div id="pass-wrapper" class="relative">
+                <input 
+                  type="password" 
+                  id="pass-field" 
+                  class="bg-slate-100/90 border border-slate-200 text-slate-900 text-sm rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-blue-600 block w-full p-3 pr-10 transition duration-150 placeholder:text-slate-400" 
+                  placeholder="••••••••" 
+                  required 
+                />
+                <!-- Toggle Password Visibility Button -->
+                <button 
+                  id="toggle-pass" 
+                  type="button" 
+                  class="absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-400 hover:text-slate-600 cursor-pointer"
+                >
+                  <svg id="eye-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Remember Me Checkbox -->
+            <div id="remember-group" class="flex items-center pt-1">
+              <input 
+                id="remember-check" 
+                type="checkbox" 
+                class="w-4 h-4 text-blue-600 bg-slate-100 border-slate-300 rounded focus:ring-blue-500 focus:ring-2" 
+                checked 
+              />
+              <label for="remember-check" id="remember-label" class="ml-2 text-xs font-medium text-slate-600">
+                Remember me
+              </label>
+            </div>
+
+            <!-- Sign In Submit Button -->
+            <button 
+              id="login-btn" 
+              type="submit" 
+              class="w-full text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-bold text-xs uppercase tracking-wider rounded-lg p-3 text-center shadow-md shadow-blue-600/25 transition-all duration-150 cursor-pointer"
+            >
+              Sign In
+            </button>
+
+            <!-- Divider -->
+            <div id="divider-box" class="relative flex py-2 items-center">
+              <div id="divider-left" class="flex-grow border-t border-slate-200"></div>
+              <span id="divider-text" class="flex-shrink mx-3 text-[11px] font-semibold text-slate-400 uppercase tracking-widest">
+                Or Continue With
+              </span>
+              <div id="divider-right" class="flex-grow border-t border-slate-200"></div>
+            </div>
+
+            <!-- Pincode Switcher Button (with Fill-in hover/active effects) -->
+            <div id="pin-box">
+              <button 
+                id="pin-btn" 
+                type="button" 
+                class="w-full flex items-center justify-center gap-2.5 p-3 text-xs font-semibold text-slate-700 bg-slate-100/90 hover:bg-blue-600 hover:text-white hover:border-blue-600 active:bg-blue-700 rounded-lg border border-slate-200 shadow-sm transition-all duration-200 cursor-pointer group"
+              >
+                <!-- Keypad PIN SVG Icon -->
+                <svg id="pin-svg" class="w-4.5 h-4.5 text-blue-600 group-hover:text-white transition-colors duration-200" fill="currentColor" viewBox="0 0 520 520" xmlns="http://www.w3.org/2000/svg">
+                  <g id="_21-Password" data-name="21-Password">
+                    <path d="m152.724 106.649a37.325 37.325 0 1 1 37.324-37.325 37.367 37.367 0 0 1 -37.324 37.325zm0-54.649a17.325 17.325 0 1 0 17.324 17.324 17.344 17.344 0 0 0 -17.324-17.324z"/><path d="m252.782 106.649a37.325 37.325 0 1 1 37.325-37.325 37.367 37.367 0 0 1 -37.325 37.325zm0-54.649a17.325 17.325 0 1 0 17.325 17.324 17.343 17.343 0 0 0 -17.325-17.324z"/><path d="m352.841 106.649a37.325 37.325 0 1 1 37.324-37.325 37.367 37.367 0 0 1 -37.324 37.325zm0-54.649a17.325 17.325 0 1 0 17.324 17.324 17.344 17.344 0 0 0 -17.324-17.324z"/><path d="m152.724 203.155a37.325 37.325 0 1 1 37.324-37.324 37.367 37.367 0 0 1 -37.324 37.324zm0-54.649a17.325 17.325 0 1 0 17.324 17.325 17.345 17.345 0 0 0 -17.324-17.325z"/><path d="m352.841 203.155a37.325 37.325 0 1 1 37.324-37.324 37.366 37.366 0 0 1 -37.324 37.324zm0-54.649a17.325 17.325 0 1 0 17.324 17.325 17.344 17.344 0 0 0 -17.324-17.325z"/><path d="m378.884 289.089a37.333 37.333 0 1 0 -62.35-18.1 30.267 30.267 0 0 0 -33.772-9.345v-57.622a30.112 30.112 0 0 0 -2.789-12.674 37.3 37.3 0 1 0 -54.834-.446 30.119 30.119 0 0 0 -2.991 13.12v103.07l-20.547-13.2q-.354-.228-.728-.426a57.205 57.205 0 0 0 -20.248-6.375 37.307 37.307 0 1 0 -36.059 11.662c-6.1 6-11.33 14.235-11.169 23.049a21.915 21.915 0 0 0 .609 4.729 37.331 37.331 0 1 0 52.251 48.684 174.76 174.76 0 0 1 33.681 54.294c10.671 27.266 10.9 48.306 10.9 48.491a10 10 0 0 0 10 10h123.505a10 10 0 0 0 9.689-7.528c3.036-11.9 8.425-25.056 13.635-37.778 8.325-20.326 16.934-41.344 16.934-59.606v-64.04a30.353 30.353 0 0 0 -25.717-29.959zm-26.043-44.076a17.329 17.329 0 0 1 6.765 33.281 19.2 19.2 0 0 1 -8.507 1.522 30.156 30.156 0 0 0 -9.778-4.551 17.317 17.317 0 0 1 11.52-30.252zm-100.059-96.507a17.307 17.307 0 0 1 13.267 28.442 30.242 30.242 0 0 0 -26.735-.232 17.316 17.316 0 0 1 13.468-28.21zm-117.382 113.831a17.325 17.325 0 1 1 17.325 17.325 17.344 17.344 0 0 1 -17.325-17.325zm17.325 113.831a17.329 17.329 0 0 1 -5.578-33.735 204.588 204.588 0 0 1 22.872 17 17.332 17.332 0 0 1 -17.295 16.735zm216.435 58.946c-4.441 10.843-9 21.986-12.374 32.886h-106.643a183.23 183.23 0 0 0 -11.228-44.873c-10.812-28.038-33.947-67.919-82.769-98.684-1.019-.642-2.731-1.886-2.752-3.007-.046-2.541 3.662-7.94 9.058-11.623 4.442-3.031 16.12-5.359 28.714 1.147l30.982 19.9v7.487a10 10 0 0 0 20 0v-134.325a10.307 10.307 0 0 1 20.614 0v106.548a10 10 0 0 0 20 0v-20.43a10.307 10.307 0 1 1 20.613 0v36.305a10 10 0 0 0 20 0v-21.851a10.307 10.307 0 0 1 20.613 0v36.306a10 10 0 0 0 20 0v-21.852a10.307 10.307 0 0 1 20.613 0v64.04c-.001 14.325-7.85 33.491-15.442 52.026z"/>
+                  </g>
+                </svg>
+                <span id="pin-text">Pincode</span>
+              </button>
+            </div>
+
+          </form>
+
+        </div>
+
+        <!-- Footer Legal & Copyright -->
+        <footer id="footer-box" class="pt-8 text-center text-[11px] text-slate-400 space-y-1 relative z-10">
+          <p id="footer-links">
+            <a id="privacy-link" href="#" class="hover:text-blue-600 transition">Privacy Policy</a>
+            <span class="mx-1">&bull;</span>
+            <a id="terms-link" href="#" class="hover:text-blue-600 transition">Terms of Service</a>
+          </p>
+          <p id="copyright-text" class="font-medium text-slate-500">JorgyNets Pisonet Network &copy; 2026</p>
+        </footer>
+
+      </main>
+
+    </div>
+
+    <!-- Scripts: Purely imports modular main.js & auth module -->
+    <script src="https://cdn.jsdelivr.net/npm/flowbite@4.0.2/dist/flowbite.min.js"></script>
+    <script type="module">
+      import { initializeApp } from '/src/scripts/main.js'
+      import { AuthManager } from '/src/scripts/modules/auth.js'
+
+      const auth = new AuthManager()
+      initializeApp(auth)
+    </script>
+  </body>
+</html>

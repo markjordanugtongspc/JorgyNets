@@ -1,0 +1,11 @@
+{
+  "rewrites": [
+    { "source": "/dashboard", "destination": "/frontend/pages/dashboard/index.html" },
+    { "source": "/exports", "destination": "/frontend/pages/exports/index.html" },
+    { "source": "/habwa", "destination": "/frontend/pages/habwa/index.html" },
+    { "source": "/frontend/pages/dashboard/", "destination": "/frontend/pages/dashboard/index.html" },
+    { "source": "/frontend/pages/exports", "destination": "/frontend/pages/exports/index.html" },
+    { "source": "/frontend/pages/habwa", "destination": "/frontend/pages/habwa/index.html" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}

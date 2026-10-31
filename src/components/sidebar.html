@@ -1,0 +1,334 @@
+<!-- Mobile Toggle Hamburger Button (Aligned on the TOP RIGHT for Mobile Off-Canvas Right Drawer) -->
+<div id="mobile-bar" class="sm:hidden fixed top-3 right-3 z-30 flex items-center transition-opacity duration-200">
+   <button id="sidebar-toggle" data-drawer-target="pisonet-sidebar" data-drawer-show="pisonet-sidebar" data-drawer-placement="right" aria-controls="pisonet-sidebar" type="button" class="text-slate-300 bg-slate-900/90 backdrop-blur-md border border-slate-700/80 hover:bg-slate-800 focus:ring-4 focus:ring-blue-900 font-medium rounded-xl text-sm p-2.5 focus:outline-none inline-flex items-center justify-center cursor-pointer shadow-xl">
+      <span class="sr-only">Open navigation drawer</span>
+      <svg class="w-5 h-5 text-blue-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+         <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M5 7h14M5 12h14M5 17h10"/>
+      </svg>
+   </button>
+</div>
+
+<!-- Flowbite Pisonet Business Navigation: Right Off-Canvas Drawer on Mobile, Fixed Sidebar on Desktop -->
+<aside id="pisonet-sidebar" class="fixed top-0 right-0 sm:right-auto sm:left-0 z-40 w-72 h-screen transition-transform translate-x-full sm:translate-x-0" tabindex="-1" aria-labelledby="sidebar-brand">
+   <div id="sidebar-body" class="relative h-full px-4 py-5 overflow-y-auto bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 border-l sm:border-l-0 sm:border-r border-slate-800/80 flex flex-col justify-between shadow-2xl overflow-hidden">
+      
+      <!-- Dot Grid Texture Overlay matching Left Hero Panel -->
+      <div class="absolute inset-0 bg-[radial-gradient(#60a5fa_1px,transparent_1px)] [background-size:20px_20px] opacity-15 pointer-events-none"></div>
+
+      <!-- Flowbite Sidebar Loading Skeleton (Contexts, buttons, and text in skeleton while sidebar-body remains intact) -->
+      <div id="sidebar-skeleton" role="status" class="relative z-10 flex flex-col justify-between h-full animate-pulse">
+         <div>
+            <!-- Brand Skeleton -->
+            <div class="flex items-center space-x-3 pb-4 mb-4 border-b border-slate-800">
+               <div class="w-10 h-10 rounded-xl bg-slate-800"></div>
+               <div class="space-y-1.5 flex-1">
+                  <div class="h-3 bg-slate-800 rounded-full w-28"></div>
+                  <div class="h-2 bg-slate-800/80 rounded-full w-20"></div>
+               </div>
+            </div>
+
+            <!-- Navigation Links Skeleton -->
+            <div class="space-y-2">
+               <!-- Nav Item 1 Skeleton -->
+               <div class="flex items-center px-3 py-2.5 rounded-lg bg-slate-800/80 border border-slate-700/60">
+                  <div class="w-5 h-5 bg-slate-700 rounded-md"></div>
+                  <div class="h-2.5 bg-slate-700 rounded-full w-24 ms-3"></div>
+               </div>
+               <!-- Nav Item 2 Skeleton -->
+               <div class="flex items-center justify-between px-3 py-2.5 rounded-lg bg-slate-900 border border-slate-800/80">
+                  <div class="flex items-center">
+                     <div class="w-5 h-5 bg-slate-800 rounded-md"></div>
+                     <div class="h-2.5 bg-slate-800 rounded-full w-28 ms-3"></div>
+                  </div>
+                  <div class="w-3.5 h-3.5 bg-slate-800 rounded-full"></div>
+               </div>
+               <!-- Nav Subtree Skeleton Items -->
+               <div class="ml-8 space-y-1.5 py-1">
+                  <div class="h-2 bg-slate-800/60 rounded-full w-32"></div>
+                  <div class="h-2 bg-slate-800/60 rounded-full w-28"></div>
+                  <div class="h-2 bg-slate-800/60 rounded-full w-24"></div>
+               </div>
+               <!-- Nav Item 3 Skeleton -->
+               <div class="flex items-center px-3 py-2.5 rounded-lg bg-slate-900 border border-slate-800/80">
+                  <div class="w-5 h-5 bg-slate-800 rounded-md"></div>
+                  <div class="h-2.5 bg-slate-800 rounded-full w-24 ms-3"></div>
+               </div>
+               <!-- Nav Item 4 Skeleton -->
+               <div class="flex items-center px-3 py-2.5 rounded-lg bg-slate-900 border border-slate-800/80">
+                  <div class="w-5 h-5 bg-slate-800 rounded-md"></div>
+                  <div class="h-2.5 bg-slate-800 rounded-full w-20 ms-3"></div>
+               </div>
+            </div>
+         </div>
+
+         <!-- Skeleton Bottom Section: Requests Card + Profile Placeholder -->
+         <div class="pt-4 space-y-3">
+            <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2">
+               <div class="flex items-center justify-between">
+                  <div class="h-2.5 bg-slate-800 rounded-full w-28"></div>
+                  <div class="h-3 bg-slate-800 rounded-md w-10"></div>
+               </div>
+               <div class="h-2 bg-slate-800/70 rounded-full w-40"></div>
+               <div class="h-7 bg-slate-800 rounded-lg w-full mt-2"></div>
+            </div>
+
+            <div class="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
+               <div class="flex items-center space-x-2.5">
+                  <div class="w-9 h-9 rounded-full bg-slate-800"></div>
+                  <div class="space-y-1.5">
+                     <div class="h-2.5 bg-slate-800 rounded-full w-24"></div>
+                     <div class="h-2 bg-slate-800/80 rounded-full w-16"></div>
+                  </div>
+               </div>
+               <div class="w-3.5 h-3.5 bg-slate-800 rounded-full"></div>
+            </div>
+         </div>
+         <span class="sr-only">Loading navigation menu...</span>
+      </div>
+
+      <!-- Real Sidebar Content Wrapper (Hidden initially until skeleton finishes) -->
+      <div id="sidebar-real-wrapper" class="hidden relative z-10 flex flex-col justify-between h-full">
+      <!-- Top Section: Brand & Navigation List -->
+      <div id="sidebar-nav">
+         <!-- Brand Header with Close Drawer Button on Mobile -->
+         <div id="sidebar-brand" class="flex items-center justify-between pb-4 mb-4 border-b border-slate-800">
+            <div class="flex items-center space-x-3 px-1">
+               <div id="brand-badge" class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-700 to-indigo-600 text-white flex items-center justify-center font-black text-sm shadow-lg shadow-blue-500/25 border border-blue-400/30">
+                  JN
+               </div>
+               <div id="brand-meta">
+                  <h2 id="brand-title" class="text-sm font-extrabold text-white tracking-wider font-averta">JORGYNETS</h2>
+                  <p id="brand-sub" class="text-[10px] text-amber-300 font-bold uppercase tracking-widest">Pisonet Network</p>
+               </div>
+            </div>
+
+            <!-- Mobile Drawer Close Button -->
+            <button id="drawer-close" type="button" data-drawer-hide="pisonet-sidebar" aria-controls="pisonet-sidebar" class="sm:hidden text-slate-400 bg-slate-900/60 hover:text-white hover:bg-slate-800 rounded-lg w-8 h-8 flex items-center justify-center cursor-pointer border border-slate-800 transition">
+               <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6"/>
+               </svg>
+               <span class="sr-only">Close sidebar</span>
+            </button>
+         </div>
+
+         <ul id="menu-list" class="space-y-1.5 font-medium text-xs">
+            <!-- Dashboard Link (Active Primary Item) with Dynamic Pie/Chart SVG Icon -->
+            <li>
+               <a id="nav-dashboard" href="/frontend/pages/dashboard/" class="flex items-center px-3 py-2.5 text-blue-400 hover:text-blue-300 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 font-semibold shadow-md shadow-blue-600/10 border border-blue-500/40 group transition">
+                  <!-- Default/Static Dashboard Icon (Outline) styled with blue-400 matching nav-users and nav-exports -->
+                  <svg id="dash-icon-outline" class="w-5 h-5 text-blue-400 group-hover:text-blue-300 group-hover:hidden transition duration-75" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6.025A7.5 7.5 0 1 0 17.975 14H10V6.025Z"/>
+                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.5 3c-.169 0-.334.014-.5.025V11h7.975c.011-.166.025-.331.025-.5A7.5 7.5 0 0 0 13.5 3Z"/>
+                  </svg>
+                  <!-- Dynamic Solid Dashboard Icon (Filled on hover / active) -->
+                  <svg id="dash-icon-solid" class="w-5 h-5 text-blue-400 group-hover:text-blue-300 hidden group-hover:block transition duration-75" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                     <path d="M13.5 2c-.178 0-.356.013-.492.022l-.074.005a1 1 0 0 0-.934.998V11a1 1 0 0 0 1 1h7.975a1 1 0 0 0 .998-.934l.005-.074A7.04 7.04 0 0 0 22 10.5 8.5 8.5 0 0 0 13.5 2Z"/>
+                     <path d="M11 6.025a1 1 0 0 0-1.065-.998 8.5 8.5 0 1 0 9.038 9.039A1 1 0 0 0 17.975 13H11V6.025Z"/>
+                  </svg>
+                  <span class="ms-3 font-semibold text-inherit">Dashboard</span>
+               </a>
+            </li>
+
+            <!-- Financials / Sales Dropdown with Custom ₱ Financial Register Icon (Default Open) -->
+            <li>
+               <button id="sales-toggle" type="button" aria-expanded="true" class="flex items-center w-full justify-between px-3 py-2.5 text-slate-300 rounded-lg hover:bg-slate-800/80 hover:text-blue-300 group transition cursor-pointer" aria-controls="sales-menu" data-collapse-toggle="sales-menu">
+                  <div class="flex items-center">
+                     <!-- Custom SVG Icon with Philippine Peso (₱) coin and register -->
+                     <span class="shrink-0 w-6 h-6 flex items-center justify-center">
+                        <!-- Static / Normal SVG Icon (Peso Coin Register Outline) styled with blue-400 matching nav-users and nav-exports -->
+                        <svg id="sales-icon-outline" class="w-5 h-5 text-blue-400 group-hover:text-blue-300 group-hover:hidden transition-transform duration-200" fill="currentColor" viewBox="0 -11 493.78 493" xmlns="http://www.w3.org/2000/svg">
+                           <!-- Peso P Coin Symbol -->
+                           <path d="M362 65 h34 c15 0 26 11 26 26 s-11 26-26 26 h-34 v24 c0 4-3 7-7 7 s-7-3-7-7 v-80 c0-4 3-7 7-7 z M362 79 v24 h27 c7 0 12-5 12-12 s-5-12-12-12 z" />
+                           <!-- Upper Peso crossbar -->
+                           <path d="M351 86 h46 c4 0 7 3 7 7 s-3 7-7 7 h-46 c-4 0-7-3-7-7 s3-7 7-7 z" />
+                           <!-- Lower Peso crossbar -->
+                           <path d="M351 102 h46 c4 0 7 3 7 7 s-3 7-7 7 h-46 c-4 0-7-3-7-7 s3-7 7-7 z" />
+                           <!-- Main Chassis & Drawer -->
+                           <path d="m380.207031.390625c-49.214843 0-91.214843 32.113281-106.949219 75.113281h-198.558593c-4.398438 0-7.96875 3.964844-8 8.359375l-1.890625 280.640625h-56.597656c-4.417969 0-8.210938 3.199219-8.210938 7.625v35.613282c.101562 33.527343 26.507812 61.070312 60 62.585937v.175781h247v-.234375c2 .074219 2.824219.234375 4.089844.234375h.171875c34.664062-.054687 62.738281-28.171875 62.738281-62.835937v-180.0625c2 .109375 4.117188.167969 6.1875.167969 62.628906 0 113.59375-51.0625 113.59375-113.695313 0-62.628906-50.941406-113.6875-113.574219-113.6875zm-317.164062 454.113281h-.050781c-25.878907-.035156-46.875-20.960937-46.992188-46.84375v-27.15625h232v27.042969c.011719 16.695313 6.679688 32.699219 18.523438 44.46875.839843.839844 1.882812 1.488281 2.761718 2.488281zm294.957031-46.84375c.003906 25.835938-20.914062 46.792969-46.746094 46.84375h-.152344c-25.9375-.046875-46.972656-21.015625-47.101562-46.949218v-35.425782c.066406-2.046875-.714844-4.027344-2.164062-5.472656-1.449219-1.445312-3.429688-2.222656-5.472657-2.152344h-175.554687l1.835937-273h186.171875c-1.417968 7.324219-2.152344 14.761719-2.191406 22.21875-.015625 15.769532 3.273438 31.363282 9.65625 45.78125h-75.5625c-4.421875 0-8 3.582032-8 8 0 4.417969 3.578125 8 8 8h84.242188c16.503906 25.953125 42.886718 44.046875 73.039062 50.101563zm22.207031-195.882812c-53.890625 0-97.582031-43.6875-97.578125-97.582032 0-53.894531 43.6875-97.582031 97.582032-97.582031 53.890624 0 97.578124 43.691407 97.578124 97.582031-.058593 53.867188-43.710937 97.523438-97.582031 97.582032zm0 0"/>
+                           <!-- Keypad Buttons -->
+                           <path d="m149.367188 212.746094c-14.121094 0-25.605469 11.121094-25.605469 24.792968 0 13.671876 11.484375 24.792969 25.605469 24.792969 14.121093 0 25.609374-11.121093 25.609374-24.792969 0-13.671874-11.488281-24.792968-25.609374-24.792968zm0 33.585937c-5.300782 0-9.605469-3.945312-9.605469-8.792969 0-4.851562 4.308593-8.792968 9.605469-8.792968 5.296874 0 9.609374 3.945312 9.609374 8.792968 0 4.847657-4.3125 8.792969-9.609374 8.792969zm0 0"/>
+                           <path d="m192.71875 237.503906c0 4.417969 3.578125 8 8 8h106.65625c4.417969 0 8-3.582031 8-8 0-4.417968-3.582031-8-8-8h-106.65625c-4.421875 0-8 3.582032-8 8zm0 0"/>
+                           <path d="m149.367188 143.203125c-14.121094 0-25.605469 11.125-25.605469 24.796875s11.484375 24.792969 25.605469 24.792969c14.121093 0 25.609374-11.121094 25.609374-24.792969s-11.488281-24.796875-25.609374-24.796875zm0 33.589844c-5.300782 0-9.605469-3.945313-9.605469-8.792969s4.308593-8.796875 9.605469-8.796875c5.296874 0 9.609374 3.945313 9.609374 8.796875 0 4.847656-4.3125 8.796875-9.609374 8.796875zm0 0"/>
+                           <path d="m149.367188 282.28125c-14.121094 0-25.605469 11.121094-25.605469 24.792969s11.484375 24.792969 25.605469 24.792969c14.121093 0 25.609374-11.121094 25.609374-24.792969s-11.488281-24.792969-25.609374-24.792969zm0 33.585938c-5.300782 0-9.605469-3.941407-9.605469-8.792969 0-4.847657 4.308593-8.792969 9.605469-8.792969 5.296874 0 9.609374 3.945312 9.609374 8.792969 0 4.847656-4.3125 8.792969-9.609374 8.792969zm0 0"/>
+                           <path d="m307.375 299.503906h-106.65625c-4.421875 0-8 3.582032-8 8 0 4.417969 3.578125 8 8 8h106.65625c4.417969 0 8-3.582031 8-8 0-4.417968-3.582031-8-8-8zm0 0"/>
+                        </svg>
+
+                        <!-- Dynamic / Hover / Active SVG Icon (Filled with Philippine Peso ₱) styled with blue-400 matching default color -->
+                        <svg id="sales-icon-solid" class="w-5 h-5 text-blue-400 group-hover:text-blue-300 hidden group-hover:block transition-transform duration-200" fill="currentColor" viewBox="0 -12 463.791 463" xmlns="http://www.w3.org/2000/svg">
+                           <!-- Keypad Dots -->
+                           <path d="m144.972656 291.855469c0-5.40625-4.746094-9.792969-10.605468-9.792969-5.859376 0-10.605469 4.386719-10.605469 9.792969 0 5.410156 4.746093 9.792969 10.605469 9.792969 5.859374 0 10.605468-4.382813 10.605468-9.792969zm0 0"/>
+                           <path d="m134.367188 212.527344c-5.847657 0-10.605469 4.390625-10.605469 9.792968 0 5.398438 4.757812 9.792969 10.605469 9.792969 5.847656 0 10.609374-4.394531 10.609374-9.792969 0-5.402343-4.761718-9.792968-10.609374-9.792968zm0 0"/>
+                           <path d="m144.972656 152.785156c0-5.410156-4.746094-9.792968-10.605468-9.792968-5.859376 0-10.605469 4.382812-10.605469 9.792968 0 5.40625 4.746093 9.792969 10.605469 9.792969 5.859374 0 10.605468-4.386719 10.605468-9.792969zm0 0"/>
+                           <!-- Coin Circle -->
+                           <path d="m365.207031.394531c-54.445312 0-98.582031 44.136719-98.582031 98.582031 0 54.445313 44.136719 98.582032 98.582032 98.582032 54.445312 0 98.578124-44.136719 98.578124-98.582032-.058593-54.417968-44.160156-98.519531-98.582031-98.582031zm0 0"/>
+                           <!-- Philippine Peso (₱) on Coin Circle -->
+                           <path fill="#0f172a" d="M346 62 h36 c16 0 28 12 28 28 s-12 28-28 28 h-22 v26 c0 4-3 7-7 7 s-7-3-7-7 v-82 z M360 76 v28 h22 c8 0 14-6 14-14 s-6-14-14-14 z" />
+                           <path fill="#0f172a" d="M336 84 h48 c4 0 7 3 7 7 s-3 7-7 7 h-48 c-4 0-7-3-7-7 s3-7 7-7 z" />
+                           <path fill="#0f172a" d="M336 100 h48 c4 0 7 3 7 7 s-3 7-7 7 h-48 c-4 0-7-3-7-7 s3-7 7-7 z" />
+                           <!-- Base Stand -->
+                           <path d="m252.230469 436.085938c-11.65625-11.578126-18.214844-27.328126-18.230469-43.757813v-28.042969h-234v28.160156c.117188 26.429688 21.5625 47.804688 47.992188 47.839844h208.976562c-1.714844-1.238281-3.304688-2.644531-4.738281-4.199218zm0 0"/>
+                           <!-- Machine Body & Register Slots -->
+                           <path d="m270.5 159.285156h-84.78125c-3.867188 0-7-3.132812-7-7 0-3.863281 3.132812-7 7-7h77.109375c-6.765625-14.664062-10.246094-30.628906-10.199219-46.78125.023438-7.800781.832032-15.578125 2.414063-23.21875h-188.390625l-1.851563 275h176.558594c1.78125-.070312 3.507813.601563 4.769531 1.859375 1.261719 1.257813 1.9375 2.984375 1.871094 4.765625v35.425782c.128906 26.488281 21.613281 47.902343 48.101562 47.949218h.15625c26.386719-.054687 47.742188-21.457031 47.742188-47.839844v-182.890624c-30.441406-5.765626-57.089844-23.988282-73.5-50.269532zm-136.132812 156.367188c-13.566407 0-24.605469-10.675782-24.605469-23.796875 0-13.117188 11.039062-23.792969 24.605469-23.792969 13.566406 0 24.609374 10.675781 24.609374 23.792969 0 13.121093-11.039062 23.796875-24.609374 23.796875zm0-69.539063c-13.566407 0-24.605469-10.671875-24.605469-23.792969 0-13.121093 11.039062-23.792968 24.605469-23.792968 13.566406 0 24.609374 10.671875 24.609374 23.792968 0 13.117188-11.039062 23.792969-24.609374 23.792969zm0-69.535156c-13.566407 0-24.605469-10.675781-24.605469-23.792969 0-13.121094 11.039062-23.796875 24.605469-23.796875 13.566406 0 24.609374 10.671875 24.609374 23.792969s-11.039062 23.796875-24.609374 23.796875zm158.007812 122.707031h-106.65625c-3.867188 0-7-3.132812-7-7 0-3.863281 3.132812-7 7-7h106.65625c3.867188 0 7 3.136719 7 7 0 3.867188-3.132812 7-7 7zm7-77c0 3.867188-3.132812 7-7 7h-106.65625c-3.867188 0-7-3.132812-7-7 0-3.863281 3.132812-7 7-7h106.65625c3.867188 0 7 3.136719 7 7zm0 0"/>
+                        </svg>
+                     </span>
+                     <span class="ms-3 text-left whitespace-nowrap text-inherit">Financials & Bills</span>
+                  </div>
+                  <svg id="sales-arrow" class="w-4 h-4 text-slate-500 group-hover:text-blue-300 transition-transform duration-200 rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7"/>
+                  </svg>
+               </button>
+
+               <!-- Tree-Branch Connected Dropdown List with Unbroken Continuous Spine Line -->
+               <div id="sales-menu" class="py-1 space-y-1 relative ml-5 pl-4 my-1">
+                  <!-- Single Unbroken Continuous Vertical Tree Spine Line -->
+                  <span class="absolute left-0 top-0 bottom-[14px] w-[2px] bg-slate-800"></span>
+
+                  <!-- Tree Item 1: Monthly Habwa Logs (General pisonet telemetry) -->
+                  <div class="relative flex items-center">
+                     <span class="absolute -left-4 top-1/2 -translate-y-1/2 w-4 h-[2px] bg-slate-800"></span>
+                     <a id="nav-habwa-logs" href="/frontend/pages/habwa/" class="w-full flex items-center justify-between px-2 py-1.5 text-slate-400 rounded-lg hover:bg-slate-800 hover:text-white group text-xs transition">
+                        <span>Monthly Habwa Logs</span>
+                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-950/70 border border-blue-500/30 text-blue-300">Pisonets</span>
+                     </a>
+                  </div>
+                  <!-- Tree Item 2: Monthly Deductions (Electricity, PLDT, Utilities, Returns) -->
+                  <div class="relative flex items-center">
+                     <span class="absolute -left-4 top-1/2 -translate-y-1/2 w-4 h-[2px] bg-slate-800"></span>
+                     <a id="nav-monthly-deductions" href="/frontend/pages/bills/" class="w-full flex items-center justify-between px-2 py-1.5 text-slate-400 rounded-lg hover:bg-slate-800 hover:text-white group text-xs transition">
+                        <span>Monthly Deductions</span>
+                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-rose-950/70 border border-rose-500/30 text-rose-300">Bills</span>
+                     </a>
+                  </div>
+                  <!-- Tree Item 3: Custom Requests (Expense deduction approval workflows from attendants/owners) -->
+                  <div class="relative flex items-center">
+                     <span class="absolute -left-4 top-1/2 -translate-y-1/2 w-4 h-[2px] bg-slate-800"></span>
+                     <a id="nav-custom-requests" href="/frontend/pages/requests/" class="w-full flex items-center justify-between px-2 py-1.5 text-slate-400 rounded-lg hover:bg-slate-800 hover:text-white group text-xs transition">
+                        <span>Custom Requests</span>
+                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-950/80 border border-amber-500/30 text-amber-300">Approval</span>
+                     </a>
+                  </div>
+               </div>
+            </li>
+
+            <!-- Branch Attendants / Users -->
+            <li>
+               <a id="nav-users" href="/frontend/pages/owners/" class="flex items-center px-3 py-2.5 text-slate-300 rounded-lg hover:bg-slate-800/80 hover:text-blue-300 group transition">
+                  <!-- Static Outline Users SVG Icon -->
+                  <svg id="users-icon-outline" class="shrink-0 w-5 h-5 text-blue-400 group-hover:text-blue-300 group-hover:hidden transition duration-75" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                     <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M16 19h4a1 1 0 0 0 1-1v-1a3 3 0 0 0-3-3h-2m-2.236-4a3 3 0 1 0 0-4M3 18v-1a3 3 0 0 1 3-3h4a3 3 0 0 1 3 3v1a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1Zm8-10a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
+                  </svg>
+                  <!-- Dynamic Solid Users SVG Icon (Filled on hover / active) -->
+                  <svg id="users-icon-solid" class="shrink-0 w-5 h-5 text-blue-400 group-hover:text-blue-300 hidden group-hover:block transition duration-75" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                     <path fill-rule="evenodd" d="M8 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8Zm-2 9a4 4 0 0 0-4 4v1a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-1a4 4 0 0 0-4-4H6Zm7.25-2.095c.478-.86.75-1.85.75-2.905a5.973 5.973 0 0 0-.75-2.906 4 4 0 1 1 0 5.811ZM15.466 20c.34-.588.535-1.271.535-2v-1a5.978 5.978 0 0 0-1.528-4H18a4 4 0 0 1 4 4v1a2 2 0 0 1-2 2h-4.535Z" clip-rule="evenodd"/>
+                  </svg>
+                  <span class="flex-1 ms-3 whitespace-nowrap text-inherit">Owners</span>
+               </a>
+            </li>
+
+            <!-- Data Exports Link -->
+            <li>
+               <a id="nav-exports" href="/frontend/pages/exports" class="flex items-center px-3 py-2.5 text-slate-300 rounded-lg hover:bg-slate-800/80 hover:text-blue-300 group transition">
+                  <!-- Static Outline Exports SVG Icon -->
+                  <svg id="exports-icon-outline" class="shrink-0 w-5 h-5 text-blue-400 group-hover:text-blue-300 group-hover:hidden transition duration-75" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 13V4M7 14H5a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4a1 1 0 0 0-1-1h-2m-1-5-4 5-4-5m9 8h.01"/>
+                  </svg>
+                  <!-- Dynamic Solid Exports SVG Icon (Filled on hover / active) -->
+                  <svg id="exports-icon-solid" class="shrink-0 w-5 h-5 text-blue-400 group-hover:text-blue-300 hidden group-hover:block transition duration-75" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                     <path fill-rule="evenodd" d="M13 11.15V4a1 1 0 1 0-2 0v7.15L8.78 8.374a1 1 0 1 0-1.56 1.25l4 5a1 1 0 0 0 1.56 0l4-5a1 1 0 1 0-1.56-1.25L13 11.15Z" clip-rule="evenodd"/>
+                     <path fill-rule="evenodd" d="M9.657 15.874 7.358 13H5a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2h-2.358l-2.3 2.874a3 3 0 0 1-4.685 0ZM17 16a1 1 0 1 0 0 2h.01a1 1 0 0 1 0-2H17Z" clip-rule="evenodd"/>
+                  </svg>
+                  <span class="flex-1 ms-3 whitespace-nowrap text-inherit">Exports</span>
+               </a>
+            </li>
+         </ul>
+      </div>
+
+      <!-- Bottom Stack: Actionable Requests Card & User Profile Dropup -->
+      <div id="sidebar-footer" class="relative z-10 pt-4 flex flex-col justify-end">
+         
+         <!-- Actionable Requests Card: Remains stationary when hovered itself; translates upwards ONLY when profile is hovered or focused -->
+         <div id="requests-card" class="p-3.5 mb-3 text-xs text-slate-200 rounded-xl bg-slate-900/90 border border-slate-800 shadow-lg backdrop-blur-sm transition-transform duration-300 ease-out will-change-transform" role="alert">
+            <div id="requests-header" class="flex items-center justify-between mb-1.5">
+               <div class="flex items-center">
+                  <svg class="w-4 h-4 shrink-0 me-1.5 text-blue-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                  </svg>
+                  <h3 id="requests-title" class="font-bold text-white text-xs">Pending Requests</h3>
+               </div>
+               <span id="requests-badge" class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-600 text-white">4 New</span>
+            </div>
+            <p id="requests-desc" class="text-[11px] text-slate-400 leading-snug mb-2.5">
+               Maintenance & coin requests from Branch 01.
+            </p>
+            <a id="view-requests" href="/frontend/pages/requests/" class="w-full inline-flex items-center justify-center text-white bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-600/30 font-semibold rounded-lg text-xs py-1.5 transition cursor-pointer">
+               Review Requests
+            </a>
+         </div>
+
+         <!-- User Profile Section with Upward Dropdown Menu -->
+         <div id="user-profile-widget" class="relative group/profile">
+            
+            <!-- Upward Dropdown Menu (Positioned directly above profile card) -->
+            <div id="profile-dropdown" class="absolute bottom-full left-0 right-0 mb-2 invisible group-hover/profile:visible group-focus-within/profile:visible opacity-0 group-hover/profile:opacity-100 group-focus-within/profile:opacity-100 transition-all duration-300 z-50 bg-slate-900/95 border border-slate-800 rounded-xl shadow-2xl p-1.5 backdrop-blur-md">
+               <div class="px-3 py-2 border-b border-slate-800 text-xs">
+                  <p class="font-bold text-white font-averta">Jorgy Admin</p>
+                  <p class="text-[10px] text-slate-400">admin@jorgynets.ph</p>
+               </div>
+               
+               <div class="py-1 space-y-0.5">
+                  <a id="nav-profile-settings" href="#" class="flex items-center px-3 py-1.5 text-xs text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition">
+                     <svg class="w-4 h-4 me-2 text-slate-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0 0a8.949 8.949 0 0 0 4.951-1.488A3.987 3.987 0 0 0 13 16h-2a3.987 3.987 0 0 0-3.951 3.512A8.948 8.948 0 0 0 12 21Zm3-11a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
+                     </svg>
+                     <span>Profile Settings</span>
+                  </a>
+                  <button id="nav-sys-settings" type="button" class="w-full flex items-center px-3 py-1.5 text-xs text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition cursor-pointer text-left">
+                     <svg class="w-4 h-4 me-2 text-slate-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527a1.125 1.125 0 0 1 1.45.12l.773.774c.39.389.44 1.002.12 1.45l-.527.737c-.25.35-.272.806-.107 1.204.165.397.505.71.93.78l.893.15c.543.09.94.559.94 1.109v1.094c0 .55-.397 1.02-.94 1.11l-.894.149c-.424.07-.764.383-.929.78-.165.398-.143.854.107 1.204l.527.738c.32.447.269 1.06-.12 1.45l-.774.773a1.125 1.125 0 0 1-1.449.12l-.738-.527c-.35-.25-.806-.272-1.203-.107-.398.165-.71.505-.781.929l-.149.894c-.09.542-.56.94-1.11.94h-1.094c-.55 0-1.019-.398-1.11-.94l-.148-.894c-.071-.424-.384-.764-.781-.93-.398-.164-.854-.142-1.204.108l-.738.527c-.447.32-1.06.269-1.45-.12l-.773-.774a1.125 1.125 0 0 1-.12-1.45l.527-.737c.25-.35.272-.806.108-1.204-.165-.397-.506-.71-.93-.78l-.894-.15c-.542-.09-.94-.56-.94-1.109v-1.094c0-.55.398-1.02.94-1.11l.894-.149c.424-.07.765-.383.93-.78.165-.398.143-.854-.108-1.204l-.526-.738a1.125 1.125 0 0 1 .12-1.45l.773-.773a1.125 1.125 0 0 1 1.45-.12l.737.527c.35.25.807.272 1.204.107.397-.165.71-.505.78-.929l.15-.894Z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                     </svg>
+                     <span>System Settings</span>
+                  </button>
+               </div>
+
+               <!-- Rose/Red Logout Option (Triggers AuthManager.logout) -->
+               <div class="pt-1 border-t border-slate-800">
+                  <button id="logout-btn" type="button" class="w-full flex items-center px-3 py-1.5 text-xs font-semibold text-rose-400 hover:text-white hover:bg-rose-600/90 rounded-lg transition cursor-pointer">
+                     <svg class="w-4 h-4 me-2 text-rose-400 group-hover:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12H4m12 0-4 4m4-4-4-4m3-4h2a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3h-2"/>
+                     </svg>
+                     <span>Logout Session</span>
+                  </button>
+               </div>
+            </div>
+
+            <!-- Profile Info Trigger Bar (Keyboard accessible & mobile tap friendly with tabIndex) -->
+            <button id="profile-card" type="button" class="w-full p-2.5 rounded-xl bg-slate-900/80 border border-slate-800/90 hover:border-slate-700 flex items-center justify-between cursor-pointer transition text-left focus:outline-none focus:border-blue-500">
+               <div class="flex items-center space-x-2.5">
+                  <!-- User Avatar with Online Dot -->
+                  <div class="relative shrink-0">
+                     <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 border border-blue-400/30 flex items-center justify-center text-white font-extrabold text-xs shadow-md">
+                        JA
+                     </div>
+                     <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-slate-950 rounded-full"></span>
+                  </div>
+                  <!-- User Name and Username -->
+                  <div class="overflow-hidden text-left">
+                     <h4 id="user-fullname" class="text-xs font-bold text-white truncate font-averta">Jorgie Alcantara</h4>
+                     <p id="user-handle" class="text-[10px] text-slate-400 truncate">@jorgie_admin</p>
+                  </div>
+               </div>
+
+               <!-- Chevron Indicator -->
+               <svg class="w-4 h-4 text-slate-500 group-hover/profile:text-blue-400 transition" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m5 15 7-7 7 7"/>
+               </svg>
+            </button>
+
+         </div>
+
+      </div>
+      </div>
+
+   </div>
+</aside>

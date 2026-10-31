@@ -1,0 +1,105 @@
+<!-- Reusable Settings Flowbite Modal Component (Pop-up Modal with Theme Switcher & Supabase Config) -->
+<div id="settings-modal" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+  <div class="relative p-4 w-full max-w-lg max-h-full">
+    <!-- Modal content -->
+    <div class="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-5 sm:p-6 transition-colors duration-200 font-poppins">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
+        <div class="flex items-center space-x-2.5">
+          <span class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 flex items-center justify-center font-bold text-sm">
+            <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527a1.125 1.125 0 0 1 1.45.12l.773.774c.39.389.44 1.002.12 1.45l-.527.737c-.25.35-.272.806-.107 1.204.165.397.505.71.93.78l.893.15c.543.09.94.559.94 1.109v1.094c0 .55-.397 1.02-.94 1.11l-.894.149c-.424.07-.764.383-.929.78-.165.398-.143.854.107 1.204l.527.738c.32.447.269 1.06-.12 1.45l-.774.773a1.125 1.125 0 0 1-1.449.12l-.738-.527c-.35-.25-.806-.272-1.203-.107-.398.165-.71.505-.781.929l-.149.894c-.09.542-.56.94-1.11.94h-1.094c-.55 0-1.019-.398-1.11-.94l-.148-.894c-.071-.424-.384-.764-.781-.93-.398-.164-.854-.142-1.204.108l-.738.527c-.447.32-1.06.269-1.45-.12l-.773-.774a1.125 1.125 0 0 1-.12-1.45l.527-.737c.25-.35.272-.806.108-1.204-.165-.397-.506-.71-.93-.78l-.894-.15c-.542-.09-.94-.56-.94-1.109v-1.094c0-.55.398-1.02.94-1.11l.894-.149c.424-.07.765-.383.93-.78.165-.398.143-.854-.108-1.204l-.526-.738a1.125 1.125 0 0 1 .12-1.45l.773-.773a1.125 1.125 0 0 1 1.45-.12l.737.527c.35.25.807.272 1.204.107.397-.165.71-.505.78-.929l.15-.894Z" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+            </svg>
+          </span>
+          <div>
+            <h3 id="settings-title" class="text-sm font-bold text-slate-900 dark:text-white font-averta">
+              System Settings
+            </h3>
+            <p class="text-[11px] text-slate-400">Configure visual themes and database endpoints</p>
+          </div>
+        </div>
+        <button id="close-modal" type="button" class="text-slate-400 bg-transparent hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-slate-800 dark:hover:text-white rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center cursor-pointer transition">
+          <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6"/>
+          </svg>
+          <span class="sr-only">Close modal</span>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="space-y-5 py-4">
+        
+        <!-- Theme Toggle Section -->
+        <div>
+          <label class="block mb-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 font-averta">
+            Display Appearance
+          </label>
+          <div class="grid grid-cols-2 gap-3">
+            <!-- Light Mode Button -->
+            <button id="theme-light-btn" type="button" class="flex items-center justify-between p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-dirty-white dark:bg-slate-800 hover:border-blue-500 transition cursor-pointer text-left">
+              <div class="flex items-center space-x-2.5">
+                <span class="w-7 h-7 rounded-lg bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"/>
+                  </svg>
+                </span>
+                <div>
+                  <div class="text-xs font-bold text-slate-800 dark:text-white">Light Mode</div>
+                  <div class="text-[10px] text-slate-400">Dirty-white canvas</div>
+                </div>
+              </div>
+              <span id="light-check" class="hidden w-2 h-2 rounded-full bg-blue-600"></span>
+            </button>
+
+            <!-- Dark Mode Button -->
+            <button id="theme-dark-btn" type="button" class="flex items-center justify-between p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-dirty-white dark:bg-slate-800 hover:border-blue-500 transition cursor-pointer text-left">
+              <div class="flex items-center space-x-2.5">
+                <span class="w-7 h-7 rounded-lg bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/>
+                  </svg>
+                </span>
+                <div>
+                  <div class="text-xs font-bold text-slate-800 dark:text-white">Dark Mode</div>
+                  <div class="text-[10px] text-slate-400">Deep slate palette</div>
+                </div>
+              </div>
+              <span id="dark-check" class="hidden w-2 h-2 rounded-full bg-blue-600"></span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Supabase Cloud Section -->
+        <div>
+          <label class="block mb-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 font-averta">
+            Supabase Cloud Config
+          </label>
+          <div class="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-800 text-xs space-y-1">
+            <p class="font-mono text-slate-700 dark:text-slate-300 text-[11px]">Host: db.junpnybtfzgxkyrixvpe.supabase.co</p>
+            <p class="text-emerald-600 dark:text-emerald-400 font-semibold text-[11px]">Client-Side: Direct HTTPS REST (Vercel Ready)</p>
+          </div>
+        </div>
+
+        <div>
+          <label for="anon-key" class="block mb-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300">Supabase Anon Key</label>
+          <input type="text" id="anon-key" class="bg-slate-50 border border-slate-300 text-slate-900 text-xs rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-slate-800 dark:border-slate-700 dark:placeholder-slate-400 dark:text-white font-mono shadow-2xs" placeholder="eyJh..." />
+          <p class="text-[10px] text-slate-400 mt-1">Paste your project anon key from Supabase dashboard</p>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="flex items-center justify-end border-t border-slate-200 dark:border-slate-800 space-x-2 pt-4">
+        <button id="cancel-settings" type="button" class="px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition cursor-pointer">
+          Close
+        </button>
+        <button id="save-settings" type="button" class="px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-md shadow-blue-600/30 transition cursor-pointer">
+          Save Settings
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>

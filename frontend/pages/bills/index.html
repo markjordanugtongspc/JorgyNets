@@ -1,0 +1,834 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JorgyNets - Monthly Bills & Deductions</title>
+  <!-- Google Fonts: Poppins & Space Grotesk (Currency/Numbers) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap"
+    rel="stylesheet" />
+  <!-- Flowbite Stylesheet -->
+  <link href="https://cdn.jsdelivr.net/npm/flowbite@4.0.2/dist/flowbite.min.css" rel="stylesheet" />
+  <!-- Flowbite Datepicker Script -->
+  <script src="https://cdn.jsdelivr.net/npm/flowbite-datepicker@1.3.2/dist/js/datepicker-full.min.js"></script>
+  <!-- Tailwind CSS v4 Main Stylesheet -->
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+
+<body id="bills-body"
+  class="bg-dirty-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-poppins min-h-screen antialiased transition-colors duration-200">
+
+  <!-- Component Injected Layout Slots -->
+  <div id="sidebar-slot"></div>
+  <div id="settings-slot"></div>
+
+  <!-- Main Expandable Layout Canvas -->
+  <div id="bills-main" class="p-4 sm:p-6 lg:p-8 sm:ml-72 transition-all duration-300">
+    <div id="bills-container" class="w-full space-y-6">
+
+      <!-- Header Controls Row: Title, Context & Action Controls -->
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <div class="flex items-center space-x-2.5">
+            <h1 id="page-title"
+              class="text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white font-averta">
+              Monthly Bills & Deductions
+            </h1>
+          </div>
+          <p id="page-desc" class="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1">
+            Operational Expenses, Internet, Utilities & Attendant Remittance Deductions
+          </p>
+        </div>
+
+        <!-- Top-Right Action Buttons -->
+        <div class="flex items-center flex-wrap gap-2">
+          <!-- Export CSV Button (Sky Blue outline, fills on hover and click) -->
+          <button id="export-btn" type="button"
+            class="inline-flex items-center px-3.5 py-2 text-xs font-semibold text-sky-700 dark:text-sky-300 bg-white dark:bg-slate-800 border border-sky-300 dark:border-sky-800 hover:bg-sky-600 hover:text-white hover:border-sky-600 active:bg-sky-700 active:text-white dark:hover:bg-sky-600 dark:hover:text-white rounded-xl transition shadow-2xs cursor-pointer group/export">
+            <svg
+              class="w-3.5 h-3.5 me-1.5 text-sky-600 dark:text-sky-400 group-hover/export:text-white transition-colors"
+              fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            <span>Export</span>
+          </button>
+
+          <!-- Print Button (Yellow-gold / Amber outline, fills on hover and click) -->
+          <button id="print-btn" type="button"
+            class="hidden sm:inline-flex items-center px-3.5 py-2 text-xs font-semibold text-amber-700 dark:text-amber-300 bg-white dark:bg-slate-800 border border-amber-300 dark:border-amber-800 hover:bg-amber-400 hover:text-amber-950 hover:border-amber-400 active:bg-amber-500 active:text-amber-950 dark:hover:bg-amber-400 dark:hover:text-amber-950 rounded-xl transition shadow-2xs cursor-pointer group/print">
+            <svg
+              class="w-3.5 h-3.5 me-1.5 text-amber-600 dark:text-amber-400 group-hover/print:text-amber-950 transition-colors"
+              fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4H7v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+            </svg>
+            <span>Print</span>
+          </button>
+
+          <!-- Primary Add Entry Button (Solid Rose fill for Deduction Bills) -->
+          <button id="add-btn" type="button"
+            class="inline-flex items-center px-4 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 active:bg-rose-800 rounded-xl shadow-md shadow-rose-600/30 transition cursor-pointer">
+            <svg class="w-4 h-4 me-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
+            </svg>
+            <span>Add Bill</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Sticky / Floating Batch Actions Bar (Revealed when checkboxes are selected) -->
+      <div id="batch-bar"
+        class="hidden flex items-center justify-between px-4 py-3 bg-slate-900/90 text-white rounded-xl shadow-lg border border-slate-700/60 transition-all duration-200">
+        <div class="flex items-center space-x-2">
+          <span class="w-2 h-2 rounded-full bg-rose-400 animate-pulse"></span>
+          <span id="batch-count" class="text-xs font-bold font-averta">0 selected</span>
+        </div>
+        <div class="flex items-center space-x-2">
+          <button id="batch-export" type="button"
+            class="px-3 py-1.5 text-xs font-semibold bg-slate-800 hover:bg-slate-700 rounded-lg transition cursor-pointer">
+            Export Selected
+          </button>
+          <button id="batch-delete" type="button"
+            class="px-3 py-1.5 text-xs font-semibold bg-rose-600 hover:bg-rose-700 rounded-lg transition cursor-pointer">
+            Delete
+          </button>
+        </div>
+      </div>
+
+      <!-- Table Container Card: Contains Wide Search, Filter Dropdown, and Stripped Column Table -->
+      <div id="bills-container-card"
+        class="bg-dirty-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xs overflow-hidden">
+
+        <!-- Search & Filter Controls Toolbar ABOVE Table (Active blue in light mode, primary dark in dark mode) -->
+        <div id="toolbar-row"
+          class="p-4 sm:p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-3 bg-blue-600 dark:bg-slate-900 border-b border-blue-500/60 dark:border-slate-800 text-white shadow-xs transition-colors duration-200">
+
+          <!-- Wide Search Bar -->
+          <div class="relative w-full max-w-xl">
+            <div class="absolute inset-y-0 start-0 flex items-center ps-3.5 pointer-events-none">
+              <svg class="w-4 h-4 text-blue-200 dark:text-slate-400" aria-hidden="true" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="m21 21-3.5-3.5M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z" />
+              </svg>
+            </div>
+            <input type="text" id="bills-search"
+              class="block w-full ps-10 pe-4 py-2 text-xs sm:text-sm text-white bg-blue-700/80 dark:bg-slate-800/90 border border-blue-400/50 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-white dark:focus:ring-blue-500 focus:border-white dark:focus:border-blue-500 transition shadow-2xs placeholder:text-blue-200 dark:placeholder:text-slate-400"
+              placeholder="Search bill category (e.g. PLDT FIBR), ID, owner share, remarks...">
+          </div>
+
+          <!-- Filter Dropdowns Container: Category, Owner Allocation, Date & Audit -->
+          <div class="flex items-center flex-wrap gap-2 shrink-0">
+
+            <!-- 1. Category Filter Dropdown -->
+            <div class="relative">
+              <button id="cat-filter-btn" data-dropdown-toggle="cat-filter-menu"
+                class="shrink-0 inline-flex items-center justify-center text-white dark:text-slate-200 bg-blue-700/90 dark:bg-slate-800 border border-blue-400/50 dark:border-slate-700 hover:bg-blue-800 dark:hover:bg-slate-700 focus:ring-4 focus:ring-blue-400/40 dark:focus:ring-slate-700 shadow-2xs font-semibold rounded-xl text-xs px-3 py-2 transition cursor-pointer"
+                type="button">
+                <svg class="w-4 h-4 me-1.5 text-blue-200 dark:text-blue-400" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                </svg>
+                <span id="cat-filter-label">All Categories</span>
+                <svg class="w-3.5 h-3.5 ms-1.5 text-blue-200 dark:text-slate-400" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7" />
+                </svg>
+              </button>
+
+              <!-- Flowbite Category Filter Dropdown Menu -->
+              <div id="cat-filter-menu"
+                class="z-30 hidden bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl w-60 p-1.5 font-poppins">
+                <div
+                  class="px-2.5 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-slate-700">
+                  Filter by Bill Category
+                </div>
+                <ul class="py-1 text-xs text-slate-700 dark:text-slate-200" aria-labelledby="cat-filter-btn">
+                  <li>
+                    <button id="cat-all" type="button" data-filter-category="all"
+                      class="w-full text-left px-3 py-2 rounded-lg hover:bg-blue-50 dark:hover:bg-slate-700 hover:text-blue-600 dark:hover:text-white transition cursor-pointer font-medium">
+                      All Categories
+                    </button>
+                  </li>
+                  <li>
+                    <button id="cat-pldt" type="button" data-filter-category="PLDT FIBR INTERNET"
+                      class="w-full text-left px-3 py-2 rounded-lg hover:bg-blue-50 dark:hover:bg-slate-700 hover:text-blue-600 dark:hover:text-white transition cursor-pointer font-medium">
+                      PLDT Fibr Internet
+                    </button>
+                  </li>
+                  <li>
+                    <button id="cat-veco" type="button" data-filter-category="VECO ELECTRICITY"
+                      class="w-full text-left px-3 py-2 rounded-lg hover:bg-blue-50 dark:hover:bg-slate-700 hover:text-blue-600 dark:hover:text-white transition cursor-pointer font-medium">
+                      VECO Electricity
+                    </button>
+                  </li>
+                  <li>
+                    <button id="cat-converge" type="button" data-filter-category="CONVERGE BACKUP FIBER"
+                      class="w-full text-left px-3 py-2 rounded-lg hover:bg-blue-50 dark:hover:bg-slate-700 hover:text-blue-600 dark:hover:text-white transition cursor-pointer font-medium">
+                      Converge Backup Fiber
+                    </button>
+                  </li>
+                  <li>
+                    <button id="cat-maintenance" type="button" data-filter-category="COIN CHUTE CLEANING & REPAIRS"
+                      class="w-full text-left px-3 py-2 rounded-lg hover:bg-blue-50 dark:hover:bg-slate-700 hover:text-blue-600 dark:hover:text-white transition cursor-pointer font-medium">
+                      Coin Chute Repairs & Maintenance
+                    </button>
+                  </li>
+                  <li>
+                    <button id="cat-water" type="button" data-filter-category="WATER UTILITY"
+                      class="w-full text-left px-3 py-2 rounded-lg hover:bg-blue-50 dark:hover:bg-slate-700 hover:text-blue-600 dark:hover:text-white transition cursor-pointer font-medium">
+                      Water Utility
+                    </button>
+                  </li>
+                  <li>
+                    <button id="cat-network" type="button" data-filter-category="NETWORK SWITCH UPGRADE"
+                      class="w-full text-left px-3 py-2 rounded-lg hover:bg-blue-50 dark:hover:bg-slate-700 hover:text-blue-600 dark:hover:text-white transition cursor-pointer font-medium">
+                      Network Equipment & Upgrades
+                    </button>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- 2. Filter By Owner / Allocation Dropdown -->
+            <div class="relative">
+              <button id="filter-btn" data-dropdown-toggle="filter-menu"
+                class="shrink-0 inline-flex items-center justify-center text-white dark:text-slate-200 bg-blue-700/90 dark:bg-slate-800 border border-blue-400/50 dark:border-slate-700 hover:bg-blue-800 dark:hover:bg-slate-700 focus:ring-4 focus:ring-blue-400/40 dark:focus:ring-slate-700 shadow-2xs font-semibold rounded-xl text-xs px-3 py-2 transition cursor-pointer"
+                type="button">
+                <svg class="w-4 h-4 me-1.5 text-blue-200 dark:text-blue-400" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M18.796 4H5.204a1 1 0 0 0-.753 1.659l5.302 6.058a1 1 0 0 1 .247.659v4.874a.5.5 0 0 0 .2.4l3 2.25a.5.5 0 0 0 .8-.4v-7.124a1 1 0 0 1 .247-.659l5.302-6.059c.566-.646.106-1.658-.753-1.658Z" />
+                </svg>
+                <span id="filter-label">All Owners</span>
+                <svg class="w-3.5 h-3.5 ms-1.5 text-blue-200 dark:text-slate-400" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7" />
+                </svg>
+              </button>
+
+              <!-- Flowbite Filter Dropdown Menu -->
+              <div id="filter-menu"
+                class="z-30 hidden bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl w-56 p-1.5 font-poppins">
+                <div
+                  class="px-2.5 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-slate-700">
+                  Filter by Allocation
+                </div>
+                <ul class="py-1 text-xs text-slate-700 dark:text-slate-200" aria-labelledby="filter-btn">
+                  <li>
+                    <button id="opt-all" type="button" data-filter-owner="all"
+                      class="w-full text-left px-3 py-2 rounded-lg hover:bg-blue-50 dark:hover:bg-slate-700 hover:text-blue-600 dark:hover:text-white transition cursor-pointer font-medium">
+                      All Owners (ALL)
+                    </button>
+                  </li>
+                  <li>
+                    <button id="opt-jorgy" type="button" data-filter-owner="Kuya Jorgy"
+                      class="w-full text-left px-3 py-2 rounded-lg hover:bg-blue-50 dark:hover:bg-slate-700 hover:text-blue-600 dark:hover:text-white transition cursor-pointer font-medium">
+                      1 - Kuya Jorgy
+                    </button>
+                  </li>
+                  <li>
+                    <button id="opt-roldan" type="button" data-filter-owner="Boss Roldan"
+                      class="w-full text-left px-3 py-2 rounded-lg hover:bg-blue-50 dark:hover:bg-slate-700 hover:text-blue-600 dark:hover:text-white transition cursor-pointer font-medium">
+                      2 - Boss Roldan
+                    </button>
+                  </li>
+                  <li>
+                    <button id="opt-gina" type="button" data-filter-owner="Ate Gina"
+                      class="w-full text-left px-3 py-2 rounded-lg hover:bg-blue-50 dark:hover:bg-slate-700 hover:text-blue-600 dark:hover:text-white transition cursor-pointer font-medium">
+                      3 - Ate Gina
+                    </button>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- 3. Date & Audit Filter Dropdown (Default: All Logs) -->
+            <div class="relative">
+              <button id="date-filter-btn" data-dropdown-toggle="date-filter-menu"
+                class="shrink-0 inline-flex items-center justify-center text-white dark:text-slate-200 bg-blue-700/90 dark:bg-slate-800 border border-blue-400/50 dark:border-slate-700 hover:bg-blue-800 dark:hover:bg-slate-700 focus:ring-4 focus:ring-blue-400/40 dark:focus:ring-slate-700 shadow-2xs font-semibold rounded-xl text-xs px-3 py-2 transition cursor-pointer"
+                type="button">
+                <svg class="w-4 h-4 me-1.5 text-blue-200 dark:text-blue-400" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <span id="date-filter-label">All Logs (All Dates)</span>
+                <svg class="w-3.5 h-3.5 ms-1.5 text-blue-200 dark:text-slate-400" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7" />
+                </svg>
+              </button>
+
+              <!-- Flowbite Date Filter Dropdown Menu -->
+              <div id="date-filter-menu"
+                class="z-30 hidden bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl w-64 p-2 font-poppins">
+                <div
+                  class="px-2.5 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-slate-700">
+                  Filter by Audit Period
+                </div>
+                <ul class="py-1 text-xs text-slate-700 dark:text-slate-200" aria-labelledby="date-filter-btn">
+                  <li>
+                    <button id="date-opt-all" type="button" data-filter-date="all"
+                      class="w-full text-left px-3 py-2 rounded-lg hover:bg-blue-50 dark:hover:bg-slate-700 hover:text-blue-600 dark:hover:text-white transition cursor-pointer font-bold text-blue-600 dark:text-blue-400">
+                      All Logs (Fetch All Dates)
+                    </button>
+                  </li>
+                  <li>
+                    <button id="date-opt-today" type="button" data-filter-date="today"
+                      class="w-full text-left px-3 py-2 rounded-lg hover:bg-blue-50 dark:hover:bg-slate-700 hover:text-blue-600 dark:hover:text-white transition cursor-pointer font-medium">
+                      Today Only
+                    </button>
+                  </li>
+                  <li>
+                    <button id="date-opt-week" type="button" data-filter-date="week"
+                      class="w-full text-left px-3 py-2 rounded-lg hover:bg-blue-50 dark:hover:bg-slate-700 hover:text-blue-600 dark:hover:text-white transition cursor-pointer font-medium">
+                      This Week (Last 7 Days)
+                    </button>
+                  </li>
+                  <li>
+                    <button id="date-opt-month" type="button" data-filter-date="month"
+                      class="w-full text-left px-3 py-2 rounded-lg hover:bg-blue-50 dark:hover:bg-slate-700 hover:text-blue-600 dark:hover:text-white transition cursor-pointer font-medium">
+                      This Month (Current Cycle)
+                    </button>
+                  </li>
+                </ul>
+                <!-- Specific Date Picker Input -->
+                <div class="border-t border-slate-100 dark:border-slate-700 pt-2 px-1">
+                  <label for="custom-date-filter" class="block mb-1 text-[10px] font-bold text-slate-400 uppercase">Or
+                    Specific Date</label>
+                  <input id="custom-date-filter" type="date"
+                    class="w-full px-2.5 py-1.5 text-xs bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white focus:ring-1 focus:ring-blue-500 cursor-pointer">
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- Loading Skeleton Placeholder for bills-table -->
+        <div id="table-skeleton" class="p-4 sm:p-6 space-y-4 animate-pulse bg-dirty-white dark:bg-slate-900"
+          role="status">
+          <!-- Simulated Table Header -->
+          <div
+            class="h-10 bg-slate-200/70 dark:bg-slate-800/60 rounded-xl w-full flex items-center justify-between px-4">
+            <div class="w-6 h-4 bg-slate-300 dark:bg-slate-700 rounded-sm"></div>
+            <div class="w-44 h-3.5 bg-slate-300 dark:bg-slate-700 rounded-full"></div>
+            <div class="w-28 h-3.5 bg-slate-300 dark:bg-slate-700 rounded-full"></div>
+            <div class="w-24 h-3.5 bg-slate-300 dark:bg-slate-700 rounded-full"></div>
+            <div class="w-24 h-3.5 bg-slate-300 dark:bg-slate-700 rounded-full"></div>
+            <div class="w-16 h-3.5 bg-slate-300 dark:bg-slate-700 rounded-full"></div>
+          </div>
+
+          <!-- Simulated Table Body Rows (6 Flowbite skeleton rows) -->
+          <div class="space-y-3 pt-1">
+            <div
+              class="h-14 bg-slate-100/80 dark:bg-slate-800/30 rounded-xl px-4 flex items-center justify-between border border-slate-200/40 dark:border-slate-800/50">
+              <div class="w-4 h-4 bg-slate-300 dark:bg-slate-700 rounded-sm"></div>
+              <div class="w-48 h-3 bg-slate-300 dark:bg-slate-700 rounded-full"></div>
+              <div class="w-24 h-5 bg-slate-300 dark:bg-slate-700 rounded-md"></div>
+              <div class="w-24 h-4 bg-slate-300 dark:bg-slate-700 rounded-md"></div>
+              <div class="w-24 h-3 bg-slate-300 dark:bg-slate-700 rounded-full"></div>
+              <div class="w-16 h-7 bg-slate-300 dark:bg-slate-700 rounded-lg"></div>
+            </div>
+            <div
+              class="h-14 bg-slate-200/40 dark:bg-slate-800/20 rounded-xl px-4 flex items-center justify-between border border-slate-200/40 dark:border-slate-800/50">
+              <div class="w-4 h-4 bg-slate-300 dark:bg-slate-700 rounded-sm"></div>
+              <div class="w-44 h-3 bg-slate-300 dark:bg-slate-700 rounded-full"></div>
+              <div class="w-24 h-5 bg-slate-300 dark:bg-slate-700 rounded-md"></div>
+              <div class="w-28 h-4 bg-slate-300 dark:bg-slate-700 rounded-md"></div>
+              <div class="w-20 h-3 bg-slate-300 dark:bg-slate-700 rounded-full"></div>
+              <div class="w-16 h-7 bg-slate-300 dark:bg-slate-700 rounded-lg"></div>
+            </div>
+            <div
+              class="h-14 bg-slate-100/80 dark:bg-slate-800/30 rounded-xl px-4 flex items-center justify-between border border-slate-200/40 dark:border-slate-800/50">
+              <div class="w-4 h-4 bg-slate-300 dark:bg-slate-700 rounded-sm"></div>
+              <div class="w-52 h-3 bg-slate-300 dark:bg-slate-700 rounded-full"></div>
+              <div class="w-24 h-5 bg-slate-300 dark:bg-slate-700 rounded-md"></div>
+              <div class="w-24 h-4 bg-slate-300 dark:bg-slate-700 rounded-md"></div>
+              <div class="w-24 h-3 bg-slate-300 dark:bg-slate-700 rounded-full"></div>
+              <div class="w-16 h-7 bg-slate-300 dark:bg-slate-700 rounded-lg"></div>
+            </div>
+          </div>
+          <span class="sr-only">Loading bills table entries...</span>
+        </div>
+
+        <!-- Flowbite STRIPPED COLUMN Table with Sortable Columns & Hover States -->
+        <div id="table-real" class="hidden relative overflow-x-auto">
+          <table id="bills-table"
+            class="w-full text-sm text-left rtl:text-right text-slate-600 dark:text-slate-300 bg-dirty-white dark:bg-slate-900">
+
+            <!-- Table Thead with Alternating Stripped Column Shading & Sort Handlers -->
+            <thead
+              class="text-xs text-slate-700 dark:text-slate-300 uppercase border-b border-slate-200 dark:border-slate-800 bg-dirty-white dark:bg-slate-900">
+              <tr>
+                <!-- Col 1: Master Checkbox (Soft Tint) -->
+                <th scope="col" class="p-4 bg-slate-100/60 dark:bg-slate-800/40">
+                  <div class="flex items-center">
+                    <input id="check-all" type="checkbox"
+                      class="w-4 h-4 text-blue-600 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 rounded-sm focus:ring-blue-500 cursor-pointer">
+                    <label for="check-all" class="sr-only">Select All Rows</label>
+                  </div>
+                </th>
+
+                <!-- Col 2: Category Bill & Breakdown Details (Regular Column) -->
+                <th scope="col" class="px-6 py-3.5 font-bold select-none cursor-pointer" data-sort="category">
+                  <div class="flex items-center space-x-1.5">
+                    <span>Bill Category & Breakdown</span>
+                    <svg class="sort-icon w-3.5 h-3.5 opacity-40 transition-transform duration-200" fill="none"
+                      stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="m8 15 4 4 4-4m0-6-4-4-4 4" />
+                    </svg>
+                  </div>
+                </th>
+
+                <!-- Col 3: Owner / Allocation Units (Sortable, Stripped Soft Tint) -->
+                <th scope="col"
+                  class="px-6 py-3.5 font-bold bg-slate-200/50 dark:bg-slate-800/40 cursor-pointer select-none"
+                  data-sort="owner">
+                  <div class="flex items-center space-x-1.5">
+                    <span>Pisonet Allocation</span>
+                    <svg class="sort-icon w-3.5 h-3.5 opacity-40 transition-transform duration-200" fill="none"
+                      stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="m8 15 4 4 4-4m0-6-4-4-4 4" />
+                    </svg>
+                  </div>
+                </th>
+
+                <!-- Col 4: Deducted Amount (Sortable, Regular Column with Rose Negative Color) -->
+                <th scope="col" class="px-6 py-3.5 font-bold cursor-pointer select-none" data-sort="amount">
+                  <div class="flex items-center space-x-1.5">
+                    <span>Deducted Amount (₱)</span>
+                    <svg class="sort-icon w-3.5 h-3.5 opacity-40 transition-transform duration-200" fill="none"
+                      stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="m8 15 4 4 4-4m0-6-4-4-4 4" />
+                    </svg>
+                  </div>
+                </th>
+
+                <!-- Col 5: Date & Timestamp via Tooltip (Sortable, Stripped Soft Tint) -->
+                <th scope="col"
+                  class="px-6 py-3.5 font-bold bg-slate-200/50 dark:bg-slate-800/40 cursor-pointer select-none"
+                  data-sort="date">
+                  <div class="flex items-center space-x-1.5">
+                    <span>Date & Audit</span>
+                    <svg
+                      class="sort-icon w-3.5 h-3.5 opacity-100 text-blue-600 dark:text-blue-400 transition-transform duration-200"
+                      fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="m8 15 4 4 4-4m0-6-4-4-4 4" />
+                    </svg>
+                  </div>
+                </th>
+
+                <!-- Col 6: Actions (Regular Column for Admin) -->
+                <th scope="col" class="px-6 py-3.5 font-bold text-right">
+                  <span>Actions</span>
+                </th>
+              </tr>
+            </thead>
+
+            <!-- Table Tbody populated reactively via tables.js -->
+            <tbody id="bills-tbody"></tbody>
+          </table>
+        </div>
+
+        <!-- Pagination Footer Row with Clickable Multiplier Dropdown -->
+        <div id="pagination-row"
+          class="p-4 sm:p-5 flex flex-col md:flex-row items-center justify-between gap-4 bg-blue-600 dark:bg-slate-900 border-t border-blue-500/60 dark:border-slate-800 text-xs text-white dark:text-slate-400 transition-colors duration-200">
+
+          <!-- Clickable "Showing 1-10 of 12" with Multiplier Selection Dropdown -->
+          <div class="relative flex items-center space-x-1.5">
+            <span>Showing</span>
+            <button id="page-size-btn" data-dropdown-toggle="page-size-menu" type="button"
+              class="inline-flex items-center justify-between px-2.5 py-1 font-bold text-white dark:text-slate-200 bg-blue-700/90 dark:bg-slate-800 hover:bg-blue-800 dark:hover:bg-slate-700 rounded-md border border-blue-400/50 dark:border-slate-700 shadow-2xs transition cursor-pointer">
+              <span id="page-size-label">1-10</span>
+              <svg class="w-3.5 h-3.5 ms-2 text-blue-200 dark:text-slate-400 transition-transform duration-200 shrink-0"
+                fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="m19 9-7 7-7-7" />
+              </svg>
+            </button>
+            <span>of</span>
+            <span id="total-count" class="font-bold text-white dark:text-slate-200">0</span>
+            <span>Deduction entries</span>
+
+            <!-- Multiplier Rows-per-Page Dropdown Menu -->
+            <div id="page-size-menu"
+              class="z-30 hidden bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl w-32 p-1 font-poppins text-slate-700 dark:text-slate-200">
+              <div
+                class="px-2 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-slate-700">
+                Rows per page</div>
+              <ul class="py-0.5 text-xs">
+                <li>
+                  <button id="size-5" type="button" data-size="5"
+                    class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-blue-50 dark:hover:bg-slate-700 hover:text-blue-600 dark:hover:text-white transition cursor-pointer">5
+                    rows</button>
+                </li>
+                <li>
+                  <button id="size-10" type="button" data-size="10"
+                    class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-blue-50 dark:hover:bg-slate-700 hover:text-blue-600 dark:hover:text-white transition cursor-pointer font-bold bg-blue-50 dark:bg-slate-700/60 text-blue-600 dark:text-white">10
+                    rows</button>
+                </li>
+                <li>
+                  <button id="size-25" type="button" data-size="25"
+                    class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-blue-50 dark:hover:bg-slate-700 hover:text-blue-600 dark:hover:text-white transition cursor-pointer">25
+                    rows</button>
+                </li>
+                <li>
+                  <button id="size-50" type="button" data-size="50"
+                    class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-blue-50 dark:hover:bg-slate-700 hover:text-blue-600 dark:hover:text-white transition cursor-pointer">50
+                    rows</button>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Page Navigation Buttons (Prev / Numbers / Next) -->
+          <div class="flex items-center space-x-2">
+            <button id="prev-btn" type="button"
+              class="inline-flex items-center px-3 py-1.5 text-xs font-semibold text-white dark:text-slate-200 bg-blue-700/90 dark:bg-slate-800 border border-blue-400/50 dark:border-slate-700 rounded-lg hover:bg-blue-800 dark:hover:bg-slate-700 transition cursor-pointer">
+              <svg class="w-3.5 h-3.5 me-1 text-blue-200 dark:text-slate-400" fill="none" stroke="currentColor"
+                viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+              </svg>
+              <span>Prev</span>
+            </button>
+
+            <div id="page-numbers" class="inline-flex items-center space-x-1"></div>
+
+            <button id="next-btn" type="button"
+              class="inline-flex items-center px-3 py-1.5 text-xs font-semibold text-white dark:text-slate-200 bg-blue-700/90 dark:bg-slate-800 border border-blue-400/50 dark:border-slate-700 rounded-lg hover:bg-blue-800 dark:hover:bg-slate-700 transition cursor-pointer">
+              <span>Next</span>
+              <svg class="w-3.5 h-3.5 ms-1 text-blue-200 dark:text-slate-400" fill="none" stroke="currentColor"
+                viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Flowbite Off-Canvas Drawer for Creating & Editing Bills -->
+  <div id="drawer-bills"
+    class="fixed top-0 right-0 z-50 h-screen p-6 sm:p-7 overflow-y-auto transition-transform translate-x-full bg-white w-full sm:w-[480px] md:w-[520px] dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 shadow-2xl font-poppins"
+    tabindex="-1" aria-labelledby="drawer-title">
+    <div class="flex items-center justify-between pb-4 mb-5 border-b border-slate-200 dark:border-slate-800">
+      <div>
+        <h2 id="drawer-title" class="text-lg font-bold text-slate-900 dark:text-white font-averta">
+          Log New Bill Deduction
+        </h2>
+        <p class="text-xs text-slate-400 mt-1">Record fixed operational bills and owner shares</p>
+      </div>
+      <button id="close-drawer" type="button"
+        class="text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-xl p-2 inline-flex items-center hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+        <span class="sr-only">Close drawer</span>
+      </button>
+    </div>
+
+    <!-- Add / Edit Form -->
+    <form id="bills-form" class="space-y-5">
+      <!-- Bill Category Title -->
+      <div>
+        <label for="bill-category" class="block mb-2 text-xs font-semibold text-slate-700 dark:text-slate-300">Bill
+          Category & Service</label>
+        <input type="text" id="bill-category" required placeholder="e.g. PLDT FIBR INTERNET"
+          class="w-full px-4 py-2.5 text-xs sm:text-sm bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-rose-500 shadow-2xs font-semibold uppercase placeholder:text-slate-400">
+      </div>
+
+      <!-- Description Note -->
+      <div>
+        <label for="bill-desc" class="block mb-2 text-xs font-semibold text-slate-700 dark:text-slate-300">Bill
+          Description / Service Details</label>
+        <input type="text" id="bill-desc" required placeholder="e.g. Plan 300 Mbps Fiber Line & Mesh Router"
+          class="w-full px-4 py-2.5 text-xs sm:text-sm bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-rose-500 shadow-2xs placeholder:text-slate-400">
+      </div>
+
+      <!-- Pisonet Owners Multi-Choice Selection -->
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <label class="text-xs font-semibold text-slate-700 dark:text-slate-300">Allocated Owners (Role IDs)</label>
+          <button id="select-all-owners" type="button"
+            class="text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer">
+            Toggle Select All
+          </button>
+        </div>
+        <div id="owners-checkbox-group"
+          class="p-3 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl space-y-2">
+          <label class="flex items-center space-x-2.5 cursor-pointer">
+            <input type="checkbox" name="owner-role" value="1" checked
+              class="w-4 h-4 text-rose-600 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 rounded-sm focus:ring-rose-500">
+            <span class="text-xs font-medium text-slate-800 dark:text-slate-200"><span
+                class="font-bold text-amber-500">1</span> - Kuya Jorgy (Unit 1 & 2)</span>
+          </label>
+          <label class="flex items-center space-x-2.5 cursor-pointer">
+            <input type="checkbox" name="owner-role" value="2" checked
+              class="w-4 h-4 text-rose-600 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 rounded-sm focus:ring-rose-500">
+            <span class="text-xs font-medium text-slate-800 dark:text-slate-200"><span
+                class="font-bold text-sky-500">2</span> - Boss Roldan (Unit 3 & 4)</span>
+          </label>
+          <label class="flex items-center space-x-2.5 cursor-pointer">
+            <input type="checkbox" name="owner-role" value="3" checked
+              class="w-4 h-4 text-rose-600 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 rounded-sm focus:ring-rose-500">
+            <span class="text-xs font-medium text-slate-800 dark:text-slate-200"><span
+                class="font-bold text-indigo-500">3</span> - Ate Gina (Unit 5 & 6)</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Total Deduction Bill Amount (PHP) with Auto-formatting Commas -->
+      <div>
+        <label for="bill-amount" class="block mb-2 text-xs font-semibold text-slate-700 dark:text-slate-300">Total
+          Deduction Amount (₱)</label>
+        <div class="relative">
+          <span
+            class="absolute inset-y-0 start-0 flex items-center ps-4 text-xs font-bold text-rose-500 select-none">-₱</span>
+          <input type="text" id="bill-amount" inputmode="decimal" required placeholder="3,500.00"
+            class="w-full ps-10 pe-4 py-2.5 text-xs sm:text-sm bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-rose-500 font-money shadow-2xs font-semibold">
+        </div>
+        <!-- Live Auto-Calculation Preview of Option C Splits -->
+        <div id="bill-split-preview"
+          class="mt-2.5 p-3 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700">
+          <div
+            class="flex items-center justify-between text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
+            <span class="flex items-center space-x-1">
+              <svg class="w-3.5 h-3.5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+              </svg>
+              <span>Live Deduction Share Preview</span>
+            </span>
+            <span id="preview-calc-rule" class="text-[10px] font-mono text-blue-600 dark:text-blue-400">Equal Split
+              (1/3)</span>
+          </div>
+          <div id="preview-split-cards" class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <!-- Dynamically populated via drawer.js -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Billing Date (Flowbite Full-Width Datepicker) -->
+      <div class="w-full">
+        <label for="bill-date" class="block mb-2 text-xs font-semibold text-slate-700 dark:text-slate-300">Bill
+          Date</label>
+        <div class="relative w-full">
+          <div class="absolute inset-y-0 start-0 flex items-center ps-4 pointer-events-none text-slate-400">
+            <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
+              viewBox="0 0 20 20">
+              <path
+                d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z" />
+            </svg>
+          </div>
+          <input id="bill-date" type="text"
+            placeholder="Select billing date..." required
+            class="w-full block ps-10 pe-4 py-2.5 text-xs sm:text-sm bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-rose-500 shadow-2xs cursor-pointer font-medium">
+        </div>
+      </div>
+
+      <!-- Attendant / Additional Notes -->
+      <div>
+        <label for="bill-notes" class="block mb-2 text-xs font-semibold text-slate-700 dark:text-slate-300">Audit Notes
+          & Invoice Reference</label>
+        <textarea id="bill-notes" rows="3"
+          placeholder="e.g. Official Receipt #8491823 - Split equally between all connected terminals"
+          class="w-full px-4 py-2.5 text-xs sm:text-sm bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-rose-500 shadow-2xs placeholder:text-slate-400"></textarea>
+      </div>
+
+      <!-- Form Actions (50/50 Medium Buttons) -->
+      <div class="pt-4 flex items-center space-x-3 border-t border-slate-200 dark:border-slate-800">
+        <button id="cancel-btn" type="button"
+          class="w-1/2 py-2.5 px-4 text-sm font-semibold text-rose-600 dark:text-rose-400 bg-white dark:bg-slate-800 border border-rose-300 dark:border-rose-800/80 hover:bg-rose-600 hover:text-white hover:border-rose-600 active:bg-rose-700 active:text-white dark:hover:bg-rose-600 dark:hover:text-white rounded-xl transition shadow-2xs cursor-pointer text-center">
+          Cancel
+        </button>
+        <button id="save-btn" type="submit"
+          class="w-1/2 py-2.5 px-4 text-sm font-bold text-white bg-rose-600 hover:bg-rose-700 active:bg-rose-800 rounded-xl shadow-md shadow-rose-600/30 transition cursor-pointer text-center">
+          Save Bill
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Flowbite View Drawer: Responsive Mobile Bottom Drawer, Fixed Full-Height Desktop Right Drawer -->
+  <div id="drawer-view"
+    class="fixed inset-x-0 bottom-0 sm:inset-x-auto sm:top-0 sm:right-0 sm:bottom-0 z-50 h-[85vh] sm:h-full p-6 sm:p-7 overflow-y-auto transition-transform translate-y-full sm:translate-y-0 sm:translate-x-full bg-white w-full sm:w-[480px] md:w-[540px] dark:bg-slate-900 border-t sm:border-t-0 sm:border-l border-slate-200 dark:border-slate-800 rounded-t-3xl sm:rounded-tr-none sm:rounded-tl-3xl shadow-2xl font-poppins"
+    tabindex="-1" aria-labelledby="view-title">
+    <!-- Drawer Header with Rounded Tip, Short Summary, Rose Close Button -->
+    <div
+      class="flex items-center justify-between pb-4 mb-4 border-b border-dashed border-slate-200 dark:border-slate-800">
+      <div class="min-w-0 pr-3">
+        <h2 id="view-title"
+          class="text-base sm:text-lg font-bold text-slate-900 dark:text-white font-averta truncate tracking-tight uppercase">
+          Bill Deduction Details
+        </h2>
+        <p id="view-meta" class="text-xs text-slate-400 mt-0.5 truncate font-mono">
+          Deduction Record
+        </p>
+      </div>
+
+      <!-- Rose Styled Close Button -->
+      <div class="flex items-center shrink-0">
+        <button id="close-view" type="button" title="Close drawer"
+          class="p-2 rounded-xl text-rose-600 bg-rose-500/10 hover:bg-rose-500/20 hover:text-rose-700 active:bg-rose-600 active:text-white border border-rose-300 dark:border-rose-800/60 dark:text-rose-400 dark:bg-rose-950/40 dark:hover:bg-rose-900/50 transition cursor-pointer shadow-2xs">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+          <span class="sr-only">Close</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Section Label: Full Details -->
+    <div class="mb-4">
+      <span class="text-xs font-bold text-slate-400 uppercase tracking-widest font-averta">Full Details</span>
+    </div>
+
+    <!-- Enlarged Detail Rows (SVG Icon on Left, Title, and Value on Right) -->
+    <div class="space-y-4 text-sm sm:text-base">
+      <!-- 1. Bill Category -->
+      <div class="flex items-start justify-between py-2.5 border-b border-slate-100 dark:border-slate-800/80 gap-3">
+        <div class="flex items-center space-x-3 text-slate-500 dark:text-slate-400 shrink-0">
+          <svg class="w-5 h-5 text-rose-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          <span class="font-medium">Category</span>
+        </div>
+        <span id="view-category"
+          class="font-bold text-slate-900 dark:text-white text-right text-wrap break-words max-w-[60%]">
+          --
+        </span>
+      </div>
+
+      <!-- 2. Full Description -->
+      <div class="flex items-start justify-between py-2.5 border-b border-slate-100 dark:border-slate-800/80 gap-3">
+        <div class="flex items-center space-x-3 text-slate-500 dark:text-slate-400 shrink-0">
+          <svg class="w-5 h-5 text-blue-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span class="font-medium">Description</span>
+        </div>
+        <span id="view-desc"
+          class="font-medium text-slate-800 dark:text-slate-200 text-right text-wrap break-words max-w-[60%]">
+          --
+        </span>
+      </div>
+
+
+
+      <!-- 4. Pisonet Allocation -->
+      <div class="flex items-center justify-between py-2.5 border-b border-slate-100 dark:border-slate-800/80 gap-3">
+        <div class="flex items-center space-x-3 text-slate-500 dark:text-slate-400 shrink-0">
+          <svg class="w-5 h-5 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+          <span class="font-medium">Allocation</span>
+        </div>
+        <span id="view-owner" class="font-semibold text-slate-900 dark:text-white text-right">
+          --
+        </span>
+      </div>
+
+      <!-- 5. Total Deducted Amount -->
+      <div class="flex items-center justify-between py-2.5 border-b border-slate-100 dark:border-slate-800/80 gap-3">
+        <div class="flex items-center space-x-3 text-slate-500 dark:text-slate-400 shrink-0">
+          <svg class="w-5 h-5 text-rose-600 dark:text-rose-400 shrink-0" fill="none" stroke="currentColor"
+            viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span class="font-medium">Deduction Amount</span>
+        </div>
+        <span id="view-amount" class="font-money font-black text-lg text-rose-600 dark:text-rose-400">
+          -₱0
+        </span>
+      </div>
+
+      <!-- 6. Billing Date & Timestamp -->
+      <div class="flex items-start justify-between py-2.5 border-b border-slate-100 dark:border-slate-800/80 gap-3">
+        <div class="flex items-center space-x-3 text-slate-500 dark:text-slate-400 shrink-0">
+          <svg class="w-5 h-5 text-amber-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          <span class="font-medium">Billing Date</span>
+        </div>
+        <div id="view-date" class="text-right flex flex-col items-end">
+          <span id="view-date-text" class="font-semibold text-slate-900 dark:text-white">--</span>
+          <span id="view-time-text" class="text-xs text-slate-400 font-mono mt-0.5">(--)</span>
+        </div>
+      </div>
+
+      <!-- 7. Attendant / Auditor -->
+      <div class="flex items-center justify-between py-2.5 border-b border-slate-100 dark:border-slate-800/80 gap-3">
+        <div class="flex items-center space-x-3 text-slate-500 dark:text-slate-400 shrink-0">
+          <svg class="w-5 h-5 text-sky-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          </svg>
+          <span class="font-medium">Recorded By</span>
+        </div>
+        <span id="view-attendant" class="font-medium text-slate-800 dark:text-slate-200">
+          --
+        </span>
+      </div>
+
+      <!-- 8. Deduction Breakdown & Role ID Allocation -->
+      <div class="pt-2">
+        <div class="flex items-center space-x-3 text-slate-500 dark:text-slate-400 mb-2.5">
+          <svg class="w-5 h-5 text-purple-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+          </svg>
+          <span class="font-semibold text-xs sm:text-sm text-slate-700 dark:text-slate-300">Deduction Share &
+            Breakdown</span>
+        </div>
+        <div id="view-notes"
+          class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm text-slate-800 dark:text-slate-200 font-mono leading-relaxed">
+          --
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts: Flowbite CDN, theme, tables, and drawer module initialization -->
+  <script src="https://cdn.jsdelivr.net/npm/flowbite@4.0.2/dist/flowbite.min.js"></script>
+  <script type="module">
+    import { initializeApp } from '/src/scripts/main.js'
+    import { TableManager } from '/src/scripts/modules/tables.js'
+    import { DrawerManager } from '/src/scripts/modules/drawer.js'
+
+    const tableManager = new TableManager('bills')
+    const drawerManager = new DrawerManager(tableManager, 'bills')
+
+    initializeApp({
+      init() {
+        drawerManager.init()
+        tableManager.init(drawerManager)
+
+        // Trigger Flowbite skeleton loading lifecycle via AnimationsManager
+        tableManager.animations.skeleton.init()
+      }
+    })
+  </script>
+</body>
+
+</html>

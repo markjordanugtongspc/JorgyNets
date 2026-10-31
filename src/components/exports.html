@@ -1,0 +1,133 @@
+<!-- START: Custom Print / Export Document Template (Loaded into #exports-container-card) -->
+<div id="print-sheet" class="w-full text-slate-800 dark:text-slate-100 font-poppins print:text-slate-900 print:bg-white">
+
+  <!-- Document Header Block: Full Title with Colors, Brand Badge / Logo, and System Metadata -->
+  <header id="sheet-header" class="pb-3.5 mb-3.5 border-b-2 border-slate-200 dark:border-slate-800 print:border-slate-300 print:pb-2.5 print:mb-2.5">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      
+      <!-- Brand Logo & System Title -->
+      <div id="brand-block" class="flex items-center space-x-3">
+        <div id="brand-logo"
+          class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-700 via-indigo-600 to-blue-500 text-white flex items-center justify-center font-black text-base shadow-md shadow-blue-600/30 border border-blue-400/40 print:shadow-none print:border-slate-400 shrink-0">
+          JN
+        </div>
+        <div>
+          <h1 id="company-title" class="text-lg sm:text-xl font-black tracking-tight text-blue-600 dark:text-blue-400 print:text-blue-700 font-averta">
+            JORGYNETS
+          </h1>
+          <p id="system-desc" class="text-[11px] text-slate-500 dark:text-slate-400 print:text-slate-600 font-semibold tracking-wide">
+            Pisonet Fleet Management & Automated Financial Ledger System
+          </p>
+        </div>
+      </div>
+
+      <!-- Report Document ID & Timestamp -->
+      <div id="doc-meta" class="text-left sm:text-right">
+        <span id="doc-tag" class="inline-block text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 print:bg-slate-100 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 print:border-slate-300">
+          Official Audit Report
+        </span>
+        <div id="doc-id" class="text-xs font-black font-averta text-slate-800 dark:text-slate-200 print:text-slate-900 mt-0.5">
+          DOC-EXP-2026-OCT
+        </div>
+        <div id="doc-date" class="text-[10px] text-slate-400 font-medium">
+          Generated: <span id="gen-timestamp">2026-10-31 21:00 PHT</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Telemetry Parameters Grid (Scope, Owner, Units, Date Range) -->
+    <div id="param-grid" class="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 print:bg-slate-50 border border-slate-200 dark:border-slate-700/60 print:border-slate-300 text-xs">
+      <div>
+        <span class="block text-[9px] uppercase font-bold text-slate-400 tracking-wider">Report Scope</span>
+        <span id="param-scope" class="font-bold text-blue-600 dark:text-blue-400 print:text-blue-700 break-words leading-tight block text-[11px]">ALL SYSTEM DATA</span>
+      </div>
+      <div>
+        <span class="block text-[9px] uppercase font-bold text-slate-400 tracking-wider">Target Fleet</span>
+        <span id="param-owner" class="font-bold text-slate-800 dark:text-slate-200 print:text-slate-900 break-words leading-tight block text-[11px]">ALL OWNERS (Full Fleet)</span>
+      </div>
+      <div>
+        <span class="block text-[9px] uppercase font-bold text-slate-400 tracking-wider">Pisonet Units</span>
+        <span id="param-units" class="font-bold text-slate-800 dark:text-slate-200 print:text-slate-900 break-words leading-tight block text-[11px]">Units 1 to 10 (Full Fleet)</span>
+      </div>
+      <div>
+        <span class="block text-[9px] uppercase font-bold text-slate-400 tracking-wider">Audit Period</span>
+        <span id="param-range" class="font-bold text-slate-800 dark:text-slate-200 print:text-slate-900 font-mono break-words leading-tight block text-[11px]">2026-01-01 ~ 2026-10-31</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Financial Telemetry Highlights Ribbon (Styled with Solid KPI Card Colors from Dashboard) -->
+  <section id="summary-ribbon" class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 mb-4 print:mb-3">
+    <!-- Box 1: Gross Coin Harvest with Solid Emerald Fill & Dirty-White Text (KPI 1 from Dashboard) -->
+    <div id="box-gross" class="relative overflow-hidden p-2.5 sm:p-3 rounded-xl bg-emerald-600 dark:bg-emerald-700 print:bg-emerald-600 border border-emerald-500 shadow-xs flex flex-col justify-between transition-all hover:shadow-md min-h-[78px] print:min-h-0 print:shadow-none">
+      <div class="flex items-center justify-between">
+        <span class="text-[10px] font-extrabold uppercase tracking-wider text-dirty-white print:text-white font-averta">Gross Coin Harvest</span>
+        <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-700/80 dark:bg-emerald-800/80 print:bg-emerald-700 text-dirty-white print:text-white border border-emerald-400/40">Revenue</span>
+      </div>
+      <div class="mt-1">
+        <p id="total-revenue" class="text-lg sm:text-xl font-black text-dirty-white print:text-white tracking-tight font-money leading-tight">₱48,930.00</p>
+        <p class="text-[9px] text-dirty-white/80 print:text-emerald-100 font-medium leading-none mt-0.5">Total coin drop collection</p>
+      </div>
+    </div>
+
+    <!-- Box 2: Total Deductions with Solid Rose Fill & Dirty-White Text (KPI 2 from Dashboard) -->
+    <div id="box-bills" class="relative overflow-hidden p-2.5 sm:p-3 rounded-xl bg-rose-600 dark:bg-rose-700 print:bg-rose-600 border border-rose-500 shadow-xs flex flex-col justify-between transition-all hover:shadow-md min-h-[78px] print:min-h-0 print:shadow-none">
+      <div class="flex items-center justify-between">
+        <span class="text-[10px] font-extrabold uppercase tracking-wider text-dirty-white print:text-white font-averta">Total Deductions</span>
+        <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-rose-700/80 dark:bg-rose-800/80 print:bg-rose-700 text-dirty-white print:text-white border border-rose-400/40">Expenses</span>
+      </div>
+      <div class="mt-1">
+        <p id="total-deductions" class="text-lg sm:text-xl font-black text-dirty-white print:text-white tracking-tight font-money leading-tight">-₱13,736.41</p>
+        <p class="text-[9px] text-dirty-white/80 print:text-rose-100 font-medium leading-none mt-0.5">Bills, internet & repairs</p>
+      </div>
+    </div>
+
+    <!-- Box 3: Net Owner Payout with Solid Amber Fill & Dirty-White Text (KPI 3 from Dashboard) -->
+    <div id="box-net" class="relative overflow-hidden p-2.5 sm:p-3 rounded-xl bg-amber-500 dark:bg-amber-600 print:bg-amber-500 border border-amber-400 shadow-xs flex flex-col justify-between transition-all hover:shadow-md min-h-[78px] print:min-h-0 print:shadow-none">
+      <div class="flex items-center justify-between">
+        <span class="text-[10px] font-extrabold uppercase tracking-wider text-dirty-white print:text-white font-averta">Net Owner Payout</span>
+        <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-600/80 dark:bg-amber-700/80 print:bg-amber-600 text-dirty-white print:text-white border border-amber-300/40">Net Profit</span>
+      </div>
+      <div class="mt-1">
+        <p id="total-net" class="text-lg sm:text-xl font-black text-dirty-white print:text-white tracking-tight font-money leading-tight">₱35,193.59</p>
+        <p class="text-[9px] text-dirty-white/80 print:text-amber-100 font-medium leading-none mt-0.5">Cash distribution</p>
+      </div>
+    </div>
+
+    <!-- Box 4: Active Units with Solid Blue Fill & Dirty-White Text -->
+    <div id="box-units" class="relative overflow-hidden p-2.5 sm:p-3 rounded-xl bg-blue-600 dark:bg-blue-700 print:bg-blue-600 border border-blue-500 shadow-xs flex flex-col justify-between transition-all hover:shadow-md min-h-[78px] print:min-h-0 print:shadow-none">
+      <div class="flex items-center justify-between">
+        <span class="text-[10px] font-extrabold uppercase tracking-wider text-dirty-white print:text-white font-averta">Audited Entries</span>
+        <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-blue-700/80 dark:bg-blue-800/80 print:bg-blue-700 text-dirty-white print:text-white border border-blue-400/40">Coverage</span>
+      </div>
+      <div class="mt-1">
+        <p id="total-units" class="text-lg sm:text-xl font-black text-dirty-white print:text-white tracking-tight font-money leading-tight">15 Records</p>
+        <p class="text-[9px] text-dirty-white/80 print:text-blue-100 font-medium leading-none mt-0.5">Total compiled logs</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Single Continuous Flowbite Stripped Column Table Container (Doomscrolling on Screen, Page Breaks on Print) -->
+  <section id="preview-table-container" class="space-y-4">
+    <!-- Populated by ExportsManager with single stripped table -->
+  </section>
+
+  <!-- Developer Credits Footer (Without Audit Signature) -->
+  <footer id="sheet-footer" class="mt-4 pt-3.5 border-t-2 border-slate-200 dark:border-slate-800 print:border-slate-300 print:mt-3 print:pt-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs print:text-[10px]">
+    <div id="credit-dev">
+      <span class="text-slate-500 dark:text-slate-400 print:text-slate-600 font-medium">System Architect & Developer: </span>
+      <span id="dev-name" class="font-extrabold text-blue-600 dark:text-blue-400 print:text-blue-700">Mark Jordan Ugtong</span>
+    </div>
+    <div id="credit-meta" class="sm:text-right space-y-0.5">
+      <div class="text-[10px] print:text-[9px] text-slate-500 dark:text-slate-400 print:text-slate-600 font-medium">
+        © <span id="credit-year">2026</span> JorgyNets Fleet Systems. All Rights Reserved.
+      </div>
+      <div class="text-[9px] print:text-[8px] text-slate-400 font-mono">
+        SHA-256 Verified Ledger Snapshot • Client ID: JN-ADM-001
+      </div>
+    </div>
+  </footer>
+
+</div>
+<!-- END: Custom Print / Export Document Template -->

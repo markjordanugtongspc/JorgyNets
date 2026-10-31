@@ -1,0 +1,186 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+@plugin "flowbite/plugin";
+@source "../node_modules/flowbite";
+
+@theme {
+  --font-averta: "Averta", "Poppins", sans-serif;
+  --font-poppins: "Poppins", "Averta", sans-serif;
+  --font-money: "Space Grotesk", "JetBrains Mono", "Poppins", monospace;
+  --color-dirty-white: #f8fafc;
+  --color-dirty-card: #f4f6f8;
+}
+
+body {
+  font-family: var(--font-poppins);
+}
+
+.font-money {
+  font-family: var(--font-money);
+  font-feature-settings: "tnum" 1, "zero" 1;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Subtle, Sleek Scrollbar for Expanded Data Previews */
+.scrollbar-subtle::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+.scrollbar-subtle::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scrollbar-subtle::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.25);
+  border-radius: 9999px;
+}
+.scrollbar-subtle::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.5);
+}
+.dark .scrollbar-subtle::-webkit-scrollbar-thumb {
+  background: rgba(71, 85, 105, 0.35);
+}
+.dark .scrollbar-subtle::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.6);
+}
+
+
+/* Flowbite Datepicker Popover Solid Styling (Fix transparency & theme support) */
+.datepicker-picker {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 1rem !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+  padding: 1rem !important;
+}
+
+.dark .datepicker-picker {
+  background-color: #0f172a !important;
+  color: #f8fafc !important;
+  border-color: #1e293b !important;
+}
+
+.datepicker-header button,
+.datepicker-header .view-switch {
+  background-color: transparent !important;
+  color: #0f172a !important;
+  font-weight: 700 !important;
+  border-radius: 0.5rem !important;
+}
+
+.dark .datepicker-header button,
+.dark .datepicker-header .view-switch {
+  color: #f8fafc !important;
+}
+
+.datepicker-header button:hover,
+.datepicker-header .view-switch:hover {
+  background-color: #f1f5f9 !important;
+}
+
+.dark .datepicker-header button:hover,
+.dark .datepicker-header .view-switch:hover {
+  background-color: #1e293b !important;
+}
+
+.datepicker-cell {
+  border-radius: 0.5rem !important;
+  color: #334155 !important;
+  font-weight: 500 !important;
+}
+
+.dark .datepicker-cell {
+  color: #cbd5e1 !important;
+}
+
+.datepicker-cell:hover {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+.dark .datepicker-cell:hover {
+  background-color: #1e293b !important;
+  color: #ffffff !important;
+}
+
+.datepicker-cell.selected,
+.datepicker-cell.selected:hover {
+  background-color: #2563eb !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+}
+
+.datepicker-cell.prev,
+.datepicker-cell.next {
+  color: #94a3b8 !important;
+  opacity: 0.5 !important;
+}
+
+.dark .datepicker-cell.prev,
+.dark .datepicker-cell.next {
+  color: #64748b !important;
+}
+
+.dow {
+  color: #64748b !important;
+  font-weight: 700 !important;
+  font-size: 0.75rem !important;
+}
+
+.dark .dow {
+  color: #94a3b8 !important;
+}
+
+/* Print Layout Media Rules */
+@media print {
+  @page {
+    size: auto;
+    /* margin: 0 suppresses the browser's default header (URL) and footer (date/page URL) */
+    margin: 0;
+  }
+
+  body {
+    margin: 0 !important;
+    padding: 10mm !important;
+    background: #ffffff !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Force exact background colors and graphic fills for cards and stripped columns */
+  *,
+  *::before,
+  *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Header and summary ribbon should stay together on page 1 */
+  #sheet-header,
+  #summary-ribbon {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Repeat table headers at top of each printed page */
+  thead {
+    display: table-header-group;
+  }
+  
+  tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Break table rows cleanly */
+  tbody tr:nth-child(10n):not(:last-child) {
+    break-after: page;
+    page-break-after: always;
+  }
+
+  /* Ensure footer stays attached to final page without spilling over */
+  #sheet-footer {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}

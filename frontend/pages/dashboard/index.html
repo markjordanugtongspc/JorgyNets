@@ -1,0 +1,965 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JorgyNets - Pisonet Dashboard</title>
+    <!-- Google Fonts: Poppins & Space Grotesk (Money/Numbers) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+    <!-- Flowbite Stylesheet -->
+    <link href="https://cdn.jsdelivr.net/npm/flowbite@4.0.2/dist/flowbite.min.css" rel="stylesheet" />
+    <!-- Tailwind CSS v4 Main Stylesheet -->
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body id="dash-body" class="bg-slate-50 text-slate-900 font-poppins min-h-screen antialiased">
+    
+    <!-- Sidebar Component Slot (Injected via JS) -->
+    <div id="sidebar-slot"></div>
+    <div id="settings-slot"></div>
+
+    <!-- Main Expandable Dashboard Layout Canvas (Adjusted ml for wider w-72 sidebar) -->
+    <div id="dash-main" class="p-4 sm:ml-72 transition-all duration-300">
+      <div id="dash-container" class="p-4 sm:p-6 border border-slate-200 border-dashed rounded-2xl bg-slate-100/60 space-y-6">
+        
+        <!-- Header Controls Row -->
+        <div id="dash-header" class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div id="header-text">
+            <h1 id="page-title" class="text-2xl font-black tracking-tight text-slate-900 font-averta">
+              Pisonet Business Console
+            </h1>
+            <p id="page-sub" class="text-xs text-slate-500 font-medium mt-0.5">
+              Live Coin Drop Telemetry, Branch Revenue, and Terminal Status Monitoring
+            </p>
+          </div>
+
+          <div id="header-actions" class="flex items-center space-x-2">
+            <!-- Supabase Telemetry Force-Refresh Action Button (Normal rounded SVG icon by default, smoothly shifts left + spins on hover revealing white Reload Data text with emerald fill) -->
+            <button id="dash-refresh" type="button" class="h-9 w-9 p-0 rounded-full border border-slate-300 dark:border-slate-700 bg-transparent transition-all duration-300 ease-out shadow-xs cursor-pointer flex items-center justify-center overflow-hidden">
+              <!-- SVG Icon: Centered in compact circle, shifts smoothly to the left when expanded -->
+              <svg id="dash-refresh-icon" class="w-6 h-6 shrink-0 transition-transform duration-500 ease-in-out" viewBox="0 0 496.156 496.156" xmlns="http://www.w3.org/2000/svg">
+                <path style="fill:#32BEA6;" d="M0,248.08C0,111.06,111.069,0.002,248.074,0.002c137.013,0,248.082,111.059,248.082,248.078 c0,137.005-111.069,248.074-248.082,248.074C111.069,496.154,0,385.085,0,248.08z"/>
+                <g>
+                  <path style="fill:#FFFFFF;" d="M428.243,172.149c-10.348,0.023-20.694,0.054-31.042,0.077 c-23.272-52.177-68.95-89.871-126.649-98.91c-64.287-10.071-125.816,19.788-162.504,72.312 c-16.296,23.326,22.003,45.165,38.16,22.034c50.317-72.037,157.757-65.527,201.907,4.686c-9.559,0.022-19.118,0.046-28.678,0.068 c-2.674,0.008-4.574,1.197-5.749,2.877c-1.92,2.058-2.65,5.072-0.639,8.186c18.204,28.25,36.408,56.499,54.616,84.745 c3.061,4.747,9.663,4.708,12.696-0.046c18.062-28.338,36.126-56.675,54.188-85.013C437.538,178.48,433.602,172.135,428.243,172.149 z"/>
+                  <path style="fill:#FFFFFF;" d="M350.353,327.224c-49.927,71.49-156.108,65.63-200.886-3.049c9.161-0.022,18.322-0.046,27.484-0.068 c2.666-0.008,4.563-1.19,5.741-2.865c1.924-2.059,2.658-5.072,0.646-8.197c-18.2-28.246-36.405-56.499-54.609-84.741 c-3.056-4.751-9.662-4.712-12.695,0.046c-18.063,28.334-36.13,56.671-54.196,85.009c-2.987,4.689,0.948,11.032,6.308,11.017 c10.669-0.027,21.337-0.054,32.006-0.08c23.498,51.319,68.777,88.332,125.865,97.275c64.287,10.072,125.816-19.784,162.496-72.312 C404.806,325.928,366.508,304.09,350.353,327.224z"/>
+                </g>
+              </svg>
+              <!-- Expandable Label on Hover (Transitions smoothly from gray font to white font) -->
+              <span id="refresh-label" class="max-w-0 opacity-0 whitespace-nowrap overflow-hidden transition-all duration-300 ease-out text-xs font-bold text-slate-400 tracking-wide font-averta">
+                Reload Data
+              </span>
+            </button>
+            <!-- Date Picker Action Trigger (Replaces dash-add with full current date button + Flowbite calendar dropdown) -->
+            <div id="date-picker-wrap" class="relative">
+              <button id="dash-date" type="button" class="text-xs font-semibold px-3 py-2 text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/80 rounded-lg shadow-2xs transition inline-flex items-center space-x-2.5 cursor-pointer">
+                <span class="flex items-center space-x-2">
+                  <!-- Calendar icon -->
+                  <svg class="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path>
+                  </svg>
+                  <span id="date-label" class="font-averta whitespace-nowrap">October 4, 2026</span>
+                </span>
+                <svg id="date-arrow" class="w-3.5 h-3.5 text-slate-400 transition-transform duration-200 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </button>
+
+              <!-- Flowbite Calendar Dropdown with matching button width -->
+              <div id="date-calendar-dropdown" class="hidden absolute right-0 mt-2 z-50 w-64 sm:w-72 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl p-3.5 font-poppins">
+                <!-- Calendar Month & Year Header Navigation -->
+                <div class="flex items-center justify-between pb-2.5 mb-2.5 border-b border-slate-100 dark:border-slate-800">
+                  <button id="cal-prev" type="button" class="p-1 rounded-md text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 transition cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                  </button>
+                  <span id="cal-month-year" class="text-xs font-bold text-slate-800 dark:text-white font-averta">October 2026</span>
+                  <button id="cal-next" type="button" class="p-1 rounded-md text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 transition cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                  </button>
+                </div>
+
+                <!-- Weekday Headers -->
+                <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-slate-400 uppercase pb-1">
+                  <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
+                </div>
+
+                <!-- Calendar Days Grid (Dynamically rendered via JS) -->
+                <div id="cal-days-grid" class="grid grid-cols-7 gap-1 text-center text-xs"></div>
+
+                <!-- Footer Quick Selection Shortcuts -->
+                <div class="pt-2.5 mt-2.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px]">
+                  <button id="cal-oct-btn" type="button" class="font-bold text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer">
+                    Oct 2026 (Live Data)
+                  </button>
+                  <button id="cal-today-btn" type="button" class="font-medium text-slate-500 hover:text-slate-800 dark:hover:text-slate-300 cursor-pointer">
+                    Current Date
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3-Column Top KPI Stat Grid (October 4, 2026 Telemetry Figures with Flowbite Loading Skeleton) -->
+        <!-- 3-Column Top KPI Stat Grid with Solid Tailwind Colors and Dirty-White Typography -->
+        <div id="kpi-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          
+          <!-- KPI 1: Overall Monthly Habwa Total with Solid Emerald Fill & Dirty-White Text -->
+          <div id="kpi-revenue" class="relative overflow-hidden p-5 rounded-xl bg-emerald-600 dark:bg-emerald-700 border border-emerald-500 shadow-md flex flex-col justify-between transition-all hover:shadow-lg hover:bg-emerald-500 dark:hover:bg-emerald-600 min-h-[140px]">
+            <!-- Background Watermark Icon Skeleton & Loaded Icon -->
+            <div id="revenue-icon-skeleton" class="absolute -right-1 -bottom-1 pointer-events-none rotate-12 animate-pulse">
+              <div class="w-20 h-20 bg-emerald-800/40 rounded-full"></div>
+            </div>
+            <div id="revenue-icon-loaded" class="hidden absolute -right-1 -bottom-1 pointer-events-none opacity-35 text-white rotate-12 transition-transform duration-300">
+              <svg class="w-20 h-20" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M19 4h-2V2h-2v2H9V2H7v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2M5 20V8h14V6v14z"></path>
+                <path d="M7 11h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2zm-8 4h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2z"></path>
+              </svg>
+            </div>
+            <!-- Header Row: Skeleton & Loaded -->
+            <div class="relative z-10 flex items-center justify-between">
+              <div id="revenue-title-skeleton" class="h-3 bg-emerald-400/40 rounded-full w-28 animate-pulse"></div>
+              <span id="revenue-title" class="hidden text-xs font-extrabold uppercase tracking-wider text-dirty-white font-averta">Monthly Total Habwa</span>
+              
+              <div id="revenue-badge-skeleton" class="h-4 bg-emerald-400/40 rounded-md w-24 animate-pulse"></div>
+              <span id="revenue-badge" class="hidden px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-700/80 dark:bg-emerald-800/80 text-dirty-white border border-emerald-400/40 shadow-xs">October 04, 2026</span>
+            </div>
+            <!-- Amount & Desc Row: Skeleton & Loaded -->
+            <div class="relative z-10 mt-3">
+              <div id="revenue-amount-skeleton" class="h-8 bg-emerald-400/40 rounded-lg w-36 mb-2 animate-pulse"></div>
+              <p id="revenue-amount" class="hidden text-3xl font-black text-dirty-white tracking-tight font-money" data-count-money="12042" data-prefix="₱" data-duration="1500">
+                ₱0
+              </p>
+              <div id="revenue-desc-skeleton" class="h-2.5 bg-emerald-400/30 rounded-full w-48 mt-1.5 animate-pulse"></div>
+              <p id="revenue-desc" class="hidden text-[11px] text-dirty-white/90 mt-1 font-semibold">Overall 4 Pisonets collection (PC1/2, PC3, PC4)</p>
+            </div>
+          </div>
+
+          <!-- KPI 2: Overall Expenses / Deductions with Solid Rose Fill & Dirty-White Text -->
+          <div id="kpi-terminals" class="relative overflow-hidden p-5 rounded-xl bg-rose-600 dark:bg-rose-700 border border-rose-500 shadow-md flex flex-col justify-between transition-all hover:shadow-lg hover:bg-rose-500 dark:hover:bg-rose-600 min-h-[140px]">
+            <!-- Background Watermark Icon Skeleton & Loaded Icon -->
+            <div id="terminals-icon-skeleton" class="absolute -right-1 -bottom-1 pointer-events-none -rotate-12 animate-pulse">
+              <div class="w-20 h-20 bg-rose-800/40 rounded-full"></div>
+            </div>
+            <div id="terminals-icon-loaded" class="hidden absolute -right-1 -bottom-1 pointer-events-none opacity-35 text-white -rotate-12 transition-transform duration-300">
+              <svg class="w-20 h-20" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M4 2H2v19c0 .55.45 1 1 1h19v-2H4z"></path>
+                <path d="M9.17 6.83c.13-.49.58-.83 1.08-.83s.95.34 1.08.83l2.4 8.86c.37 1.36 1.61 2.31 3.02 2.31s2.65-.95 3.02-2.31l1.2-4.43-1.93-.52-1.2 4.43c-.13.49-.58.83-1.08.83s-.95-.34-1.08-.83l-2.4-8.86C12.91 4.95 11.67 4 10.26 4s-2.65.95-3.02 2.31l-1.2 4.43 1.93.52z"></path>
+              </svg>
+            </div>
+            <!-- Header Row: Skeleton & Loaded -->
+            <div class="relative z-10 flex items-center justify-between">
+              <div id="terminals-title-skeleton" class="h-3 bg-rose-400/40 rounded-full w-36 animate-pulse"></div>
+              <span id="terminals-title" class="hidden text-xs font-extrabold uppercase tracking-wider text-dirty-white font-averta">Overall Expenses & Deductions</span>
+              
+              <div id="terminals-badge-skeleton" class="h-4 bg-rose-400/40 rounded-md w-24 animate-pulse"></div>
+              <span id="terminals-badge" class="hidden px-2 py-0.5 rounded text-[11px] font-bold bg-rose-700/80 dark:bg-rose-800/80 text-dirty-white border border-rose-400/40 shadow-xs">Total Deductions</span>
+            </div>
+            <!-- Amount & Desc Row: Skeleton & Loaded -->
+            <div class="relative z-10 mt-3">
+              <div id="terminals-count-skeleton" class="h-8 bg-rose-400/40 rounded-lg w-36 mb-2 animate-pulse"></div>
+              <p id="terminals-count" class="hidden text-3xl font-black text-dirty-white tracking-tight font-money" data-count-money="11067" data-prefix="-₱" data-duration="1500">
+                -₱0
+              </p>
+              <div id="terminals-desc-skeleton" class="h-2.5 bg-rose-400/30 rounded-full w-48 mt-1.5 animate-pulse"></div>
+              <p id="terminals-desc" class="hidden text-[11px] text-dirty-white/90 mt-1 font-semibold">Electricity, PLDT, Other/Misc & PC-4 Return</p>
+            </div>
+          </div>
+
+          <!-- KPI 3: Globally Net Profit Left with Solid Amber/Orange Fill & Dirty-White Text -->
+          <div id="kpi-monthly" class="relative overflow-hidden p-5 rounded-xl bg-amber-500 dark:bg-amber-600 border border-amber-400 shadow-md flex flex-col justify-between transition-all hover:shadow-lg hover:bg-amber-400 dark:hover:bg-amber-500 min-h-[140px]">
+            <!-- Background Watermark Icon Skeleton & Loaded Icon -->
+            <div id="monthly-icon-skeleton" class="absolute -right-1 -bottom-1 pointer-events-none rotate-12 animate-pulse">
+              <div class="w-20 h-20 bg-amber-700/40 rounded-full"></div>
+            </div>
+            <div id="monthly-icon-loaded" class="hidden absolute -right-1 -bottom-1 pointer-events-none opacity-35 text-white rotate-12 transition-transform duration-300">
+              <svg class="w-20 h-20" id="Layer_2" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+                <path d="m28.759 18.581c-.777-.537-1.768-.659-2.617-.34l-6.965 2.314c-.233-.506-.614-.952-1.13-1.265l-3.167-1.506c-1.169-.555-2.491-.634-3.721-.225l-3.197 1.066c-.176-.924-.988-1.625-1.962-1.625h-2c-1.103 0-2 .897-2 2v8c0 1.103.897 2 2 2h2c.632 0 1.19-.301 1.557-.76l3.699 1.233c1.139.379 2.314.567 3.484.567 2.01 0 4.003-.553 5.76-1.634l8.13-5.003c.845-.521 1.37-1.46 1.37-2.453 0-.945-.464-1.831-1.241-2.369zm-24.759 8.419v-8h2v8s-2 0-2 0zm23.581-5.301-8.13 5.003c-2.274 1.399-5.03 1.717-7.562.873l-3.889-1.296v-5.558l3.792-1.264c.736-.247 1.528-.198 2.232.135l3.02 1.43c.389.261.511.773.276 1.184-.229.404-.725.564-1.147.371l-2.362-1.076c-.501-.229-1.095-.006-1.324.496-.229.503-.007 1.096.496 1.325l2.362 1.076c.393.179.803.264 1.207.264 1.008 0 1.974-.53 2.507-1.465.106-.187.186-.38.247-.576l7.504-2.495c.274-.102.569-.066.812.1.24.167.379.431.379.724 0 .304-.16.591-.419.75zm-11.777-7.709c1.067 1.844 3.034 3.01 5.196 3.01 3.309 0 6-2.691 6-6 0-3.243-2.588-5.886-5.806-5.99-1.038-1.796-2.975-3.01-5.194-3.01-3.309 0-6 2.691-6 6 0 3.243 2.587 5.886 5.804 5.99zm6.196-5.99c0-.3-.029-.592-.072-.88 1.758.421 3.072 1.996 3.072 3.88 0 2.206-1.794 4-4 4-1.166 0-2.246-.509-2.995-1.352 2.324-.828 3.995-3.044 3.995-5.648zm-6-4c2.206 0 4 1.794 4 4s-1.794 4-4 4-4-1.794-4-4 1.794-4 4-4z"/>
+              </svg>
+            </div>
+            <!-- Header Row: Skeleton & Loaded -->
+            <div class="relative z-10 flex items-center justify-between">
+              <div id="monthly-title-skeleton" class="h-3 bg-amber-300/40 rounded-full w-28 animate-pulse"></div>
+              <span id="monthly-title" class="hidden text-xs font-extrabold uppercase tracking-wider text-dirty-white font-averta">Net Profit Left</span>
+              
+              <div id="monthly-badge-skeleton" class="h-4 bg-amber-300/40 rounded-md w-24 animate-pulse"></div>
+              <span id="monthly-badge" class="hidden px-2 py-0.5 rounded text-[11px] font-bold bg-amber-600/80 dark:bg-amber-700/80 text-dirty-white border border-amber-300/40 shadow-xs">Remaining Cash</span>
+            </div>
+            <!-- Amount & Desc Row: Skeleton & Loaded -->
+            <div class="relative z-10 mt-3">
+              <div id="monthly-amount-skeleton" class="h-8 bg-amber-300/40 rounded-lg w-32 mb-2 animate-pulse"></div>
+              <p id="monthly-amount" class="hidden text-3xl font-black text-dirty-white tracking-tight font-money" data-count-money="975" data-prefix="₱" data-duration="1800">
+                ₱0
+              </p>
+              <div id="monthly-desc-skeleton" class="h-2.5 bg-amber-300/30 rounded-full w-48 mt-1.5 animate-pulse"></div>
+              <p id="monthly-desc" class="hidden text-[11px] text-dirty-white/90 mt-1 font-semibold">Net profit after all bills and returns</p>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ApexCharts Interactive Expandable Analytics Grid (With Flowbite Widget Placeholder Skeleton) -->
+        <div id="charts-grid" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          
+          <!-- Large Chart: Monthly 12-Month Revenue & Net Trends in ₱ (With Flowbite Widget Placeholder Skeleton) -->
+          <div id="sales-chart-card" class="lg:col-span-8 p-5 rounded-xl bg-slate-50 border border-slate-200 shadow-sm relative overflow-hidden">
+            <!-- Widget Placeholder Skeleton Faithfully Matching Area Line Chart -->
+            <div id="sales-chart-skeleton" role="status" class="w-full animate-pulse">
+              <!-- Header Telemetry Skeleton (Soft neutral gray matching kpi-grid) -->
+              <div class="flex items-center justify-between mb-4">
+                <div>
+                  <div class="h-3.5 bg-slate-400/30 rounded-full w-56 mb-2"></div>
+                  <div class="w-72 h-2 bg-slate-400/20 rounded-full"></div>
+                </div>
+                <div class="flex items-center space-x-3">
+                  <div class="flex items-center space-x-1.5">
+                    <div class="w-2.5 h-2.5 rounded-full bg-slate-400/30"></div>
+                    <div class="w-14 h-2 bg-slate-400/20 rounded-full"></div>
+                  </div>
+                  <div class="flex items-center space-x-1.5">
+                    <div class="w-2.5 h-2.5 rounded-full bg-slate-400/30"></div>
+                    <div class="w-14 h-2 bg-slate-400/20 rounded-full"></div>
+                  </div>
+                  <div class="h-4 bg-slate-400/25 rounded-md w-14"></div>
+                </div>
+              </div>
+
+              <!-- Generic Neutral Area Chart Skeleton (No hardcoded October peak or dots, truly generic placeholder) -->
+              <div class="relative h-[255px] w-full border-b border-l border-slate-200/80 dark:border-slate-700/60 flex flex-col justify-between py-2 px-3 overflow-hidden">
+                <!-- Faint horizontal chart grid lines -->
+                <div class="w-full border-b border-dashed border-slate-200/80 dark:border-slate-800 h-0"></div>
+                <div class="w-full border-b border-dashed border-slate-200/80 dark:border-slate-800 h-0"></div>
+                <div class="w-full border-b border-dashed border-slate-200/80 dark:border-slate-800 h-0"></div>
+                <div class="w-full border-b border-dashed border-slate-200/80 dark:border-slate-800 h-0"></div>
+
+                <!-- Smooth Generic Neutral Area Curve Silhouette (Spanning entire year uniformly without data bias) -->
+                <svg class="absolute inset-0 w-full h-full pointer-events-none" preserveAspectRatio="none" viewBox="0 0 1000 240">
+                  <defs>
+                    <linearGradient id="skelGenericArea" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="#94a3b8" stop-opacity="0.18"></stop>
+                      <stop offset="85%" stop-color="#94a3b8" stop-opacity="0.04"></stop>
+                      <stop offset="100%" stop-color="#94a3b8" stop-opacity="0"></stop>
+                    </linearGradient>
+                  </defs>
+                  <!-- Gentle generic wave across full timeline -->
+                  <path d="M 40 175 C 140 155, 220 185, 300 145 C 380 120, 460 155, 540 130 C 620 115, 700 145, 780 125 C 860 110, 920 135, 960 145 L 960 230 L 40 230 Z" fill="url(#skelGenericArea)" />
+                  <path d="M 40 175 C 140 155, 220 185, 300 145 C 380 120, 460 155, 540 130 C 620 115, 700 145, 780 125 C 860 110, 920 135, 960 145" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="dark:stroke-slate-700/80" />
+                  <!-- Faint secondary dashed wave -->
+                  <path d="M 40 195 C 140 175, 220 195, 300 165 C 380 145, 460 175, 540 155 C 620 138, 700 165, 780 148 C 860 135, 920 155, 960 165" fill="none" stroke="#e2e8f0" stroke-width="1.8" stroke-dasharray="4,4" stroke-linecap="round" class="dark:stroke-slate-800" />
+                </svg>
+              </div>
+
+              <!-- 12-Month X-Axis Categories Labels Skeleton (Uniform neutral tone across all months) -->
+              <div class="grid grid-cols-12 gap-1 pt-2 text-center">
+                <span class="text-[10px] font-medium text-slate-400/70">Jan</span>
+                <span class="text-[10px] font-medium text-slate-400/70">Feb</span>
+                <span class="text-[10px] font-medium text-slate-400/70">Mar</span>
+                <span class="text-[10px] font-medium text-slate-400/70">Apr</span>
+                <span class="text-[10px] font-medium text-slate-400/70">May</span>
+                <span class="text-[10px] font-medium text-slate-400/70">Jun</span>
+                <span class="text-[10px] font-medium text-slate-400/70">Jul</span>
+                <span class="text-[10px] font-medium text-slate-400/70">Aug</span>
+                <span class="text-[10px] font-medium text-slate-400/70">Sep</span>
+                <span class="text-[10px] font-medium text-slate-400/70">Oct</span>
+                <span class="text-[10px] font-medium text-slate-400/70">Nov</span>
+                <span class="text-[10px] font-medium text-slate-400/70">Dec</span>
+              </div>
+              <span class="sr-only">Loading chart data...</span>
+            </div>
+
+            <!-- Real Chart Elements (Revealed after load) -->
+            <div id="sales-chart-content" class="hidden">
+              <div id="sales-chart-header" class="flex items-center justify-between mb-2">
+                <div>
+                  <h3 id="sales-heading" class="text-sm font-bold text-slate-900 font-averta">Annual Pisonet Revenue & Profit Trends</h3>
+                  <p id="sales-sub" class="text-[11px] text-slate-500">Monthly gross coin revenue vs net profit after utility overhead (₱)</p>
+                </div>
+                <span id="currency-badge" class="px-2 py-0.5 text-xs font-bold rounded bg-slate-200 text-slate-700 font-money">PHP ₱</span>
+              </div>
+              <div id="sales-chart-slot" class="w-full"></div>
+            </div>
+          </div>
+
+          <!-- Donut Chart: Biggest Business Expenses Distribution (With Flowbite Widget Skeleton) -->
+          <div id="status-chart-card" class="lg:col-span-4 p-5 rounded-xl bg-slate-50 border border-slate-200 shadow-sm flex flex-col justify-between relative overflow-hidden">
+            <!-- Widget Placeholder Skeleton Matching Donut in Soft Neutral Gray Tone -->
+            <div id="status-chart-skeleton" role="status" class="w-full animate-pulse flex flex-col justify-between h-full py-1">
+              <!-- Header Telemetry Skeleton -->
+              <div>
+                <div class="flex items-center justify-between mb-2">
+                  <div class="h-3.5 bg-slate-400/30 rounded-full w-36"></div>
+                  <div class="h-4 bg-slate-400/25 rounded-md w-20"></div>
+                </div>
+                <div class="w-48 h-2 bg-slate-400/20 rounded-full mb-3"></div>
+              </div>
+
+              <!-- Generic Neutral Donut Ring Silhouette with Center Label Placeholder -->
+              <div class="flex flex-col items-center justify-center my-3">
+                <div class="relative w-44 h-44 flex items-center justify-center">
+                  <!-- SVG Neutral Generic Donut Skeleton (No data-specific percentage slices) -->
+                  <svg class="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                    <!-- Base ring background in soft neutral gray -->
+                    <circle cx="50" cy="50" r="38" fill="transparent" stroke="#e2e8f0" stroke-width="14" class="dark:stroke-slate-800" />
+                    <!-- Smooth generic arc highlight -->
+                    <circle cx="50" cy="50" r="38" fill="transparent" stroke="#cbd5e1" stroke-width="14" stroke-dasharray="100 238.76" stroke-dashoffset="-20" stroke-linecap="round" class="dark:stroke-slate-700/80" />
+                  </svg>
+                  <!-- Center Ratio Skeleton -->
+                  <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                    <div class="w-10 h-2 bg-slate-400/20 rounded-full mb-1"></div>
+                    <div class="w-12 h-3.5 bg-slate-400/30 rounded-full"></div>
+                  </div>
+                </div>
+
+                <!-- 4 Donut Legends Placeholder in soft neutral gray -->
+                <div class="grid grid-cols-2 gap-2 mt-3 w-full px-2">
+                  <div class="flex items-center space-x-1.5">
+                    <span class="w-2.5 h-2.5 rounded-full bg-slate-400/30 shrink-0"></span>
+                    <div class="w-20 h-2 bg-slate-400/20 rounded-full"></div>
+                  </div>
+                  <div class="flex items-center space-x-1.5">
+                    <span class="w-2.5 h-2.5 rounded-full bg-slate-400/30 shrink-0"></span>
+                    <div class="w-16 h-2 bg-slate-400/20 rounded-full"></div>
+                  </div>
+                  <div class="flex items-center space-x-1.5">
+                    <span class="w-2.5 h-2.5 rounded-full bg-slate-400/30 shrink-0"></span>
+                    <div class="w-16 h-2 bg-slate-400/20 rounded-full"></div>
+                  </div>
+                  <div class="flex items-center space-x-1.5">
+                    <span class="w-2.5 h-2.5 rounded-full bg-slate-400/30 shrink-0"></span>
+                    <div class="w-14 h-2 bg-slate-400/20 rounded-full"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Bottom Ratio Telemetry Footer Skeleton in soft neutral gray -->
+              <div class="pt-2 border-t border-slate-200/80 dark:border-slate-800 flex items-center justify-between">
+                <div class="flex items-center space-x-1.5">
+                  <div class="w-2 h-2 rounded-full bg-slate-400/30"></div>
+                  <div class="h-2 bg-slate-400/25 rounded-full w-20"></div>
+                </div>
+                <div class="h-2.5 bg-slate-400/20 rounded-full w-24"></div>
+              </div>
+              <span class="sr-only">Loading expense breakdown...</span>
+            </div>
+
+            <!-- Real Donut Elements (Revealed after load) -->
+            <div id="status-chart-content" class="hidden flex flex-col justify-between h-full">
+              <div id="status-chart-header" class="mb-2">
+                <div class="flex items-center justify-between">
+                  <h3 id="status-heading" class="text-sm font-bold text-slate-900 font-averta">Expense Distribution</h3>
+                  <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-200 text-slate-700 uppercase">Global Admin</span>
+                </div>
+                <p id="status-sub" class="text-[11px] text-slate-500 mt-0.5">Primary network utility and maintenance costs (₱)</p>
+              </div>
+              <div id="status-chart-slot" class="w-full flex items-center justify-center"></div>
+
+              <!-- Overall Deduction Mock Percentage Footer Telemetry -->
+              <div id="status-percent-meta" class="mt-2 pt-3 border-t border-slate-200/80 flex items-center justify-between text-xs">
+                <div class="flex items-center space-x-1.5">
+                  <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
+                  <span class="text-slate-500 font-medium text-[11px]">Deduction Ratio:</span>
+                </div>
+                <div class="flex items-center space-x-1">
+                  <span class="font-extrabold text-rose-600 font-money text-xs">91.9%</span>
+                  <span class="text-[10px] text-slate-400 font-medium">(₱11,067 / ₱12,042)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- 2-Column Section: Swapped Monthly Habwa/Audit Logs (Left) & Owner Personal View (Right) -->
+        <div id="tables-grid" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          
+          <!-- Left Swapped Panel: Full Monthly Habwa & Expenses Audit Logs (id="fleet-card") (With Flowbite List Placeholder Skeleton) -->
+          <div id="fleet-card" class="lg:col-span-7 p-5 rounded-xl bg-slate-50 border border-slate-200 shadow-sm relative overflow-hidden">
+            <!-- Flowbite Table Placeholder Skeleton Faithfully Matching Audit Table -->
+            <div id="fleet-skeleton" role="status" class="w-full animate-pulse">
+              <!-- Header Meta Skeleton in soft neutral gray -->
+              <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-200/80 dark:border-slate-800">
+                <div>
+                  <div class="h-3.5 bg-slate-400/30 rounded-full w-48 mb-2"></div>
+                  <div class="w-64 h-2 bg-slate-400/20 rounded-full"></div>
+                </div>
+                <div class="h-4 bg-slate-400/25 rounded-md w-24"></div>
+              </div>
+
+              <!-- Table Mock Header Row -->
+              <div class="bg-slate-200/50 dark:bg-slate-800/50 rounded-t-lg px-3 py-2 flex items-center justify-between text-[11px] mb-2 font-bold text-slate-400">
+                <div class="w-24 h-2.5 bg-slate-400/25 rounded"></div>
+                <div class="w-48 h-2.5 bg-slate-400/25 rounded"></div>
+                <div class="w-20 h-2.5 bg-slate-400/25 rounded"></div>
+                <div class="w-16 h-2.5 bg-slate-400/25 rounded"></div>
+              </div>
+
+              <!-- Table Mock Rows (6 Authentic Telemetry Rows in soft neutral gray) -->
+              <div class="space-y-3 px-1">
+                <!-- Row 1 -->
+                <div class="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+                  <div class="w-20 h-2 bg-slate-400/20 rounded"></div>
+                  <div class="w-56 h-2.5 bg-slate-400/25 rounded"></div>
+                  <div class="w-20 h-3.5 bg-slate-400/20 rounded-md"></div>
+                  <div class="w-16 h-2.5 bg-slate-400/25 rounded"></div>
+                </div>
+                <!-- Row 2 -->
+                <div class="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+                  <div class="w-20 h-2 bg-slate-400/20 rounded"></div>
+                  <div class="w-48 h-2.5 bg-slate-400/25 rounded"></div>
+                  <div class="w-20 h-3.5 bg-slate-400/20 rounded-md"></div>
+                  <div class="w-16 h-2.5 bg-slate-400/25 rounded"></div>
+                </div>
+                <!-- Row 3 -->
+                <div class="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+                  <div class="w-20 h-2 bg-slate-400/20 rounded"></div>
+                  <div class="w-44 h-2.5 bg-slate-400/25 rounded"></div>
+                  <div class="w-20 h-3.5 bg-slate-400/20 rounded-md"></div>
+                  <div class="w-16 h-2.5 bg-slate-400/25 rounded"></div>
+                </div>
+                <!-- Row 4 -->
+                <div class="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+                  <div class="w-20 h-2 bg-slate-400/20 rounded"></div>
+                  <div class="w-52 h-2.5 bg-slate-400/25 rounded"></div>
+                  <div class="w-20 h-3.5 bg-slate-400/20 rounded-md"></div>
+                  <div class="w-16 h-2.5 bg-slate-400/25 rounded"></div>
+                </div>
+                <!-- Row 5 -->
+                <div class="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+                  <div class="w-20 h-2 bg-slate-400/20 rounded"></div>
+                  <div class="w-40 h-2.5 bg-slate-400/25 rounded"></div>
+                  <div class="w-20 h-3.5 bg-slate-400/20 rounded-md"></div>
+                  <div class="w-16 h-2.5 bg-slate-400/25 rounded"></div>
+                </div>
+                <!-- Row 6 -->
+                <div class="flex items-center justify-between py-2">
+                  <div class="w-20 h-2 bg-slate-400/20 rounded"></div>
+                  <div class="w-44 h-2.5 bg-slate-400/25 rounded"></div>
+                  <div class="w-20 h-3.5 bg-slate-400/20 rounded-md"></div>
+                  <div class="w-16 h-2.5 bg-slate-400/25 rounded"></div>
+                </div>
+              </div>
+              <span class="sr-only">Loading fleet transactions...</span>
+            </div>
+
+            <!-- Real Fleet Content (Revealed after load) -->
+            <div id="fleet-content" class="hidden">
+              <div id="fleet-header" class="flex items-center justify-between mb-4">
+                <div>
+                  <h3 id="fleet-title" class="text-sm font-bold text-slate-900 font-averta">Habwa & Utilities Expense Audit</h3>
+                  <p class="text-[11px] text-slate-500">October 4, 2026 Audit Collection & Expenses Breakdown</p>
+                </div>
+                <span id="fleet-badge" class="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-800">4 Pisonets Fleet</span>
+              </div>
+              <div id="fleet-table-wrap" class="overflow-x-auto">
+                <table id="fleet-table" class="w-full text-xs text-left text-slate-600">
+                  <thead class="text-[11px] uppercase bg-slate-200/70 text-slate-700">
+                  <tr>
+                    <th scope="col" class="px-3 py-2">Date (M/D/Y)</th>
+                    <th scope="col" class="px-3 py-2">Transaction Details</th>
+                    <th scope="col" class="px-3 py-2">Category</th>
+                    <th scope="col" class="px-3 py-2 text-right">Amount</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200">
+                  <!-- Row 1: Pisonet 1 & 2 Collection (+) -->
+                  <tr class="hover:bg-slate-100">
+                    <td class="px-3 py-2.5 font-medium text-slate-700">
+                      <span class="group/date relative cursor-help inline-flex items-center space-x-1 border-b border-dotted border-slate-400">
+                        <span>10/04/2026</span>
+                        <div class="absolute bottom-full left-0 mb-1.5 hidden group-hover/date:flex flex-col z-30 bg-slate-900 border border-slate-700 text-white rounded-lg px-2.5 py-1 text-[10px] shadow-xl whitespace-nowrap">
+                          <span class="font-bold text-blue-400">Timestamp Logged:</span>
+                          <span class="text-slate-300 font-money">08:15:30 PM PST (Habwa)</span>
+                        </div>
+                      </span>
+                    </td>
+                    <td class="px-3 py-2.5 font-bold text-slate-900">PISONET 1 & 2 Combined Coin Drop Collection</td>
+                    <td class="px-3 py-2.5"><span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-800">Habwa Deposit</span></td>
+                    <td class="px-3 py-2.5 text-right font-bold text-emerald-600 font-money" data-count-money="5689.00" data-prefix="+₱" data-duration="1100" data-delay="100">+₱0.00</td>
+                  </tr>
+                  <!-- Row 2: Pisonet 3 Collection (+) -->
+                  <tr class="hover:bg-slate-100">
+                    <td class="px-3 py-2.5 font-medium text-slate-700">
+                      <span class="group/date relative cursor-help inline-flex items-center space-x-1 border-b border-dotted border-slate-400">
+                        <span>10/04/2026</span>
+                        <div class="absolute bottom-full left-0 mb-1.5 hidden group-hover/date:flex flex-col z-30 bg-slate-900 border border-slate-700 text-white rounded-lg px-2.5 py-1 text-[10px] shadow-xl whitespace-nowrap">
+                          <span class="font-bold text-blue-400">Timestamp Logged:</span>
+                          <span class="text-slate-300 font-money">08:28:12 PM PST (Habwa)</span>
+                        </div>
+                      </span>
+                    </td>
+                    <td class="px-3 py-2.5 font-bold text-slate-900">PISONET 3 Coin Drop Collection</td>
+                    <td class="px-3 py-2.5"><span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-800">Habwa Deposit</span></td>
+                    <td class="px-3 py-2.5 text-right font-bold text-emerald-600 font-money" data-count-money="5332.00" data-prefix="+₱" data-duration="1100" data-delay="140">+₱0.00</td>
+                  </tr>
+                  <!-- Row 3: Pisonet 4 Collection (+) -->
+                  <tr class="hover:bg-slate-100">
+                    <td class="px-3 py-2.5 font-medium text-slate-700">
+                      <span class="group/date relative cursor-help inline-flex items-center space-x-1 border-b border-dotted border-slate-400">
+                        <span>10/04/2026</span>
+                        <div class="absolute bottom-full left-0 mb-1.5 hidden group-hover/date:flex flex-col z-30 bg-slate-900 border border-slate-700 text-white rounded-lg px-2.5 py-1 text-[10px] shadow-xl whitespace-nowrap">
+                          <span class="font-bold text-blue-400">Timestamp Logged:</span>
+                          <span class="text-slate-300 font-money">08:42:05 PM PST (Habwa)</span>
+                        </div>
+                      </span>
+                    </td>
+                    <td class="px-3 py-2.5 font-bold text-slate-900">PISONET 4 Coin Drop Collection</td>
+                    <td class="px-3 py-2.5"><span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-800">Habwa Deposit</span></td>
+                    <td class="px-3 py-2.5 text-right font-bold text-emerald-600 font-money" data-count-money="1021.00" data-prefix="+₱" data-duration="1100" data-delay="180">+₱0.00</td>
+                  </tr>
+                  <!-- Row 4: PC-4 Return to Owner (-) -->
+                  <tr class="hover:bg-slate-100">
+                    <td class="px-3 py-2.5 font-medium text-slate-700">
+                      <span class="group/date relative cursor-help inline-flex items-center space-x-1 border-b border-dotted border-slate-400">
+                        <span>10/04/2026</span>
+                        <div class="absolute bottom-full left-0 mb-1.5 hidden group-hover/date:flex flex-col z-30 bg-slate-900 border border-slate-700 text-white rounded-lg px-2.5 py-1 text-[10px] shadow-xl whitespace-nowrap">
+                          <span class="font-bold text-purple-400">Timestamp Logged:</span>
+                          <span class="text-slate-300 font-money">09:00:00 PM PST (Reconciliation)</span>
+                        </div>
+                      </span>
+                    </td>
+                    <td class="px-3 py-2.5 font-bold text-slate-900">PISONET 4 Undeducted Return to Owner</td>
+                    <td class="px-3 py-2.5"><span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-purple-100 text-purple-800">Owner Return</span></td>
+                    <td class="px-3 py-2.5 text-right font-bold text-rose-600 font-money" data-count-money="1021.00" data-prefix="-₱" data-duration="1100" data-delay="220">-₱0.00</td>
+                  </tr>
+                  <!-- Row 5: Electricity Bill Deduction (-) -->
+                  <tr class="hover:bg-slate-100">
+                    <td class="px-3 py-2.5 font-medium text-slate-700">
+                      <span class="group/date relative cursor-help inline-flex items-center space-x-1 border-b border-dotted border-slate-400">
+                        <span>10/04/2026</span>
+                        <div class="absolute bottom-full left-0 mb-1.5 hidden group-hover/date:flex flex-col z-30 bg-slate-900 border border-slate-700 text-white rounded-lg px-2.5 py-1 text-[10px] shadow-xl whitespace-nowrap">
+                          <span class="font-bold text-rose-400">Timestamp Logged:</span>
+                          <span class="text-slate-300 font-money">09:12:44 PM PST (Power Bill)</span>
+                        </div>
+                      </span>
+                    </td>
+                    <td class="px-3 py-2.5 font-bold text-slate-900">Electricity Overhead Bill</td>
+                    <td class="px-3 py-2.5"><span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-rose-100 text-rose-800">Power Utility</span></td>
+                    <td class="px-3 py-2.5 text-right font-bold text-rose-600 font-money" data-count-money="5240.00" data-prefix="-₱" data-duration="1100" data-delay="260">-₱0.00</td>
+                  </tr>
+                  <!-- Row 6: PLDT Internet Bill Deduction (-) -->
+                  <tr class="hover:bg-slate-100">
+                    <td class="px-3 py-2.5 font-medium text-slate-700">
+                      <span class="group/date relative cursor-help inline-flex items-center space-x-1 border-b border-dotted border-slate-400">
+                        <span>10/04/2026</span>
+                        <div class="absolute bottom-full left-0 mb-1.5 hidden group-hover/date:flex flex-col z-30 bg-slate-900 border border-slate-700 text-white rounded-lg px-2.5 py-1 text-[10px] shadow-xl whitespace-nowrap">
+                          <span class="font-bold text-rose-400">Timestamp Logged:</span>
+                          <span class="text-slate-300 font-money">09:18:10 PM PST (ISP Bill)</span>
+                        </div>
+                      </span>
+                    </td>
+                    <td class="px-3 py-2.5 font-bold text-slate-900">PLDT Internet Business Line</td>
+                    <td class="px-3 py-2.5"><span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-rose-100 text-rose-800">ISP Utility</span></td>
+                    <td class="px-3 py-2.5 text-right font-bold text-rose-600 font-money" data-count-money="1806.00" data-prefix="-₱" data-duration="1100" data-delay="300">-₱0.00</td>
+                  </tr>
+                  <!-- Row 7: Other / Miscellaneous Expense (-) -->
+                  <tr class="hover:bg-slate-100">
+                    <td class="px-3 py-2.5 font-medium text-slate-700">
+                      <span class="group/date relative cursor-help inline-flex items-center space-x-1 border-b border-dotted border-slate-400">
+                        <span>10/04/2026</span>
+                        <div class="absolute bottom-full left-0 mb-1.5 hidden group-hover/date:flex flex-col z-30 bg-slate-900 border border-slate-700 text-white rounded-lg px-2.5 py-1 text-[10px] shadow-xl whitespace-nowrap">
+                          <span class="font-bold text-rose-400">Timestamp Logged:</span>
+                          <span class="text-slate-300 font-money">09:25:00 PM PST (Utilities/Hardware)</span>
+                        </div>
+                      </span>
+                    </td>
+                    <td class="px-3 py-2.5 font-bold text-slate-900">Other & Miscellaneous Overhead Expenses</td>
+                    <td class="px-3 py-2.5"><span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-rose-100 text-rose-800">Misc Overhead</span></td>
+                    <td class="px-3 py-2.5 text-right font-bold text-rose-600 font-money" data-count-money="3000.00" data-prefix="-₱" data-duration="1100" data-delay="340">-₱0.00</td>
+                  </tr>
+                  <!-- Row 8: Peripheral Replacement - Mouse & Keyboard (-) -->
+                  <tr class="hover:bg-slate-100">
+                    <td class="px-3 py-2.5 font-medium text-slate-700">
+                      <span class="group/date relative cursor-help inline-flex items-center space-x-1 border-b border-dotted border-slate-400">
+                        <span>10/04/2026</span>
+                        <div class="absolute bottom-full left-0 mb-1.5 hidden group-hover/date:flex flex-col z-30 bg-slate-900 border border-slate-700 text-white rounded-lg px-2.5 py-1 text-[10px] shadow-xl whitespace-nowrap">
+                          <span class="font-bold text-rose-400">Timestamp Logged:</span>
+                          <span class="text-slate-300 font-money">09:32:15 PM PST (Peripherals)</span>
+                        </div>
+                      </span>
+                    </td>
+                    <td class="px-3 py-2.5 font-bold text-slate-900">Gaming Mouse & Mechanical Keyboard Replacement (PC 2)</td>
+                    <td class="px-3 py-2.5"><span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-100 text-amber-800">Computer Utilities</span></td>
+                    <td class="px-3 py-2.5 text-right font-bold text-rose-600 font-money" data-count-money="650.00" data-prefix="-₱" data-duration="1100" data-delay="380">-₱0.00</td>
+                  </tr>
+                  <!-- Row 9: Coin Slot Sensor Servicing (-) -->
+                  <tr class="hover:bg-slate-100">
+                    <td class="px-3 py-2.5 font-medium text-slate-700">
+                      <span class="group/date relative cursor-help inline-flex items-center space-x-1 border-b border-dotted border-slate-400">
+                        <span>10/04/2026</span>
+                        <div class="absolute bottom-full left-0 mb-1.5 hidden group-hover/date:flex flex-col z-30 bg-slate-900 border border-slate-700 text-white rounded-lg px-2.5 py-1 text-[10px] shadow-xl whitespace-nowrap">
+                          <span class="font-bold text-rose-400">Timestamp Logged:</span>
+                          <span class="text-slate-300 font-money">09:40:50 PM PST (Hardware)</span>
+                        </div>
+                      </span>
+                    </td>
+                    <td class="px-3 py-2.5 font-bold text-slate-900">Universal Multi-Coin Slot Optical Sensor Cleaning & Tuning</td>
+                    <td class="px-3 py-2.5"><span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-100 text-blue-800">Maintenance</span></td>
+                    <td class="px-3 py-2.5 text-right font-bold text-rose-600 font-money" data-count-money="250.00" data-prefix="-₱" data-duration="1100" data-delay="420">-₱0.00</td>
+                  </tr>
+                  <!-- Row 10: RJ45 & Cat6 Network Cable Maintenance (-) -->
+                  <tr class="hover:bg-slate-100">
+                    <td class="px-3 py-2.5 font-medium text-slate-700">
+                      <span class="group/date relative cursor-help inline-flex items-center space-x-1 border-b border-dotted border-slate-400">
+                        <span>10/04/2026</span>
+                        <div class="absolute bottom-full left-0 mb-1.5 hidden group-hover/date:flex flex-col z-30 bg-slate-900 border border-slate-700 text-white rounded-lg px-2.5 py-1 text-[10px] shadow-xl whitespace-nowrap">
+                          <span class="font-bold text-rose-400">Timestamp Logged:</span>
+                          <span class="text-slate-300 font-money">09:50:18 PM PST (Networking)</span>
+                        </div>
+                      </span>
+                    </td>
+                    <td class="px-3 py-2.5 font-bold text-slate-900">Gigabit Cat6 Patch Cable & Crimping Replacement</td>
+                    <td class="px-3 py-2.5"><span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-indigo-100 text-indigo-800">Network Utility</span></td>
+                    <td class="px-3 py-2.5 text-right font-bold text-rose-600 font-money" data-count-money="180.00" data-prefix="-₱" data-duration="1100" data-delay="460">-₱0.00</td>
+                  </tr>
+                  <!-- Row 11: Attendant Incentive Allowance (-) -->
+                  <tr class="hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors">
+                    <td class="px-3 py-2.5 font-medium text-slate-700 dark:text-slate-300">
+                      <span class="group/date relative cursor-help inline-flex items-center space-x-1 border-b border-dotted border-slate-400">
+                        <span>10/04/2026</span>
+                        <div class="absolute bottom-full left-0 mb-1.5 hidden group-hover/date:flex flex-col z-30 bg-slate-900 border border-slate-700 text-white rounded-lg px-2.5 py-1 text-[10px] shadow-xl whitespace-nowrap">
+                          <span class="font-bold text-rose-400">Timestamp Logged:</span>
+                          <span class="text-slate-300 font-money">10:05:00 PM PST (Branch Ops)</span>
+                        </div>
+                      </span>
+                    </td>
+                    <td class="px-3 py-2.5 font-bold text-slate-900 dark:text-white">Branch Attendant Daily Audit Commission & Token Allowance</td>
+                    <td class="px-3 py-2.5"><span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300">Staff Ops</span></td>
+                    <td class="px-3 py-2.5 text-right font-bold text-rose-600 dark:text-rose-400 font-money" data-count-money="500.00" data-prefix="-₱" data-duration="1100" data-delay="500">-₱0.00</td>
+                  </tr>
+                  <!-- Row 12: Thermal Paper & Printing Spares (-) -->
+                  <tr class="hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors">
+                    <td class="px-3 py-2.5 font-medium text-slate-700 dark:text-slate-300">
+                      <span class="group/date relative cursor-help inline-flex items-center space-x-1 border-b border-dotted border-slate-400">
+                        <span>10/04/2026</span>
+                        <div class="absolute bottom-full left-0 mb-1.5 hidden group-hover/date:flex flex-col z-30 bg-slate-900 border border-slate-700 text-white rounded-lg px-2.5 py-1 text-[10px] shadow-xl whitespace-nowrap">
+                          <span class="font-bold text-rose-400">Timestamp Logged:</span>
+                          <span class="text-slate-300 font-money">10:18:30 PM PST (Stationery)</span>
+                        </div>
+                      </span>
+                    </td>
+                    <td class="px-3 py-2.5 font-bold text-slate-900 dark:text-white">POS Audit Thermal Paper Rolls & Station Cleaning Disinfectant</td>
+                    <td class="px-3 py-2.5"><span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300">Store Supplies</span></td>
+                    <td class="px-3 py-2.5 text-right font-bold text-rose-600 dark:text-rose-400 font-money" data-count-money="150.00" data-prefix="-₱" data-duration="1100" data-delay="540">-₱0.00</td>
+                  </tr>
+                  <!-- Row 13: Emergency Backup Surge Protector (-) -->
+                  <tr class="hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors">
+                    <td class="px-3 py-2.5 font-medium text-slate-700 dark:text-slate-300">
+                      <span class="group/date relative cursor-help inline-flex items-center space-x-1 border-b border-dotted border-slate-400">
+                        <span>10/04/2026</span>
+                        <div class="absolute bottom-full left-0 mb-1.5 hidden group-hover/date:flex flex-col z-30 bg-slate-900 border border-slate-700 text-white rounded-lg px-2.5 py-1 text-[10px] shadow-xl whitespace-nowrap">
+                          <span class="font-bold text-rose-400">Timestamp Logged:</span>
+                          <span class="text-slate-300 font-money">10:30:10 PM PST (Electrical)</span>
+                        </div>
+                      </span>
+                    </td>
+                    <td class="px-3 py-2.5 font-bold text-slate-900 dark:text-white">Surge Protector Extension Cord Replacement (Rig Terminal 02)</td>
+                    <td class="px-3 py-2.5"><span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-100 text-blue-800 dark:bg-blue-950/80 dark:text-blue-300">Hardware</span></td>
+                    <td class="px-3 py-2.5 text-right font-bold text-rose-600 dark:text-rose-400 font-money" data-count-money="320.00" data-prefix="-₱" data-duration="1100" data-delay="580">-₱0.00</td>
+                  </tr>
+                  <!-- Row 14: Evening Habwa Remit Deposit (+) -->
+                  <tr class="hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors">
+                    <td class="px-3 py-2.5 font-medium text-slate-700 dark:text-slate-300">
+                      <span class="group/date relative cursor-help inline-flex items-center space-x-1 border-b border-dotted border-slate-400">
+                        <span>10/04/2026</span>
+                        <div class="absolute bottom-full left-0 mb-1.5 hidden group-hover/date:flex flex-col z-30 bg-slate-900 border border-slate-700 text-white rounded-lg px-2.5 py-1 text-[10px] shadow-xl whitespace-nowrap">
+                          <span class="font-bold text-emerald-400">Timestamp Logged:</span>
+                          <span class="text-slate-300 font-money">10:45:00 PM PST (Clearance)</span>
+                        </div>
+                      </span>
+                    </td>
+                    <td class="px-3 py-2.5 font-bold text-slate-900 dark:text-white">Late Night Shift Coin Clearance (VIP Gaming Station 04)</td>
+                    <td class="px-3 py-2.5"><span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300">Habwa Remit</span></td>
+                    <td class="px-3 py-2.5 text-right font-bold text-emerald-600 dark:text-emerald-400 font-money" data-count-money="950.00" data-prefix="+₱" data-duration="1100" data-delay="620">+₱0.00</td>
+                  </tr>
+                </tbody>
+              </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Panel Container: Admin Quick Access Shortcuts (Top) + Owner Takeaway Statement (Bottom) -->
+          <div class="lg:col-span-5 flex flex-col space-y-6 w-full">
+
+            <!-- Admin Quick Access 2x3 Grid Card (Compact) -->
+            <div id="quick-card" class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col transition-all duration-300 relative overflow-hidden w-full">
+              <!-- Flowbite Quick Access Skeleton Placeholder Faithfully Matching 2x3 Grid -->
+              <div id="quick-skeleton" role="status" class="w-full animate-pulse space-y-3">
+                <!-- Header Skeleton -->
+                <div class="flex items-center justify-between pb-2.5 border-b border-slate-200/80 dark:border-slate-800">
+                  <div class="flex items-center space-x-2">
+                    <div class="w-7 h-7 rounded-lg bg-slate-400/25 shrink-0"></div>
+                    <div>
+                      <div class="h-3 bg-slate-400/30 rounded-full w-32 mb-1.5"></div>
+                      <div class="w-40 h-2 bg-slate-400/20 rounded-full"></div>
+                    </div>
+                  </div>
+                  <div class="h-4 bg-slate-400/25 rounded w-16"></div>
+                </div>
+
+                <!-- 2x3 Grid Buttons Skeleton -->
+                <div class="grid grid-cols-3 gap-2">
+                  <div class="flex flex-col items-center justify-center py-2 px-1.5 rounded-xl bg-slate-200/40 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800">
+                    <div class="w-8 h-8 rounded-xl bg-slate-400/25 mb-1.5"></div>
+                    <div class="w-14 h-2 bg-slate-400/30 rounded"></div>
+                  </div>
+                  <div class="flex flex-col items-center justify-center py-2 px-1.5 rounded-xl bg-slate-200/40 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800">
+                    <div class="w-8 h-8 rounded-xl bg-slate-400/25 mb-1.5"></div>
+                    <div class="w-12 h-2 bg-slate-400/30 rounded"></div>
+                  </div>
+                  <div class="flex flex-col items-center justify-center py-2 px-1.5 rounded-xl bg-slate-200/40 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800">
+                    <div class="w-8 h-8 rounded-xl bg-slate-400/25 mb-1.5"></div>
+                    <div class="w-16 h-2 bg-slate-400/30 rounded"></div>
+                  </div>
+                  <div class="flex flex-col items-center justify-center py-2 px-1.5 rounded-xl bg-slate-200/40 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800">
+                    <div class="w-8 h-8 rounded-xl bg-slate-400/25 mb-1.5"></div>
+                    <div class="w-12 h-2 bg-slate-400/30 rounded"></div>
+                  </div>
+                  <div class="flex flex-col items-center justify-center py-2 px-1.5 rounded-xl bg-slate-200/40 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800">
+                    <div class="w-8 h-8 rounded-xl bg-slate-400/25 mb-1.5"></div>
+                    <div class="w-14 h-2 bg-slate-400/30 rounded"></div>
+                  </div>
+                  <div class="flex flex-col items-center justify-center py-2 px-1.5 rounded-xl bg-slate-200/40 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800">
+                    <div class="w-8 h-8 rounded-xl bg-slate-400/25 mb-1.5"></div>
+                    <div class="w-12 h-2 bg-slate-400/30 rounded"></div>
+                  </div>
+                </div>
+                <span class="sr-only">Loading quick shortcuts...</span>
+              </div>
+
+              <!-- Real Quick Access Content (Revealed after load) -->
+              <div id="quick-real-wrapper" class="hidden flex flex-col w-full">
+                <!-- Header -->
+                <div id="quick-header" class="flex items-center justify-between pb-2.5 mb-2.5 border-b border-slate-200 dark:border-slate-800">
+                  <div class="flex items-center space-x-2">
+                    <div class="w-7 h-7 rounded-lg bg-blue-600/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    </div>
+                    <div>
+                      <h3 id="quick-title" class="text-xs font-bold text-slate-900 dark:text-white font-averta">Admin Quick Access</h3>
+                      <p class="text-[10px] text-slate-500 dark:text-slate-400">Direct entry & fast action shortcuts</p>
+                    </div>
+                  </div>
+                  <span class="text-[9px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-300 uppercase tracking-wide">
+                    Admin Hub
+                  </span>
+                </div>
+
+                <!-- 2x3 Grid Buttons (Compact Solid icon button + Bold capital text below) -->
+                <div class="grid grid-cols-3 gap-2">
+                  <!-- 1. Log Habwa Action -->
+                  <a id="quick-habwa" href="/frontend/pages/habwa/?action=add"
+                    class="flex flex-col items-center justify-center py-2 px-1.5 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 shadow-2xs hover:shadow-xs hover:border-emerald-400 dark:hover:border-emerald-500 hover:-translate-y-0.5 active:translate-y-0 transition duration-150 cursor-pointer group text-center">
+                    <div class="w-8 h-8 rounded-xl bg-emerald-500/10 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-1.5 transition duration-150 group-hover:bg-emerald-600 group-hover:text-white group-hover:scale-105 shadow-2xs">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+                    </div>
+                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-800 dark:text-slate-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                      LOG HABWA
+                    </span>
+                  </a>
+
+                  <!-- 2. Log Bill Action -->
+                  <a id="quick-bill" href="/frontend/pages/bills/?action=add"
+                    class="flex flex-col items-center justify-center py-2 px-1.5 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 shadow-2xs hover:shadow-xs hover:border-rose-400 dark:hover:border-rose-500 hover:-translate-y-0.5 active:translate-y-0 transition duration-150 cursor-pointer group text-center">
+                    <div class="w-8 h-8 rounded-xl bg-rose-500/10 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center mb-1.5 transition duration-150 group-hover:bg-rose-600 group-hover:text-white group-hover:scale-105 shadow-2xs">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/></svg>
+                    </div>
+                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-800 dark:text-slate-200 group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors">
+                      LOG BILL
+                    </span>
+                  </a>
+
+                  <!-- 3. New Request Action -->
+                  <a id="quick-request" href="/frontend/pages/requests/?action=add"
+                    class="flex flex-col items-center justify-center py-2 px-1.5 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 shadow-2xs hover:shadow-xs hover:border-amber-400 dark:hover:border-amber-500 hover:-translate-y-0.5 active:translate-y-0 transition duration-150 cursor-pointer group text-center">
+                    <div class="w-8 h-8 rounded-xl bg-amber-500/10 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center mb-1.5 transition duration-150 group-hover:bg-amber-500 group-hover:text-white group-hover:scale-105 shadow-2xs">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+                    </div>
+                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-800 dark:text-slate-200 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
+                      NEW REQUEST
+                    </span>
+                  </a>
+
+                  <!-- 4. Data Exports Action -->
+                  <a id="quick-export" href="/frontend/pages/exports"
+                    class="flex flex-col items-center justify-center py-2 px-1.5 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 shadow-2xs hover:shadow-xs hover:border-sky-400 dark:hover:border-sky-500 hover:-translate-y-0.5 active:translate-y-0 transition duration-150 cursor-pointer group text-center">
+                    <div class="w-8 h-8 rounded-xl bg-sky-500/10 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 flex items-center justify-center mb-1.5 transition duration-150 group-hover:bg-sky-600 group-hover:text-white group-hover:scale-105 shadow-2xs">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                    </div>
+                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-800 dark:text-slate-200 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
+                      EXPORTS
+                    </span>
+                  </a>
+
+                  <!-- 5. Attendants / Audit Action -->
+                  <a id="quick-audit" href="#fleet-card"
+                    class="flex flex-col items-center justify-center py-2 px-1.5 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 shadow-2xs hover:shadow-xs hover:border-indigo-400 dark:hover:border-indigo-500 hover:-translate-y-0.5 active:translate-y-0 transition duration-150 cursor-pointer group text-center">
+                    <div class="w-8 h-8 rounded-xl bg-indigo-500/10 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mb-1.5 transition duration-150 group-hover:bg-indigo-600 group-hover:text-white group-hover:scale-105 shadow-2xs">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    </div>
+                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-800 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                      AUDIT LOGS
+                    </span>
+                  </a>
+
+                  <!-- 6. Settings Modal Direct Trigger -->
+                  <button id="quick-settings" type="button"
+                    class="flex flex-col items-center justify-center py-2 px-1.5 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 shadow-2xs hover:shadow-xs hover:border-slate-400 dark:hover:border-slate-500 hover:-translate-y-0.5 active:translate-y-0 transition duration-150 cursor-pointer group text-center">
+                    <div class="w-8 h-8 rounded-xl bg-slate-500/10 dark:bg-slate-700/50 text-slate-700 dark:text-slate-300 flex items-center justify-center mb-1.5 transition duration-150 group-hover:bg-slate-700 group-hover:text-white group-hover:scale-105 shadow-2xs">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    </div>
+                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-800 dark:text-slate-200 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
+                      SETTINGS
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Owner / Personal Private Telemetry View (id="logs-card") (With Flowbite Skeleton) -->
+            <div id="logs-card" class="p-5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col h-fit w-full transition-all duration-300 relative overflow-hidden">
+            <!-- Flowbite Logs Card Skeleton Placeholder Faithfully Matching Owner View -->
+            <div id="logs-skeleton" role="status" class="w-full animate-pulse space-y-3.5">
+              <!-- Header Meta Skeleton in soft neutral gray -->
+              <div class="flex items-center justify-between pb-2 border-b border-slate-200/80 dark:border-slate-800">
+                <div>
+                  <div class="h-3.5 bg-slate-400/30 rounded-full w-40 mb-1.5"></div>
+                  <div class="w-48 h-2 bg-slate-400/20 rounded-full"></div>
+                </div>
+                <div class="h-4 bg-slate-400/25 rounded-md w-20"></div>
+              </div>
+
+              <!-- Notice Box Skeleton in soft neutral gray -->
+              <div class="p-3 rounded-lg bg-slate-100/50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 flex items-start space-x-2">
+                <div class="w-4 h-4 rounded-full bg-slate-400/25 shrink-0 mt-0.5"></div>
+                <div class="w-full space-y-1.5">
+                  <div class="h-2.5 bg-slate-400/25 rounded w-44"></div>
+                  <div class="h-2 bg-slate-400/20 rounded w-full"></div>
+                </div>
+              </div>
+
+              <!-- 3 Detailed Breakdown Cards Skeleton in soft neutral gray -->
+              <div class="space-y-2.5">
+                <!-- Card 1 -->
+                <div class="p-3 rounded-xl bg-slate-100/50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 flex items-center justify-between">
+                  <div>
+                    <div class="h-3 bg-slate-400/25 rounded w-40 mb-1.5"></div>
+                    <div class="h-2 bg-slate-400/20 rounded w-28"></div>
+                  </div>
+                  <div class="h-4 bg-slate-400/25 rounded w-20"></div>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="p-3 rounded-xl bg-slate-100/50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 flex items-center justify-between">
+                  <div>
+                    <div class="h-3 bg-slate-400/25 rounded w-44 mb-1.5"></div>
+                    <div class="h-2 bg-slate-400/20 rounded w-20"></div>
+                  </div>
+                  <div class="h-4 bg-slate-400/25 rounded w-20"></div>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="p-3.5 rounded-xl bg-slate-100/50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 flex items-center justify-between">
+                  <div>
+                    <div class="h-3 bg-slate-400/25 rounded w-28 mb-1.5"></div>
+                    <div class="h-2 bg-slate-400/20 rounded w-36"></div>
+                  </div>
+                  <div class="h-6 bg-slate-400/25 rounded-lg w-20"></div>
+                </div>
+              </div>
+
+              <!-- Footer Indicator Skeleton in soft neutral gray -->
+              <div class="pt-2.5 border-t border-slate-200/80 dark:border-slate-800 flex justify-between items-center">
+                <div class="h-2.5 bg-slate-400/20 rounded-full w-28"></div>
+                <div class="h-2.5 bg-slate-400/20 rounded-full w-32"></div>
+              </div>
+              <span class="sr-only">Loading owner statement...</span>
+            </div>
+
+            <!-- Real Logs Content (Revealed after load) -->
+            <div id="logs-real-wrapper" class="hidden flex flex-col w-full">
+              <div id="logs-header" class="flex items-center justify-between mb-3">
+                <div>
+                  <h3 id="logs-title" class="text-sm font-bold text-slate-900 font-averta">Owner Private Net Takeaway</h3>
+                  <p class="text-[11px] text-slate-500">October 4, 2026 Reconciled Statement</p>
+                </div>
+                <span id="owner-tag" class="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 uppercase tracking-wide">
+                  Owner Only
+                </span>
+              </div>
+
+              <!-- Placeholder for Admin View Notice -->
+              <div class="p-3 mb-4 rounded-lg bg-amber-50 border border-amber-200/80 text-amber-900 text-xs flex items-start space-x-2">
+                <svg class="w-4 h-4 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                </svg>
+                <div>
+                  <span class="font-bold uppercase tracking-wider text-[10px] text-amber-800 block">FOR PERSONAL ONLY PLACEHOLDER</span>
+                  <p class="text-[11px] text-amber-700 leading-snug">
+                    Admin preview mode active. Individual terminal owners will only see their own net share on their branch view.
+                  </p>
+                </div>
+              </div>
+
+              <!-- Owner Snapshot Breakdown (Matching October 4 Audit) -->
+              <div id="logs-content" class="space-y-3 overflow-y-auto">
+                <div class="p-3 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-between">
+                  <div>
+                    <p class="text-xs font-bold text-slate-900">Total Month Habwa Collection</p>
+                    <p class="text-[10px] text-slate-400">Date: 10/04/2026 (4 Units)</p>
+                  </div>
+                  <span class="text-sm font-black text-emerald-600 font-money" data-count-money="12042" data-prefix="+₱" data-duration="1200" data-delay="300">+₱0</span>
+                </div>
+
+                <div class="p-3 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-between">
+                  <div>
+                    <p class="text-xs font-bold text-slate-900">Total Deductions (Power, PLDT, Misc, PC-4)</p>
+                    <p class="text-[10px] text-slate-400">Bills & Return</p>
+                  </div>
+                  <span class="text-sm font-black text-rose-600 font-money" data-count-money="11067" data-prefix="-₱" data-duration="1200" data-delay="450">-₱0</span>
+                </div>
+
+                <div class="p-3.5 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-between">
+                  <div>
+                    <p class="text-xs font-extrabold text-blue-950 uppercase tracking-wide">Net Profit Left</p>
+                    <p class="text-[10px] text-blue-700 font-semibold">Remaining cash take-home</p>
+                  </div>
+                  <span class="text-lg font-black text-emerald-700 font-money" data-count-money="975" data-prefix="₱" data-duration="1400" data-delay="600">₱0</span>
+                </div>
+              </div>
+
+              <!-- Footer indicator -->
+              <div class="pt-3 border-t border-slate-200 mt-4 flex items-center justify-between text-[11px] text-slate-400">
+                <span>Audited Date: 10/04/2026</span>
+                <span class="font-semibold text-emerald-700">Status: Balanced (<span class="font-money" data-count-money="975" data-prefix="₱" data-suffix=" Net" data-duration="1200" data-delay="700">₱0 Net</span>)</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Scripts: Imports main.js, DashboardManager, ChartsManager, and AnimationsManager -->
+    <script src="https://cdn.jsdelivr.net/npm/flowbite@4.0.2/dist/flowbite.min.js"></script>
+    <script type="module">
+      import { initializeApp } from '/src/scripts/main.js'
+      import { DashboardManager } from '/src/scripts/modules/dashboard.js'
+      import { ChartsManager } from '/src/scripts/modules/charts.js'
+      import { AnimationsManager } from '/src/scripts/modules/animations.js'
+      
+      const dashboard = new DashboardManager()
+      const charts = new ChartsManager()
+      const animations = new AnimationsManager()
+      window.animationsManager = animations
+
+      initializeApp({
+        init() {
+          dashboard.init(charts)
+          charts.init(animations)
+          animations.init()
+        }
+      })
+    </script>
+  </body>
+</html>
