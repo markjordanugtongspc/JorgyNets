@@ -124,6 +124,8 @@ export class AnimationsManager {
       let isBusy = false
       let hoverTimeout = null
 
+      const isMobile = () => window.innerWidth < 640
+
       // Smoothly expand on hover: shift icon aside to the left, play reload spin animation, fill emerald, and transition font from gray to white
       const expand = () => {
         if (hoverTimeout) clearTimeout(hoverTimeout)
@@ -131,42 +133,46 @@ export class AnimationsManager {
         // 1. Play reloading/refreshing spin animation
         icon?.classList.add('rotate-[360deg]')
 
-        // 2. Set aside to the left & fill with emerald button color
-        btn.classList.remove('w-9', 'p-0', 'justify-center', 'bg-transparent', 'border-slate-300', 'dark:border-slate-700')
+        // 2. Set aside to the left & fill with emerald button color on desktop
+        btn.classList.remove('sm:w-9', 'sm:p-0', 'sm:justify-center', 'sm:space-x-0', 'sm:bg-transparent', 'sm:border-slate-300', 'sm:dark:border-slate-700', 'w-9', 'p-0', 'justify-center', 'bg-transparent', 'border-slate-300', 'dark:border-slate-700')
         btn.classList.add('w-36', 'px-3', 'justify-start', 'space-x-2', 'bg-emerald-600', 'border-emerald-500', 'shadow-md', 'shadow-emerald-500/20')
 
-        // 3. First reveal text in gray font, then smoothly transition into white font
+        // 3. Immediately reveal label with crisp white text font on emerald button
         if (label) {
-          label.classList.remove('max-w-0', 'opacity-0', 'text-white')
-          label.classList.add('max-w-[90px]', 'opacity-100', 'text-slate-400')
+          label.classList.remove('sm:max-w-0', 'sm:opacity-0', 'max-w-0', 'opacity-0', 'text-slate-400', 'sm:text-slate-400')
+          label.classList.add('max-w-[90px]', 'opacity-100', 'text-white')
         }
-
-        hoverTimeout = setTimeout(() => {
-          if (label && (btn.matches(':hover') || isBusy)) {
-            // Smoothly cross-fade font color from gray to white
-            label.classList.remove('text-slate-400')
-            label.classList.add('text-white')
-          }
-        }, 120)
       }
 
-      // Smoothly return/discard to normal rounded SVG icon when not hovering
+      // Smoothly return/discard to normal rounded SVG icon when not hovering (on desktop screens)
       const collapse = () => {
         if (isBusy) return
         if (hoverTimeout) clearTimeout(hoverTimeout)
 
-        // 1. Hide text label and return font color to gray
-        if (label) {
-          label.classList.remove('max-w-[90px]', 'opacity-100', 'text-white', 'font-black')
-          label.classList.add('max-w-0', 'opacity-0', 'text-slate-400', 'font-bold')
+        // On mobile (< 640px), keep persistent active expanded state as requested
+        if (isMobile()) {
+          icon?.classList.remove('rotate-[360deg]')
+          btn.classList.remove('scale-105', 'ring-2', 'ring-emerald-300', 'bg-emerald-700')
+          btn.classList.add('bg-emerald-600', 'border-emerald-500', 'shadow-md')
+          if (label) {
+            label.classList.remove('text-slate-400')
+            label.classList.add('opacity-100', 'text-white')
+          }
+          return
         }
 
-        // 2. Stop reload spin & return icon to normal centered position
+        // On desktop (>= 640px), collapse back to compact circle
+        if (label) {
+          label.classList.remove('max-w-[90px]', 'opacity-100', 'font-black')
+          label.classList.add('max-w-0', 'opacity-0', 'text-white', 'font-bold')
+        }
+
+        // Stop reload spin & return icon to normal centered position
         icon?.classList.remove('rotate-[360deg]')
 
-        // 3. Return button to compact rounded SVG icon with empty stroke
+        // Return button to compact rounded SVG icon
         btn.classList.remove('w-36', 'px-3', 'justify-start', 'space-x-2', 'bg-emerald-600', 'border-emerald-500', 'shadow-md', 'shadow-emerald-500/20', 'ring-2', 'ring-emerald-300', 'scale-105', 'bg-emerald-700')
-        btn.classList.add('w-9', 'p-0', 'justify-center', 'bg-transparent', 'border-slate-300', 'dark:border-slate-700')
+        btn.classList.add('w-9', 'p-0', 'justify-center', 'bg-transparent', 'border-slate-300', 'dark:border-slate-700', 'rounded-full')
       }
 
       // Hover In: Trigger reload animation, shift left, fill emerald, reveal white text

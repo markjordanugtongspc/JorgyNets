@@ -35,9 +35,9 @@
           </div>
 
           <div id="header-actions" class="flex items-center space-x-2">
-            <!-- Supabase Telemetry Force-Refresh Action Button (Normal rounded SVG icon by default, smoothly shifts left + spins on hover revealing white Reload Data text with emerald fill) -->
-            <button id="dash-refresh" type="button" class="h-9 w-9 p-0 rounded-full border border-slate-300 dark:border-slate-700 bg-transparent transition-all duration-300 ease-out shadow-xs cursor-pointer flex items-center justify-center overflow-hidden">
-              <!-- SVG Icon: Centered in compact circle, shifts smoothly to the left when expanded -->
+            <!-- Supabase Telemetry Force-Refresh Action Button (Mobile: Active expanded emerald button with persistent Reload Data label; Desktop: Compact icon expanding on hover) -->
+            <button id="dash-refresh" type="button" class="h-9 px-3 justify-start space-x-2 bg-emerald-600 border-emerald-500 shadow-md shadow-emerald-500/20 sm:w-9 sm:p-0 sm:justify-center sm:space-x-0 sm:rounded-full sm:border-slate-300 sm:dark:border-slate-700 sm:bg-transparent sm:shadow-xs rounded-xl border transition-all duration-300 ease-out cursor-pointer flex items-center overflow-hidden">
+              <!-- SVG Icon: Centered in compact circle on desktop, shifted with label on mobile -->
               <svg id="dash-refresh-icon" class="w-6 h-6 shrink-0 transition-transform duration-500 ease-in-out" viewBox="0 0 496.156 496.156" xmlns="http://www.w3.org/2000/svg">
                 <path style="fill:#32BEA6;" d="M0,248.08C0,111.06,111.069,0.002,248.074,0.002c137.013,0,248.082,111.059,248.082,248.078 c0,137.005-111.069,248.074-248.082,248.074C111.069,496.154,0,385.085,0,248.08z"/>
                 <g>
@@ -45,8 +45,8 @@
                   <path style="fill:#FFFFFF;" d="M350.353,327.224c-49.927,71.49-156.108,65.63-200.886-3.049c9.161-0.022,18.322-0.046,27.484-0.068 c2.666-0.008,4.563-1.19,5.741-2.865c1.924-2.059,2.658-5.072,0.646-8.197c-18.2-28.246-36.405-56.499-54.609-84.741 c-3.056-4.751-9.662-4.712-12.695,0.046c-18.063,28.334-36.13,56.671-54.196,85.009c-2.987,4.689,0.948,11.032,6.308,11.017 c10.669-0.027,21.337-0.054,32.006-0.08c23.498,51.319,68.777,88.332,125.865,97.275c64.287,10.072,125.816-19.784,162.496-72.312 C404.806,325.928,366.508,304.09,350.353,327.224z"/>
                 </g>
               </svg>
-              <!-- Expandable Label on Hover (Transitions smoothly from gray font to white font) -->
-              <span id="refresh-label" class="max-w-0 opacity-0 whitespace-nowrap overflow-hidden transition-all duration-300 ease-out text-xs font-bold text-slate-400 tracking-wide font-averta">
+              <!-- Persistent White Label on Mobile, Expandable on Desktop Hover -->
+              <span id="refresh-label" class="opacity-100 text-white sm:max-w-0 sm:opacity-0 whitespace-nowrap overflow-hidden transition-all duration-300 ease-out text-xs font-bold tracking-wide font-averta">
                 Reload Data
               </span>
             </button>
