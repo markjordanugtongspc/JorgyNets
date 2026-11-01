@@ -92,21 +92,42 @@ export class SessionStorageController extends BaseStorageController {
     }
   }
 
-  // Convenience getters for auth session state
+  // Convenience getters for auth session state with persistent backup recovery
+  getBackupSession() {
+    try {
+      const raw = localStorage.getItem('jn_auth_session')
+      return raw ? JSON.parse(raw) : null
+    } catch {
+      return null
+    }
+  }
+
   getRole() {
-    return this.get('role') || sessionStorage.getItem('jn_session_role') || null
+    const val = this.get('role') || sessionStorage.getItem('jn_session_role')
+    if (val !== null) return val
+    const backup = this.getBackupSession()
+    return backup?.role ?? null
   }
 
   getUser() {
-    return this.get('user') || sessionStorage.getItem('jn_session_user') || null
+    const val = this.get('user') || sessionStorage.getItem('jn_session_user')
+    if (val !== null) return val
+    const backup = this.getBackupSession()
+    return backup?.user ?? null
   }
 
   getUserId() {
-    return this.get('user_id') || sessionStorage.getItem('jn_session_user_id') || null
+    const val = this.get('user_id') || sessionStorage.getItem('jn_session_user_id')
+    if (val !== null) return val
+    const backup = this.getBackupSession()
+    return backup?.id ?? null
   }
 
   getUsername() {
-    return this.get('username') || sessionStorage.getItem('jn_session_username') || null
+    const val = this.get('username') || sessionStorage.getItem('jn_session_username')
+    if (val !== null) return val
+    const backup = this.getBackupSession()
+    return backup?.username ?? null
   }
 
   setSession(user) {
@@ -124,6 +145,18 @@ export class SessionStorageController extends BaseStorageController {
     sessionStorage.setItem('jn_session_user', user.full_name || user.name)
     sessionStorage.setItem('jn_session_user_id', user.id)
     sessionStorage.setItem('jn_session_username', user.username)
+
+    // Persistent storage backup so refreshing/reloading never clears session
+    try {
+      localStorage.setItem('jn_auth_session', JSON.stringify({
+        id: user.id,
+        role: roleStr,
+        user: user.full_name || user.name,
+        username: user.username,
+        units: user.units || '',
+        avatar: user.avatar_url || user.avatar || ''
+      }))
+    } catch {}
   }
 }
 
@@ -302,6 +335,9 @@ export class DatabaseStorageCoordinator {
   clearAllSessionData() {
     this.session.clear()
     this.cache.clear()
+    try {
+      localStorage.removeItem('jn_auth_session')
+    } catch {}
   }
 }
 

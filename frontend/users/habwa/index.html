@@ -25,9 +25,10 @@
   <!-- Component Injected Layout Slots -->
   <div id="sidebar-slot"></div>
   <div id="settings-slot"></div>
+  <div id="navigation-slot"></div>
 
-  <!-- Main Expandable Layout Canvas (Balanced padding matching dashboard) -->
-  <div id="habwa-main" class="p-4 sm:p-6 lg:p-8 sm:ml-72 transition-all duration-300">
+  <!-- Main Expandable Layout Canvas (Balanced padding matching dashboard with pb-24 for mobile navigation) -->
+  <div id="habwa-main" class="p-4 sm:p-6 lg:p-8 pb-24 sm:pb-6 sm:ml-72 transition-all duration-300">
     <div id="habwa-container" class="w-full space-y-6">
 
       <!-- Header Controls Row: Title, Context & Action Controls without floating div container -->
@@ -93,7 +94,7 @@
         </div>
       </div>
 
-      <!-- 3-Column Top KPI Stat Grid with Solid Tailwind Colors and Dirty-White Typography -->
+      <!-- 3-Column Top KPI Stat Grid with Solid Tailwind Colors and Dirty-White Typography (Stacked deck on mobile) -->
       <div id="summary-cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
 
         <!-- KPI 1: Overall Monthly Habwa Total with Solid Emerald Fill & Dirty-White Text -->
@@ -116,13 +117,11 @@
           <div class="relative z-10 flex items-center justify-between">
             <div id="revenue-title-skeleton" class="h-3 bg-emerald-400/40 rounded-full w-28 animate-pulse"></div>
             <span id="revenue-title"
-              class="hidden text-xs font-extrabold uppercase tracking-wider text-dirty-white font-averta">Monthly Total
-              Habwa</span>
+              class="hidden text-xs font-extrabold uppercase tracking-wider text-dirty-white font-averta">Monthly Total Habwa</span>
 
             <div id="revenue-badge-skeleton" class="h-4 bg-emerald-400/40 rounded-md w-24 animate-pulse"></div>
             <span id="revenue-badge"
-              class="hidden px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-700/80 dark:bg-emerald-800/80 text-dirty-white border border-emerald-400/40 shadow-xs">Total
-              Harvest</span>
+              class="hidden px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-700/80 dark:bg-emerald-800/80 text-dirty-white border border-emerald-400/40 shadow-xs">Total Harvest</span>
           </div>
           <!-- Amount & Desc Row -->
           <div class="relative z-10 mt-3">
@@ -130,10 +129,8 @@
             <p id="stat-total" class="hidden text-3xl font-black text-dirty-white tracking-tight font-money">
               ₱0
             </p>
-            <div id="revenue-desc-skeleton" class="h-2.5 bg-emerald-400/30 rounded-full w-48 mt-1.5 animate-pulse">
-            </div>
-            <p id="revenue-desc" class="hidden text-[11px] text-dirty-white/90 mt-1 font-semibold">Gross coin drop
-              harvest across active pisonets</p>
+            <div id="revenue-desc-skeleton" class="h-2.5 bg-emerald-400/30 rounded-full w-48 mt-1.5 animate-pulse"></div>
+            <p id="revenue-desc" class="hidden text-[11px] text-dirty-white/90 mt-1 font-semibold">Gross coin drop harvest across active pisonets</p>
           </div>
         </div>
 
@@ -157,13 +154,11 @@
           <div class="relative z-10 flex items-center justify-between">
             <div id="terminals-title-skeleton" class="h-3 bg-rose-400/40 rounded-full w-36 animate-pulse"></div>
             <span id="terminals-title"
-              class="hidden text-xs font-extrabold uppercase tracking-wider text-dirty-white font-averta">Collection
-              Sessions</span>
+              class="hidden text-xs font-extrabold uppercase tracking-wider text-dirty-white font-averta">Collection Sessions</span>
 
             <div id="terminals-badge-skeleton" class="h-4 bg-rose-400/40 rounded-md w-24 animate-pulse"></div>
             <span id="terminals-badge"
-              class="hidden px-2 py-0.5 rounded text-[11px] font-bold bg-rose-700/80 dark:bg-rose-800/80 text-dirty-white border border-rose-400/40 shadow-xs">Audit
-              Entries</span>
+              class="hidden px-2 py-0.5 rounded text-[11px] font-bold bg-rose-700/80 dark:bg-rose-800/80 text-dirty-white border border-rose-400/40 shadow-xs">Audit Entries</span>
           </div>
           <!-- Amount & Desc Row -->
           <div class="relative z-10 mt-3">
@@ -172,8 +167,7 @@
               0 Logs
             </p>
             <div id="terminals-desc-skeleton" class="h-2.5 bg-rose-400/30 rounded-full w-48 mt-1.5 animate-pulse"></div>
-            <p id="terminals-desc" class="hidden text-[11px] text-dirty-white/90 mt-1 font-semibold">Recorded coin
-              clearances & owner remittances</p>
+            <p id="terminals-desc" class="hidden text-[11px] text-dirty-white/90 mt-1 font-semibold">Recorded coin clearances & owner remittances</p>
           </div>
         </div>
 
@@ -193,13 +187,11 @@
           <div class="relative z-10 flex items-center justify-between">
             <div id="monthly-title-skeleton" class="h-3 bg-amber-300/40 rounded-full w-28 animate-pulse"></div>
             <span id="monthly-title"
-              class="hidden text-xs font-extrabold uppercase tracking-wider text-dirty-white font-averta">Highest Habwa
-              Record</span>
+              class="hidden text-xs font-extrabold uppercase tracking-wider text-dirty-white font-averta">Highest Habwa Record</span>
 
             <div id="monthly-badge-skeleton" class="h-4 bg-amber-300/40 rounded-md w-24 animate-pulse"></div>
             <span id="monthly-badge"
-              class="hidden px-2 py-0.5 rounded text-[11px] font-bold bg-amber-600/80 dark:bg-amber-700/80 text-dirty-white border border-amber-300/40 shadow-xs">Peak
-              Harvest</span>
+              class="hidden px-2 py-0.5 rounded text-[11px] font-bold bg-amber-600/80 dark:bg-amber-700/80 text-dirty-white border border-amber-300/40 shadow-xs">Peak Harvest</span>
           </div>
           <!-- Amount & Desc Row -->
           <div class="relative z-10 mt-3">
@@ -208,8 +200,7 @@
               ₱0
             </p>
             <div id="monthly-desc-skeleton" class="h-2.5 bg-amber-300/30 rounded-full w-48 mt-1.5 animate-pulse"></div>
-            <p id="monthly-desc" class="hidden text-[11px] text-dirty-white/90 mt-1 font-semibold">Highest coin-drop
-              amount recorded this month</p>
+            <p id="monthly-desc" class="hidden text-[11px] text-dirty-white/90 mt-1 font-semibold">Highest coin-drop amount recorded this month</p>
           </div>
         </div>
 
@@ -876,8 +867,8 @@
           drawerManager.init()
           tableManager.init(drawerManager)
 
-          // Trigger Flowbite skeleton loading lifecycle via AnimationsManager
-          tableManager.animations.skeleton.init()
+          // Trigger full animation lifecycle (skeletons, counters, stacked deck controller)
+          tableManager.animations.init()
         }
       })
     </script>

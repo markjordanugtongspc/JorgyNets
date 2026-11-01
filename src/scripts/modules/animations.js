@@ -6,12 +6,14 @@ export class AnimationsManager {
     this.skeleton = new this.SkeletonManager(this)
     this.toast = new this.ToastManager(this)
     this.shake = new this.InputShakeManager(this)
+    this.stackedDeck = new this.StackedDeckController(this)
   }
 
   // START: AnimationsManager.init - Bootstraps all registered animation subchildren
   init() {
     this.skeleton.init()
     this.refreshAnimator.init()
+    this.stackedDeck.init()
   }
   // END: AnimationsManager.init - Animations initialized
 
@@ -562,5 +564,227 @@ export class AnimationsManager {
     }
   }
   // END: InputShakeManager
+
+  // START: StackedDeckController - Manages stacked decked cards animation on mobile viewports for KPI cards
+  StackedDeckController = class {
+    constructor(parent) {
+      this.parent = parent
+      this.cardIds = ['kpi-revenue', 'kpi-terminals', 'kpi-monthly']
+      this.currentIndex = 0
+      this.isAnimating = false
+      this.isMobileView = false
+    }
+
+    getContainer() {
+      // Exclusively target summary-cards (Habwa page) for the stacked deck animation
+      return document.getElementById('summary-cards')
+    }
+
+    // START: StackedDeckController.init - Binds tap listener, swipe gestures, and responsive viewport resize
+    init() {
+      const container = this.getContainer()
+      if (!container) return
+
+      this.updateViewportState()
+      window.addEventListener('resize', () => {
+        this.updateViewportState()
+      })
+
+      // Add click/tap and touch swipe interaction to rotate through stacked decked cards
+      let touchStartX = 0
+      let touchStartY = 0
+
+      this.cardIds.forEach((id, index) => {
+        const card = document.getElementById(id)
+        if (!card) return
+
+        card.addEventListener('click', (e) => {
+          // Only perform stacked deck flip when on mobile screens (< 640px)
+          if (!this.isMobileView || this.isAnimating) return
+          // If user taps the active top card, advance to next card
+          if (index === this.currentIndex) {
+            this.next()
+          } else {
+            // If user taps an exposed peeking card edge behind, jump directly to that card
+            this.goTo(index)
+          }
+        })
+
+        // Touch swipe support to swipe left/right between cards smoothly
+        card.addEventListener('touchstart', (e) => {
+          if (!this.isMobileView) return
+          touchStartX = e.changedTouches[0].clientX
+          touchStartY = e.changedTouches[0].clientY
+        }, { passive: true })
+
+        card.addEventListener('touchend', (e) => {
+          if (!this.isMobileView || this.isAnimating) return
+          const touchEndX = e.changedTouches[0].clientX
+          const touchEndY = e.changedTouches[0].clientY
+          const diffX = touchEndX - touchStartX
+          const diffY = touchEndY - touchStartY
+
+          // Horizontal swipe threshold of 40px
+          if (Math.abs(diffX) > 40 && Math.abs(diffX) > Math.abs(diffY)) {
+            if (diffX < 0) {
+              // Swipe left: next card
+              this.next()
+            } else {
+              // Swipe right: previous card
+              this.prev()
+            }
+          }
+        }, { passive: true })
+      })
+
+      // Add a compact pill indicator for mobile deck under container if not present
+      this.mountIndicators(container)
+      this.renderDeck()
+    }
+    // END: StackedDeckController.init
+
+    // START: StackedDeckController.updateViewportState - Detects viewport and resets desktop grid
+    updateViewportState() {
+      const wasMobile = this.isMobileView
+      this.isMobileView = window.innerWidth < 640
+      const container = this.getContainer()
+      const indicators = document.getElementById('kpi-deck-indicators')
+
+      if (this.isMobileView) {
+        container?.classList.add('relative', 'min-h-[160px]')
+        indicators?.classList.remove('hidden')
+        this.renderDeck()
+      } else {
+        container?.classList.remove('relative', 'min-h-[160px]')
+        indicators?.classList.add('hidden')
+        this.resetDesktopStyles()
+      }
+    }
+    // END: StackedDeckController.updateViewportState
+
+    // START: StackedDeckController.mountIndicators - Creates sleek mobile card dot indicators
+    mountIndicators(container) {
+      if (document.getElementById('kpi-deck-indicators')) return
+
+      const indicatorWrap = document.createElement('div')
+      indicatorWrap.id = 'kpi-deck-indicators'
+      indicatorWrap.className = 'sm:hidden flex items-center justify-center space-x-2 pt-1 pb-1 select-none'
+      indicatorWrap.innerHTML = `
+        <button id="dot-kpi-0" type="button" class="w-6 h-1.5 rounded-full bg-emerald-500 transition-all duration-300" aria-label="Habwa card"></button>
+        <button id="dot-kpi-1" type="button" class="w-2 h-1.5 rounded-full bg-slate-300 dark:bg-slate-700 transition-all duration-300" aria-label="Deductions card"></button>
+        <button id="dot-kpi-2" type="button" class="w-2 h-1.5 rounded-full bg-slate-300 dark:bg-slate-700 transition-all duration-300" aria-label="Payout card"></button>
+        <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 ms-2">Swipe or tap to flip</span>
+      `
+
+      container.after(indicatorWrap)
+
+      // Bind indicator dots
+      ;[0, 1, 2].forEach((idx) => {
+        document.getElementById(`dot-kpi-${idx}`)?.addEventListener('click', () => {
+          if (!this.isAnimating) this.goTo(idx)
+        })
+      })
+    }
+    // END: StackedDeckController.mountIndicators
+
+    // START: StackedDeckController.next - Transitions top card to back and brings next card forward
+    next() {
+      this.currentIndex = (this.currentIndex + 1) % this.cardIds.length
+      this.renderDeck(true)
+    }
+
+    prev() {
+      this.currentIndex = (this.currentIndex - 1 + this.cardIds.length) % this.cardIds.length
+      this.renderDeck(true)
+    }
+
+    goTo(targetIndex) {
+      if (targetIndex === this.currentIndex) return
+      this.currentIndex = targetIndex
+      this.renderDeck(true)
+    }
+    // END: StackedDeckController.next
+
+    // START: StackedDeckController.renderDeck - Positions cards in 3D stacked deck layout on mobile
+    renderDeck(animate = false) {
+      if (!this.isMobileView) return
+
+      const n = this.cardIds.length
+
+      this.cardIds.forEach((id, idx) => {
+        const card = document.getElementById(id)
+        if (!card) return
+
+        // Compute relative order offset from active current card (0 = top, 1 = middle behind, 2 = bottom behind)
+        const offset = (idx - this.currentIndex + n) % n
+
+        card.style.transition = animate ? 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)' : 'none'
+        card.style.position = 'absolute'
+        card.style.left = '0'
+        card.style.right = '0'
+        card.style.top = '0'
+        card.style.cursor = 'pointer'
+
+        if (offset === 0) {
+          // Top Active Card: placed at top 20px, front z-index 30, full scale
+          card.style.zIndex = '30'
+          card.style.top = '20px'
+          card.style.transform = 'translateY(0px) scale(1)'
+          card.style.opacity = '1'
+          card.style.pointerEvents = 'auto'
+          card.setAttribute('aria-hidden', 'false')
+        } else if (offset === 1) {
+          // 2nd Stacked Deck Card behind: peeking at top (top 10px), scaled 0.96, z-index 20
+          card.style.zIndex = '20'
+          card.style.top = '10px'
+          card.style.transform = 'translateY(0px) scale(0.96)'
+          card.style.opacity = '0.90'
+          card.style.pointerEvents = 'auto'
+          card.setAttribute('aria-hidden', 'true')
+        } else {
+          // 3rd Stacked Deck Card behind: peeking higher at top (top 0px), scaled 0.92, z-index 10
+          card.style.zIndex = '10'
+          card.style.top = '0px'
+          card.style.transform = 'translateY(0px) scale(0.92)'
+          card.style.opacity = '0.78'
+          card.style.pointerEvents = 'auto'
+          card.setAttribute('aria-hidden', 'true')
+        }
+      })
+
+      // Update indicator dots active colors
+      const dotColors = ['bg-emerald-500', 'bg-rose-500', 'bg-amber-500']
+      ;[0, 1, 2].forEach((idx) => {
+        const dot = document.getElementById(`dot-kpi-${idx}`)
+        if (!dot) return
+        if (idx === this.currentIndex) {
+          dot.className = `w-6 h-1.5 rounded-full ${dotColors[idx]} shadow-xs transition-all duration-300`
+        } else {
+          dot.className = 'w-2 h-1.5 rounded-full bg-slate-300 dark:bg-slate-700 transition-all duration-300'
+        }
+      })
+    }
+    // END: StackedDeckController.renderDeck
+
+    // START: StackedDeckController.resetDesktopStyles - Reverts inline positioning for desktop viewports
+    resetDesktopStyles() {
+      this.cardIds.forEach((id) => {
+        const card = document.getElementById(id)
+        if (!card) return
+        card.style.position = ''
+        card.style.left = ''
+        card.style.right = ''
+        card.style.top = ''
+        card.style.zIndex = ''
+        card.style.transform = ''
+        card.style.opacity = ''
+        card.style.cursor = ''
+        card.style.transition = ''
+        card.setAttribute('aria-hidden', 'false')
+      })
+    }
+    // END: StackedDeckController.resetDesktopStyles
+  }
+  // END: StackedDeckController
 }
 // END: AnimationsManager - Animations module ready

@@ -211,46 +211,69 @@ export class ChartsManager {
         ],
         chart: {
           height: 310,
-          type: 'area', // Continuous area graph with modern gradient glow
+          type: 'area', // Continuous wave area graph with glowing gradient
           fontFamily: 'Poppins, Averta, sans-serif',
           toolbar: {
-            show: true,
-            tools: {
-              download: true,
-              selection: false,
-              zoom: false,
-              zoomin: false,
-              zoomout: false,
-              pan: false,
-              reset: false,
-            },
+            show: false,
+          },
+          dropShadow: {
+            enabled: true,
+            top: 6,
+            left: 0,
+            blur: 8,
+            color: '#6366f1',
+            opacity: 0.28,
           },
         },
-        colors: ['#2563eb', '#e11d48'],
+        colors: ['#6366f1', '#f43f5e'], // Series 0: Indigo/violet (Habwa Income), Series 1: Rose/coral (Deductions)
         fill: {
           type: 'gradient',
           gradient: {
+            type: 'vertical',
             shadeIntensity: 1,
-            opacityFrom: 0.35,
-            opacityTo: 0.02,
+            opacityFrom: 0.45,
+            opacityTo: 0.05,
             stops: [0, 85, 100],
+            colorStops: [
+              [
+                { offset: 0, color: '#6366f1', opacity: 0.38 },
+                { offset: 60, color: '#8b5cf6', opacity: 0.18 },
+                { offset: 100, color: '#3b82f6', opacity: 0.0 },
+              ],
+              [
+                { offset: 0, color: '#f43f5e', opacity: 0.32 },
+                { offset: 60, color: '#fb7185', opacity: 0.14 },
+                { offset: 100, color: '#f43f5e', opacity: 0.0 },
+              ]
+            ]
           },
         },
         dataLabels: { enabled: false },
         stroke: {
           curve: 'smooth',
-          width: [3, 2.5],
-          dashArray: [0, 4],
+          width: [3.5, 2.5],
+          dashArray: [0, 4], // Habwa solid, Deductions dashed for crystal clear distinction
         },
         xaxis: {
           categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-          labels: { style: { colors: '#64748b', fontSize: '11px', fontWeight: 500 } },
+          labels: { 
+            style: { 
+              colors: ['#94a3b8', '#94a3b8', '#94a3b8', '#94a3b8', '#94a3b8', '#94a3b8', '#94a3b8', '#94a3b8', '#94a3b8', '#6366f1', '#94a3b8', '#94a3b8'], 
+              fontSize: '11px', 
+              fontWeight: 600 
+            } 
+          },
           axisBorder: { show: false },
           axisTicks: { show: false },
           crosshairs: {
             show: true,
-            width: 1,
-            stroke: { color: '#3b82f6', width: 1, dashArray: 3 },
+            width: 18,
+            fill: {
+              type: 'solid',
+              color: '#6366f1',
+              opacity: 0.08,
+            },
+            stroke: { show: false },
           },
         },
         yaxis: {
@@ -259,32 +282,33 @@ export class ChartsManager {
           tickAmount: 4,
           labels: {
             formatter: (val) => `₱${(val / 1000).toFixed(0)}k`,
-            style: { colors: '#64748b', fontSize: '11px', fontWeight: 500 },
+            style: { colors: '#94a3b8', fontSize: '11px', fontWeight: 500 },
           },
           crosshairs: {
-            show: true,
-            stroke: { color: '#94a3b8', width: 1, dashArray: 3 },
+            show: false,
           },
         },
         grid: {
           borderColor: '#e2e8f0',
-          strokeDashArray: 4,
+          strokeDashArray: 3,
           yaxis: { lines: { show: true } },
-          xaxis: { lines: { show: true } },
+          xaxis: { lines: { show: false } },
+          padding: { top: 0, right: 10, bottom: 0, left: 10 },
         },
         markers: {
-          size: [4, 4, 4, 4, 4, 4, 4, 4, 4, 6, 4, 4],
-          colors: ['#2563eb', '#e11d48'],
+          size: [3, 3],
+          colors: ['#6366f1', '#f43f5e'],
           strokeColors: '#ffffff',
           strokeWidth: 2,
-          hover: { size: 8 },
+          hover: { size: 6.5 },
         },
         legend: {
+          show: true,
           position: 'top',
           horizontalAlign: 'right',
           fontSize: '11px',
           fontWeight: 600,
-          labels: { colors: '#475569' },
+          labels: { colors: '#64748b' },
           markers: { radius: 12 },
         },
         tooltip: {

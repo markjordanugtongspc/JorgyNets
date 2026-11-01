@@ -2,14 +2,17 @@
 import sidebarHtml from '../../components/sidebar.html?raw'
 import settingsHtml from '../../components/settings.html?raw'
 import exportsHtml from '../../components/exports.html?raw'
+import navigationHtml from '../../components/navigation.html?raw'
 
 const STATIC_COMPONENTS = {
   '/src/components/sidebar.html': sidebarHtml,
   '/src/components/settings.html': settingsHtml,
   '/src/components/exports.html': exportsHtml,
+  '/src/components/navigation.html': navigationHtml,
   'sidebar': sidebarHtml,
   'settings': settingsHtml,
-  'exports': exportsHtml
+  'exports': exportsHtml,
+  'navigation': navigationHtml
 }
 
 export async function injectComponent(selector, componentPath) {

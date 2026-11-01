@@ -13,14 +13,67 @@ export class AuthManager {
     this.authGuard = new this.AuthGuardController(this)
   }
 
-  // START: AuthManager.init - Initializes subchild controllers and binds form
+  // START: AuthManager.init - Initializes subchild controllers, restores saved credentials, and binds form
   init() {
     this.passVisibilityController.init()
     this.loginModeController.init()
+    this.restoreRememberedCredentials()
     this.bindForm()
     this.checkRedirectError()
   }
   // END: AuthManager.init - Controllers and form ready
+
+  // START: AuthManager.restoreRememberedCredentials - Prepopulates saved credentials from client cookies/storage
+  restoreRememberedCredentials() {
+    try {
+      const saved = storageManager.cookie.get('remember_auth') || storageManager.local.get('remember_auth')
+      if (!saved) return
+
+      const rememberCheck = document.getElementById('remember-check')
+      if (rememberCheck) rememberCheck.checked = true
+
+      if (saved.mode === 'pincode') {
+        const pinBtn = document.getElementById('pin-btn')
+        pinBtn?.click()
+        const passField = document.getElementById('pass-field')
+        if (passField && saved.pin) {
+          passField.value = atob(saved.pin)
+        }
+      } else {
+        const userField = document.getElementById('user-field')
+        const passField = document.getElementById('pass-field')
+        if (userField && saved.user) {
+          userField.value = atob(saved.user)
+        }
+        if (passField && saved.pass) {
+          passField.value = atob(saved.pass)
+        }
+      }
+    } catch (e) {
+      console.warn('[AuthManager] Could not restore saved credentials:', e)
+    }
+  }
+
+  // START: AuthManager.saveRememberedCredentials - Saves or removes credentials based on remember-check
+  saveRememberedCredentials({ username, password, isPinMode }) {
+    try {
+      const rememberCheck = document.getElementById('remember-check')
+      if (rememberCheck && rememberCheck.checked) {
+        const payload = isPinMode
+          ? { mode: 'pincode', pin: btoa(password) }
+          : { mode: 'credentials', user: btoa(username), pass: btoa(password) }
+        
+        // Save to cookie (30 days) and local storage backup
+        storageManager.cookie.set('remember_auth', payload, 30)
+        storageManager.local.set('remember_auth', payload)
+      } else {
+        storageManager.cookie.remove('remember_auth')
+        storageManager.local.remove('remember_auth')
+      }
+    } catch (e) {
+      console.warn('[AuthManager] Could not save credentials:', e)
+    }
+  }
 
   checkRedirectError() {
     const errorMsg = sessionStorage.getItem('jn_auth_error')
@@ -110,6 +163,9 @@ export class AuthManager {
           }
           return
         }
+
+        // Save or update remembered credentials if remember-check is checked
+        this.saveRememberedCredentials({ username, password, isPinMode })
 
         // Redirect based on database role
         const roleId = Number(result.user?.role_id ?? 1)
@@ -389,6 +445,9 @@ export class AuthManager {
       const isProtected = path.includes('/frontend/pages') || path.includes('/frontend/users')
       if (!isProtected) return true
 
+      // Session Persistence Fix: Recover session from persistent storage on reload/refresh
+      this.restoreSessionOnRefresh()
+
       const validation = authApi.validateRouteAccess(path)
       if (!validation.allowed) {
         this.renderShield()
@@ -400,6 +459,35 @@ export class AuthManager {
       }
       return true
     }
+
+    // START: AuthGuardController.restoreSessionOnRefresh - Ensures refreshing or reloading maintains session
+    restoreSessionOnRefresh() {
+      try {
+        const rawRole = sessionStorage.getItem('jn_session_role')
+        const rawUser = sessionStorage.getItem('jn_session_user')
+        if (!rawRole || !rawUser) {
+          const backupRaw = localStorage.getItem('jn_auth_session')
+          if (backupRaw) {
+            const backup = JSON.parse(backupRaw)
+            if (backup && backup.role !== undefined && backup.id) {
+              sessionStorage.setItem('jn_session_role', String(backup.role))
+              sessionStorage.setItem('jn_session_user', backup.user || '')
+              sessionStorage.setItem('jn_session_user_id', backup.id)
+              sessionStorage.setItem('jn_session_username', backup.username || '')
+              storageManager.session.set('role', String(backup.role))
+              storageManager.session.set('user', backup.user || '')
+              storageManager.session.set('user_id', backup.id)
+              storageManager.session.set('username', backup.username || '')
+              storageManager.session.set('units', backup.units || '')
+              storageManager.session.set('avatar', backup.avatar || '')
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('[AuthManager] Session restore check on refresh:', err)
+      }
+    }
+    // END: AuthGuardController.restoreSessionOnRefresh
 
     renderShield() {
       // Instantly blur and hide all page contents

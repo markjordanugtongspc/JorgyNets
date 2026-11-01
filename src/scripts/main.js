@@ -21,6 +21,7 @@ export async function initializeApp(pageModule) {
   // Inject reusable layout components if component slots are present on current page
   await injectComponent('#sidebar-slot', '/src/components/sidebar.html')
   await injectComponent('#settings-slot', '/src/components/settings.html')
+  await injectComponent('#navigation-slot', '/src/components/navigation.html')
 
   // Initialize SettingsManager (OOP Coordinator for settings modal & tabs)
   const settingsManager = new SettingsManager()
@@ -259,6 +260,53 @@ export async function initializeApp(pageModule) {
     }
   }
 
+  // Mobile Bottom Navigation Tab Active States (Dual theme with solid/outline icon switching matching sidebar)
+  const navHome = document.getElementById('nav-home')
+  const navHabwaTab = document.getElementById('nav-habwa')
+  const navBillsTab = document.getElementById('nav-bills')
+  const navNewBtn = document.getElementById('btn-new')
+  const homeOutline = document.getElementById('home-icon-outline')
+  const homeSolid = document.getElementById('home-icon-solid')
+  const habwaOutline = document.getElementById('habwa-icon-outline')
+  const habwaSolid = document.getElementById('habwa-icon-solid')
+  const billsOutline = document.getElementById('bills-icon-outline')
+  const billsSolid = document.getElementById('bills-icon-solid')
+
+  if (path.includes('habwa')) {
+    if (navHabwaTab) {
+      navHabwaTab.classList.remove('text-slate-500', 'dark:text-slate-400', 'opacity-70')
+      navHabwaTab.classList.add('text-emerald-600', 'dark:text-emerald-400', 'bg-emerald-50/80', 'dark:bg-emerald-950/60', 'shadow-xs', 'font-bold', '!opacity-100')
+      navHabwaTab.removeAttribute('data-tooltip-target')
+      document.getElementById('tooltip-habwa')?.remove()
+      habwaOutline?.classList.add('hidden')
+      habwaSolid?.classList.remove('hidden')
+    }
+  } else if (path.includes('bills')) {
+    if (navBillsTab) {
+      navBillsTab.classList.remove('text-slate-500', 'dark:text-slate-400', 'opacity-70')
+      navBillsTab.classList.add('text-rose-600', 'dark:text-rose-400', 'bg-rose-50/80', 'dark:bg-rose-950/60', 'shadow-xs', 'font-bold', '!opacity-100')
+      navBillsTab.removeAttribute('data-tooltip-target')
+      document.getElementById('tooltip-bills')?.remove()
+      billsOutline?.classList.add('hidden')
+      billsSolid?.classList.remove('hidden')
+    }
+  } else if (path.includes('requests')) {
+    if (navNewBtn) {
+      navNewBtn.classList.add('ring-4', 'ring-blue-400/60', 'scale-105')
+      navNewBtn.removeAttribute('data-tooltip-target')
+      document.getElementById('tooltip-new')?.remove()
+    }
+  } else if (path.includes('dashboard') || path.endsWith('/users/')) {
+    if (navHome) {
+      navHome.classList.remove('text-slate-500', 'dark:text-slate-400', 'opacity-70')
+      navHome.classList.add('text-blue-600', 'dark:text-blue-400', 'bg-blue-50/80', 'dark:bg-blue-950/60', 'shadow-xs', 'font-bold', '!opacity-100')
+      navHome.removeAttribute('data-tooltip-target')
+      document.getElementById('tooltip-home')?.remove()
+      homeOutline?.classList.add('hidden')
+      homeSolid?.classList.remove('hidden')
+    }
+  }
+
   // User Profile card hover/tap listener: adjusts requests-card up ONLY when profile-card is interacted with
   const profileWidget = document.getElementById('user-profile-widget')
   const requestsCard = document.getElementById('requests-card')
@@ -283,22 +331,68 @@ export async function initializeApp(pageModule) {
     window.initFlowbite()
   }
 
-  // Mobile Drawer & Hamburger Visibility Controller:
-  // Hides #mobile-bar when drawer is open, and restores it when drawer closes or user taps outside
-  const mobileBar = document.getElementById('mobile-bar')
+  // Mobile Navigation Distraction Auto-Hide & Drawer Visibility Controller:
+  // Hides bottom navigation when scrolling or typing, and restores it when user is idle or lost focus
+  const mobileNav = document.getElementById('mobile-nav')
   const sidebar = document.getElementById('pisonet-sidebar')
 
-  if (mobileBar && sidebar) {
-    // Observe class changes on sidebar (Flowbite adds/removes translate-x-full and -translate-x-full)
+  if (mobileNav) {
+    let scrollTimeout = null
+    let isDrawerOpen = false
+
+    const hideNav = () => {
+      if (window.innerWidth < 640) {
+        mobileNav.classList.add('translate-y-24', 'opacity-0', 'pointer-events-none')
+      }
+    }
+
+    const showNav = () => {
+      if (window.innerWidth < 640 && !isDrawerOpen) {
+        mobileNav.classList.remove('translate-y-24', 'opacity-0', 'pointer-events-none')
+      }
+    }
+
+    // 1. Hide on active scroll, pop back smoothly when scrolling stops
+    window.addEventListener('scroll', () => {
+      if (window.innerWidth >= 640 || isDrawerOpen) return
+      hideNav()
+      if (scrollTimeout) clearTimeout(scrollTimeout)
+      scrollTimeout = setTimeout(() => {
+        showNav()
+      }, 400)
+    }, { passive: true })
+
+    // 2. Hide when user focuses on inputs/textareas to avoid keyboard disturbance, pop back on blur
+    document.addEventListener('focusin', (e) => {
+      const tag = e.target.tagName?.toLowerCase()
+      if (tag === 'input' || tag === 'textarea' || tag === 'select') {
+        hideNav()
+      }
+    })
+
+    document.addEventListener('focusout', (e) => {
+      const tag = e.target.tagName?.toLowerCase()
+      if (tag === 'input' || tag === 'textarea' || tag === 'select') {
+        setTimeout(showNav, 250)
+      }
+    })
+
+    // 3. Tap on the bottom bar itself boosts opacity to full
+    mobileNav.addEventListener('touchstart', () => {
+      mobileNav.classList.remove('opacity-70')
+    }, { passive: true })
+  }
+
+  if (sidebar) {
+    // Observe class changes on sidebar (Flowbite adds/removes translate-x-full)
     const observer = new MutationObserver(() => {
-      // If sidebar is visible (does not have translate-x-full on mobile view)
       const isMobile = window.innerWidth < 640
       const isClosed = sidebar.classList.contains('translate-x-full')
       
       if (isMobile && !isClosed) {
-        mobileBar.classList.add('opacity-0', 'pointer-events-none')
-      } else {
-        mobileBar.classList.remove('opacity-0', 'pointer-events-none')
+        mobileNav?.classList.add('translate-y-24', 'opacity-0', 'pointer-events-none')
+      } else if (isMobile && isClosed) {
+        mobileNav?.classList.remove('translate-y-24', 'opacity-0', 'pointer-events-none')
       }
     })
 
@@ -310,13 +404,13 @@ export async function initializeApp(pageModule) {
       const isClosed = sidebar.classList.contains('translate-x-full')
       if (isClosed) return
 
-      // If click was outside both the sidebar drawer and the hamburger toggle
+      // If click was outside both the sidebar drawer and any toggles
       const clickedInsideSidebar = sidebar.contains(e.target)
-      const clickedToggle = mobileBar.contains(e.target)
+      const clickedToggle = e.target.closest('#sidebar-toggle')
 
       if (!clickedInsideSidebar && !clickedToggle) {
         sidebar.classList.add('translate-x-full')
-        mobileBar.classList.remove('opacity-0', 'pointer-events-none')
+        mobileNav?.classList.remove('translate-y-24', 'opacity-0', 'pointer-events-none')
         // Remove Flowbite backdrop if present
         document.querySelector('[drawer-backdrop]')?.remove()
       }
