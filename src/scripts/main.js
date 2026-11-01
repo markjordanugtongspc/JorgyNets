@@ -4,90 +4,31 @@ import { themeController } from './modules/theme.js'
 import { injectComponent } from './modules/injector.js'
 
 import { AuthManager } from './modules/auth.js'
+import { SettingsManager } from './modules/settings.js'
+export * from '../api/index.js'
 
 // START: initializeApp - Bootstraps theme, dynamic layout slots, and page module
 export async function initializeApp(pageModule) {
+  // Execute Auth Guard first: instantly shield unauthorized viewers
+  const authInstance = new AuthManager()
+  const isAllowed = authInstance.authGuard.protect()
+  if (!isAllowed) {
+    return // Stop rendering anything if unauthorized redirect is in motion
+  }
+
   themeController.init()
 
   // Inject reusable layout components if component slots are present on current page
   await injectComponent('#sidebar-slot', '/src/components/sidebar.html')
   await injectComponent('#settings-slot', '/src/components/settings.html')
 
-  // Programmatic helper to open/close settings modal cleanly without console warnings
-  const settingsModal = document.getElementById('settings-modal')
-  const openSettingsModal = () => {
-    if (!settingsModal) return
-    settingsModal.classList.remove('hidden')
-    settingsModal.classList.add('flex')
-    document.body.classList.add('overflow-hidden')
-  }
-  const closeSettingsModal = () => {
-    if (!settingsModal) return
-    settingsModal.classList.add('hidden')
-    settingsModal.classList.remove('flex')
-    document.body.classList.remove('overflow-hidden')
-  }
-
-  document.getElementById('nav-sys-settings')?.addEventListener('click', (e) => {
-    e.preventDefault()
-    openSettingsModal()
-  })
-  document.getElementById('quick-settings')?.addEventListener('click', (e) => {
-    e.preventDefault()
-    openSettingsModal()
-  })
-  document.getElementById('close-modal')?.addEventListener('click', (e) => {
-    e.preventDefault()
-    closeSettingsModal()
-  })
-  document.getElementById('cancel-settings')?.addEventListener('click', (e) => {
-    e.preventDefault()
-    closeSettingsModal()
-  })
-  settingsModal?.addEventListener('click', (e) => {
-    if (e.target === settingsModal) {
-      closeSettingsModal()
-    }
-  })
+  // Initialize SettingsManager (OOP Coordinator for settings modal & tabs)
+  const settingsManager = new SettingsManager()
+  settingsManager.init()
 
   // Re-bind theme button listener if present
   document.getElementById('theme-btn')?.addEventListener('click', () => {
     themeController.toggle()
-  })
-
-  // Settings Modal Theme Switcher Bindings
-  const syncSettingsThemeUI = () => {
-    const isDark = themeController.getTheme() === 'dark'
-    const lightCheck = document.getElementById('light-check')
-    const darkCheck = document.getElementById('dark-check')
-    const lightBtn = document.getElementById('theme-light-btn')
-    const darkBtn = document.getElementById('theme-dark-btn')
-
-    if (lightCheck && darkCheck) {
-      if (isDark) {
-        darkCheck.classList.remove('hidden')
-        lightCheck.classList.add('hidden')
-        darkBtn?.classList.add('border-blue-500', 'ring-2', 'ring-blue-500/30')
-        lightBtn?.classList.remove('border-blue-500', 'ring-2', 'ring-blue-500/30')
-      } else {
-        lightCheck.classList.remove('hidden')
-        darkCheck.classList.add('hidden')
-        lightBtn?.classList.add('border-blue-500', 'ring-2', 'ring-blue-500/30')
-        darkBtn?.classList.remove('border-blue-500', 'ring-2', 'ring-blue-500/30')
-      }
-    }
-  }
-
-  syncSettingsThemeUI()
-
-  document.getElementById('theme-light-btn')?.addEventListener('click', () => {
-    themeController.apply('light')
-    syncSettingsThemeUI()
-  })
-
-  document.getElementById('theme-dark-btn')?.addEventListener('click', () => {
-    themeController.apply('dark')
-    syncSettingsThemeUI()
   })
 
   // Global Logout binding for user profile dropdown
@@ -106,9 +47,79 @@ export async function initializeApp(pageModule) {
     }
   }, 400)
 
-  // Route-based active sidebar navigation item styling
+  // Route-based active sidebar navigation item styling & Role detection
+  const userRole = sessionStorage.getItem('jn_session_role')
+  const isClient = userRole && userRole !== '0'
+  const sessionUser = sessionStorage.getItem('jn_session_user')
+  const sessionHandle = sessionStorage.getItem('jn_session_handle')
+
+  // Synchronize profile card identity in sidebar from session/localStorage
+  const sideName = document.getElementById('user-fullname')
+  const sideHandle = document.getElementById('user-handle')
+  const dropName = document.getElementById('dropdown-user-fullname')
+  const dropPhone = document.getElementById('dropdown-user-phone')
+  const avatarInitials = document.getElementById('user-avatar-initials')
+
+  const storedSettings = JSON.parse(localStorage.getItem('jn_settings') || '{}')
+  const resolvedFullName = sessionUser || storedSettings.fullName || 'Jorgy Admin'
+  const resolvedUsername = (sessionHandle ? sessionHandle.replace('@', '') : '') || storedSettings.username || 'admin'
+  const resolvedPhone = storedSettings.phone || (isClient ? '0917-882-9102' : '0926-995-8724')
+
+  if (sideName) sideName.textContent = resolvedFullName
+  if (sideHandle) sideHandle.textContent = `@${resolvedUsername}`
+  if (dropName) dropName.textContent = resolvedFullName
+  if (dropPhone) dropPhone.textContent = resolvedPhone
+  if (avatarInitials) {
+    const initials = resolvedFullName
+      .split(' ')
+      .filter(Boolean)
+      .map((part) => part[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase() || 'JA'
+    avatarInitials.textContent = initials
+  }
+
   const path = window.location.pathname
   const dashLink = document.getElementById('nav-dashboard')
+
+  // If user role is client (not 0), re-point sidebar links to users portal
+  if (isClient) {
+    if (dashLink) dashLink.setAttribute('href', '/frontend/users/dashboard/')
+    const habwaNav = document.getElementById('nav-habwa-logs')
+    if (habwaNav) habwaNav.setAttribute('href', '/frontend/users/habwa/')
+    const billsNav = document.getElementById('nav-monthly-deductions')
+    if (billsNav) billsNav.setAttribute('href', '/frontend/users/bills/')
+    const reqNav = document.getElementById('nav-custom-requests')
+    if (reqNav) reqNav.setAttribute('href', '/frontend/users/requests/')
+    const expNav = document.getElementById('nav-exports')
+    if (expNav) expNav.setAttribute('href', '/frontend/users/exports/')
+  }
+
+  // Auto-route client roles hitting admin pages to the corresponding user portal pages
+  if (isClient) {
+    if (path === '/frontend/pages/dashboard/' || path === '/frontend/pages/dashboard/index.html' || path === '/dashboard' || path === '/dashboard/') {
+      window.location.replace('/frontend/users/dashboard/')
+      return
+    }
+    if (path === '/frontend/pages/habwa/' || path === '/frontend/pages/habwa/index.html' || path === '/habwa' || path === '/habwa/') {
+      window.location.replace('/frontend/users/habwa/')
+      return
+    }
+    if (path === '/frontend/pages/bills/' || path === '/frontend/pages/bills/index.html' || path === '/bills' || path === '/bills/') {
+      window.location.replace('/frontend/users/bills/')
+      return
+    }
+    if (path === '/frontend/pages/requests/' || path === '/frontend/pages/requests/index.html' || path === '/requests' || path === '/requests/') {
+      window.location.replace('/frontend/users/requests/')
+      return
+    }
+    if (path === '/frontend/pages/exports/' || path === '/frontend/pages/exports/index.html' || path === '/exports' || path === '/exports/') {
+      window.location.replace('/frontend/users/exports/')
+      return
+    }
+  }
+
   const dashOutline = document.getElementById('dash-icon-outline')
   const dashSolid = document.getElementById('dash-icon-solid')
   const salesToggle = document.getElementById('sales-toggle')
@@ -120,8 +131,47 @@ export async function initializeApp(pageModule) {
   const ownersLink = document.getElementById('nav-users')
   const usersOutline = document.getElementById('users-icon-outline')
   const usersSolid = document.getElementById('users-icon-solid')
+  const notifOutline = document.getElementById('notif-icon-outline')
+  const notifSolid = document.getElementById('notif-icon-solid')
+  const navUsersText = document.getElementById('nav-users-text')
   const exportsOutline = document.getElementById('exports-icon-outline')
   const exportsSolid = document.getElementById('exports-icon-solid')
+
+  // If user role is client/user, switch Owners item to Notifications
+  if (isClient) {
+    if (navUsersText) navUsersText.textContent = 'Notifications'
+    if (usersOutline) usersOutline.classList.add('!hidden')
+    if (usersSolid) usersSolid.classList.add('!hidden')
+    if (notifOutline) notifOutline.classList.remove('hidden')
+    if (notifSolid) notifSolid.classList.add('hidden')
+
+    if (ownersLink) {
+      ownersLink.addEventListener('mouseenter', () => {
+        notifOutline?.classList.add('hidden')
+        notifSolid?.classList.remove('hidden')
+      })
+      ownersLink.addEventListener('mouseleave', () => {
+        notifOutline?.classList.remove('hidden')
+        notifSolid?.classList.add('hidden')
+      })
+      ownersLink.setAttribute('href', '#')
+      ownersLink.addEventListener('click', (e) => {
+        e.preventDefault()
+        settingsManager.tabController.switchTab('notifications')
+        const modal = document.getElementById('settings-modal')
+        if (modal) {
+          modal.classList.remove('hidden')
+          modal.classList.add('flex')
+          document.body.classList.add('overflow-hidden')
+        }
+      })
+    }
+  } else {
+    if (notifOutline) notifOutline.classList.add('!hidden')
+    if (notifSolid) notifSolid.classList.add('!hidden')
+    if (usersOutline) usersOutline.classList.remove('!hidden')
+    if (usersSolid) usersSolid.classList.remove('!hidden')
+  }
 
   if (path.includes('habwa')) {
     // 1. Deactivate dashboard link (shows outline by default, solid on hover)
@@ -275,7 +325,7 @@ export async function initializeApp(pageModule) {
 
   // Initialize page-specific OOP module (e.g. AuthManager, DashboardManager, ExportsManager)
   if (pageModule && typeof pageModule.init === 'function') {
-    pageModule.init()
+    await pageModule.init()
   }
 }
 // END: initializeApp - Initialization completed

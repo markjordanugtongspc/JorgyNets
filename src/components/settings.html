@@ -1,105 +1,327 @@
-<!-- Reusable Settings Flowbite Modal Component (Pop-up Modal with Theme Switcher & Supabase Config) -->
-<div id="settings-modal" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-  <div class="relative p-4 w-full max-w-lg max-h-full">
-    <!-- Modal content -->
-    <div class="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-5 sm:p-6 transition-colors duration-200 font-poppins">
+<!-- START: Settings Flowbite Modal Component (Multi-Tab Settings with Backdrop Blur) -->
+<div id="settings-modal" tabindex="-1" aria-hidden="true"
+  class="hidden overflow-y-auto overflow-x-hidden fixed inset-0 z-50 justify-center items-center w-full h-full bg-slate-950/60 backdrop-blur-md transition-all duration-200 p-3 sm:p-4 md:p-6 font-poppins">
+  
+  <div class="relative w-full max-w-2xl md:max-w-3xl max-h-[92vh] md:max-h-[88vh] flex flex-col">
+    <!-- Modal Card Container -->
+    <div class="relative bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row transition-colors duration-200 md:min-h-[580px]">
       
-      <!-- Modal Header -->
-      <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
-        <div class="flex items-center space-x-2.5">
-          <span class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 flex items-center justify-center font-bold text-sm">
-            <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527a1.125 1.125 0 0 1 1.45.12l.773.774c.39.389.44 1.002.12 1.45l-.527.737c-.25.35-.272.806-.107 1.204.165.397.505.71.93.78l.893.15c.543.09.94.559.94 1.109v1.094c0 .55-.397 1.02-.94 1.11l-.894.149c-.424.07-.764.383-.929.78-.165.398-.143.854.107 1.204l.527.738c.32.447.269 1.06-.12 1.45l-.774.773a1.125 1.125 0 0 1-1.449.12l-.738-.527c-.35-.25-.806-.272-1.203-.107-.398.165-.71.505-.781.929l-.149.894c-.09.542-.56.94-1.11.94h-1.094c-.55 0-1.019-.398-1.11-.94l-.148-.894c-.071-.424-.384-.764-.781-.93-.398-.164-.854-.142-1.204.108l-.738.527c-.447.32-1.06.269-1.45-.12l-.773-.774a1.125 1.125 0 0 1-.12-1.45l.527-.737c.25-.35.272-.806.108-1.204-.165-.397-.506-.71-.93-.78l-.894-.15c-.542-.09-.94-.56-.94-1.109v-1.094c0-.55.398-1.02.94-1.11l.894-.149c.424-.07.765-.383.93-.78.165-.398.143-.854-.108-1.204l-.526-.738a1.125 1.125 0 0 1 .12-1.45l.773-.773a1.125 1.125 0 0 1 1.45-.12l.737.527c.35.25.807.272 1.204.107.397-.165.71-.505.78-.929l.15-.894Z" />
-              <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-            </svg>
-          </span>
-          <div>
-            <h3 id="settings-title" class="text-sm font-bold text-slate-900 dark:text-white font-averta">
-              System Settings
-            </h3>
-            <p class="text-[11px] text-slate-400">Configure visual themes and database endpoints</p>
-          </div>
-        </div>
-        <button id="close-modal" type="button" class="text-slate-400 bg-transparent hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-slate-800 dark:hover:text-white rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center cursor-pointer transition">
-          <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6"/>
-          </svg>
-          <span class="sr-only">Close modal</span>
-        </button>
-      </div>
-
-      <!-- Modal Body -->
-      <div class="space-y-5 py-4">
+      <!-- Left Sidebar Tabs (Horizontal Scrollable on Mobile, Vertical Sidebar on md+) -->
+      <aside id="settings-nav" class="w-full md:w-56 bg-slate-50/80 dark:bg-slate-950/50 border-b md:border-b-0 md:border-r border-slate-200/80 dark:border-slate-800 p-3 sm:p-4 shrink-0">
         
-        <!-- Theme Toggle Section -->
-        <div>
-          <label class="block mb-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 font-averta">
-            Display Appearance
-          </label>
-          <div class="grid grid-cols-2 gap-3">
-            <!-- Light Mode Button -->
-            <button id="theme-light-btn" type="button" class="flex items-center justify-between p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-dirty-white dark:bg-slate-800 hover:border-blue-500 transition cursor-pointer text-left">
-              <div class="flex items-center space-x-2.5">
-                <span class="w-7 h-7 rounded-lg bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center">
-                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"/>
-                  </svg>
-                </span>
-                <div>
-                  <div class="text-xs font-bold text-slate-800 dark:text-white">Light Mode</div>
-                  <div class="text-[10px] text-slate-400">Dirty-white canvas</div>
-                </div>
-              </div>
-              <span id="light-check" class="hidden w-2 h-2 rounded-full bg-blue-600"></span>
-            </button>
+        <!-- Modal Brand Header on Mobile/Desktop -->
+        <div class="flex items-center justify-between pb-3 mb-2 md:mb-4 border-b border-slate-200/60 dark:border-slate-800/80">
+          <div class="flex items-center space-x-2.5">
+            <span class="w-8 h-8 rounded-xl bg-blue-600/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 flex items-center justify-center font-bold text-xs">
+              <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527a1.125 1.125 0 0 1 1.45.12l.773.774c.39.389.44 1.002.12 1.45l-.527.737c-.25.35-.272.806-.107 1.204.165.397.505.71.93.78l.893.15c.543.09.94.559.94 1.109v1.094c0 .55-.397 1.02-.94 1.11l-.894.149c-.424.07-.764.383-.929.78-.165.398-.143.854.107 1.204l.527.738c.32.447.269 1.06-.12 1.45l-.774.773a1.125 1.125 0 0 1-1.449.12l-.738-.527c-.35-.25-.806-.272-1.203-.107-.398.165-.71.505-.781.929l-.149.894c-.09.542-.56.94-1.11.94h-1.094c-.55 0-1.019-.398-1.11-.94l-.148-.894c-.071-.424-.384-.764-.781-.93-.398-.164-.854-.142-1.204.108l-.738.527c-.447.32-1.06.269-1.45-.12l-.773-.774a1.125 1.125 0 0 1-.12-1.45l.527-.737c.25-.35.272-.806.108-1.204-.165-.397-.506-.71-.93-.78l-.894-.15c-.542-.09-.94-.56-.94-1.109v-1.094c0-.55.398-1.02.94-1.11l.894-.149c.424-.07.765-.383.93-.78.165-.398.143-.854-.108-1.204l-.526-.738a1.125 1.125 0 0 1 .12-1.45l.773-.773a1.125 1.125 0 0 1 1.45-.12l.737.527c.35.25.807.272 1.204.107.397-.165.71-.505.78-.929l.15-.894Z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+              </svg>
+            </span>
+            <div>
+              <h3 id="settings-brand" class="text-xs font-black tracking-tight text-slate-900 dark:text-white font-averta">
+                Settings
+              </h3>
+              <p class="text-[10px] text-slate-400">Account & System</p>
+            </div>
+          </div>
 
-            <!-- Dark Mode Button -->
-            <button id="theme-dark-btn" type="button" class="flex items-center justify-between p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-dirty-white dark:bg-slate-800 hover:border-blue-500 transition cursor-pointer text-left">
-              <div class="flex items-center space-x-2.5">
-                <span class="w-7 h-7 rounded-lg bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
-                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/>
+          <!-- Close Modal Button (X icon with rose hover) -->
+          <button id="close-modal" type="button"
+            class="text-slate-400 hover:text-white hover:bg-rose-600 rounded-xl p-1.5 inline-flex items-center justify-center transition cursor-pointer">
+            <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6"/>
+            </svg>
+            <span class="sr-only">Close modal</span>
+          </button>
+        </div>
+
+        <!-- Navigation Tabs: General, Profile, Security, Notifications -->
+        <nav id="settings-tabs" class="flex md:flex-col overflow-x-auto md:overflow-visible gap-1.5 pb-1 md:pb-0 scrollbar-none">
+          
+          <!-- Tab 1: General -->
+          <button id="tab-general" type="button" data-tab="general"
+            class="settings-tab-btn flex items-center space-x-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 shadow-2xs whitespace-nowrap cursor-pointer text-left">
+            <span class="w-6 h-6 rounded-lg bg-blue-600/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" />
+              </svg>
+            </span>
+            <span class="font-averta">General</span>
+          </button>
+
+          <!-- Tab 2: Profile -->
+          <button id="tab-profile" type="button" data-tab="profile"
+            class="settings-tab-btn flex items-center space-x-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold transition text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60 whitespace-nowrap cursor-pointer text-left">
+            <span class="w-6 h-6 rounded-lg bg-slate-200/50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 flex items-center justify-center shrink-0">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+              </svg>
+            </span>
+            <span class="font-averta">Profile</span>
+          </button>
+
+          <!-- Tab 3: Security -->
+          <button id="tab-security" type="button" data-tab="security"
+            class="settings-tab-btn flex items-center space-x-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold transition text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60 whitespace-nowrap cursor-pointer text-left">
+            <span class="w-6 h-6 rounded-lg bg-slate-200/50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 flex items-center justify-center shrink-0">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M7.864 4.243A7.5 7.5 0 0 1 19.5 10.5c0 2.92-.556 5.709-1.568 8.268M5.742 6.364A7.465 7.465 0 0 0 4.5 10.5a7.464 7.464 0 0 1-1.15 3.993m1.989 3.559A11.209 11.209 0 0 0 8.25 10.5a3.75 3.75 0 1 1 7.5 0c0 .527-.021 1.049-.064 1.565M12 10.5a14.94 14.94 0 0 1-3.6 9.75m6.6-3.324A14.966 14.966 0 0 1 12 21.75" />
+              </svg>
+            </span>
+            <span class="font-averta">Security</span>
+          </button>
+
+          <!-- Tab 4: Notifications -->
+          <button id="tab-notif" type="button" data-tab="notifications"
+            class="settings-tab-btn flex items-center space-x-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold transition text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60 whitespace-nowrap cursor-pointer text-left">
+            <span class="w-6 h-6 rounded-lg bg-slate-200/50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 flex items-center justify-center shrink-0">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
+              </svg>
+            </span>
+            <span class="font-averta">Notifications</span>
+          </button>
+
+        </nav>
+      </aside>
+
+      <!-- Right Main Content Panel (Card-style rows matching reference layout) -->
+      <main id="settings-main" class="flex-1 p-4 sm:p-6 overflow-y-auto max-h-[70vh] md:max-h-[82vh]">
+        
+        <!-- SECTION 1: GENERAL SETTINGS -->
+        <div id="section-general" class="settings-section space-y-4">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+            <div>
+              <h2 class="text-base sm:text-lg font-black text-slate-900 dark:text-white font-averta">General</h2>
+              <p class="text-[11px] text-slate-400">Account identity and interface telemetry preferences</p>
+            </div>
+          </div>
+
+          <div class="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
+            
+            <!-- Row 1: Username with Edit Icon -->
+            <div class="py-3 flex items-center justify-between gap-3">
+              <span class="font-semibold text-slate-700 dark:text-slate-300">Username</span>
+              <div class="flex items-center space-x-2">
+                <input id="set-user" type="text" value="admin_jorgie"
+                  class="text-right text-xs font-semibold text-slate-800 dark:text-slate-100 bg-transparent border-none focus:ring-0 focus:outline-none p-0 cursor-text w-32 sm:w-44" />
+                <label for="set-user" class="text-slate-400 hover:text-blue-600 transition cursor-pointer">
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
                   </svg>
-                </span>
-                <div>
-                  <div class="text-xs font-bold text-slate-800 dark:text-white">Dark Mode</div>
-                  <div class="text-[10px] text-slate-400">Deep slate palette</div>
-                </div>
+                </label>
               </div>
-              <span id="dark-check" class="hidden w-2 h-2 rounded-full bg-blue-600"></span>
-            </button>
+            </div>
+
+            <!-- Row 2: Phone Number (Optional for recovery) -->
+            <div class="py-3 flex items-center justify-between gap-3">
+              <div>
+                <span class="font-semibold text-slate-700 dark:text-slate-300 block">Phone</span>
+                <span class="text-[10px] text-slate-400">Optional • Used strictly for SMS recovery</span>
+              </div>
+              <input id="set-phone" type="tel" placeholder="0917-000-0000" value="0917-882-9102"
+                class="text-right text-xs font-semibold text-slate-800 dark:text-slate-100 bg-transparent border-none focus:ring-0 focus:outline-none p-0 cursor-text w-36 sm:w-44" />
+            </div>
+
+            <!-- Row 3: Enable Dark Mode (Default: Toggled Off) -->
+            <div class="py-3 flex items-center justify-between gap-3">
+              <div>
+                <span class="font-semibold text-slate-700 dark:text-slate-300 block">Enable Dark Mode?</span>
+                <span class="text-[10px] text-slate-400">Toggle dark slate canvas theme</span>
+              </div>
+              <label for="set-dark" class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="set-dark" class="sr-only peer">
+                <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+              </label>
+            </div>
+
+            <!-- Row 4: Animate money with rolling counters (Default: Toggled On) -->
+            <div class="py-3 flex items-center justify-between gap-3">
+              <div>
+                <span class="font-semibold text-slate-700 dark:text-slate-300 block">Animate money with rolling counters</span>
+                <span class="text-[10px] text-slate-400">Dynamic staggered rollup on KPI numbers</span>
+              </div>
+              <label for="set-rolling" class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="set-rolling" checked class="sr-only peer">
+                <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+              </label>
+            </div>
+
           </div>
         </div>
 
-        <!-- Supabase Cloud Section -->
-        <div>
-          <label class="block mb-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 font-averta">
-            Supabase Cloud Config
-          </label>
-          <div class="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-800 text-xs space-y-1">
-            <p class="font-mono text-slate-700 dark:text-slate-300 text-[11px]">Host: db.junpnybtfzgxkyrixvpe.supabase.co</p>
-            <p class="text-emerald-600 dark:text-emerald-400 font-semibold text-[11px]">Client-Side: Direct HTTPS REST (Vercel Ready)</p>
+        <!-- SECTION 2: PROFILE SETTINGS -->
+        <div id="section-profile" class="settings-section hidden space-y-4">
+          <div class="pb-3 border-b border-slate-100 dark:border-slate-800">
+            <h2 class="text-base sm:text-lg font-black text-slate-900 dark:text-white font-averta">Profile</h2>
+            <p class="text-[11px] text-slate-400">Customize avatar graphic and administrator display name</p>
+          </div>
+
+          <div class="space-y-4 text-xs">
+            <!-- Avatar Upload Block -->
+            <div class="flex items-center space-x-4 p-3.5 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200/80 dark:border-slate-800">
+              <div class="relative shrink-0">
+                <img id="avatar-preview" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"
+                  alt="Admin Avatar" class="w-16 h-16 rounded-2xl object-cover border-2 border-blue-500 shadow-md shadow-blue-500/20" />
+                <span class="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-white dark:border-slate-900 rounded-full"></span>
+              </div>
+              <div class="flex-1 space-y-1.5">
+                <span class="font-bold text-slate-800 dark:text-white block font-averta">Profile Picture</span>
+                <p class="text-[10px] text-slate-400">Upload JPG, PNG or WebP image under 2MB</p>
+                <div class="flex items-center space-x-2 pt-1">
+                  <label for="avatar-file"
+                    class="px-3 py-1.5 text-[11px] font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition cursor-pointer shadow-xs inline-flex items-center space-x-1">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
+                    </svg>
+                    <span>Upload Image</span>
+                  </label>
+                  <input type="file" id="avatar-file" accept="image/*" class="hidden" />
+                  <button id="avatar-reset" type="button" class="px-2.5 py-1.5 text-[11px] font-semibold text-slate-500 hover:text-rose-600 transition cursor-pointer">
+                    Reset
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Full Name Input -->
+            <div>
+              <label for="set-fullname" class="block mb-1.5 font-semibold text-slate-700 dark:text-slate-300">
+                Full Legal Name
+              </label>
+              <input type="text" id="set-fullname" value="Jorgie Alcantara" placeholder="Enter full name"
+                class="w-full text-xs font-semibold text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3.5 py-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none transition" />
+            </div>             <!-- Role Badge -->
+            <div>
+              <span class="block mb-1.5 font-semibold text-slate-700 dark:text-slate-300">System Role</span>
+              <div class="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                <div>
+                  <span id="set-role-label" class="font-bold text-slate-800 dark:text-white block">System Administrator</span>
+                  <span id="set-role-desc" class="text-[10px] text-slate-400">Full read & write clearance across fleet ledgers</span>
+                </div>
+                <span id="set-status-badge" class="px-2.5 py-1 text-[10px] font-black uppercase tracking-wider rounded-lg bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 border border-emerald-300/40">
+                  Active
+                </span>
+              </div>
+            </div>
+
           </div>
         </div>
 
-        <div>
-          <label for="anon-key" class="block mb-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300">Supabase Anon Key</label>
-          <input type="text" id="anon-key" class="bg-slate-50 border border-slate-300 text-slate-900 text-xs rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-slate-800 dark:border-slate-700 dark:placeholder-slate-400 dark:text-white font-mono shadow-2xs" placeholder="eyJh..." />
-          <p class="text-[10px] text-slate-400 mt-1">Paste your project anon key from Supabase dashboard</p>
+        <!-- SECTION 3: SECURITY SETTINGS -->
+        <div id="section-security" class="settings-section hidden space-y-4">
+          <div class="pb-3 border-b border-slate-100 dark:border-slate-800">
+            <h2 class="text-base sm:text-lg font-black text-slate-900 dark:text-white font-averta">Security</h2>
+            <p class="text-[11px] text-slate-400">Update master password and 4-digit PIN authentication credentials</p>
+          </div>
+
+          <div class="space-y-3.5 text-xs">
+            
+            <!-- Password Modification -->
+            <div class="p-3.5 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200/80 dark:border-slate-800 space-y-3">
+              <span class="font-bold text-slate-800 dark:text-white block font-averta">Change Master Password</span>
+              
+              <div>
+                <label for="old-pass" class="block mb-1 text-[11px] font-semibold text-slate-600 dark:text-slate-300">Old Password</label>
+                <input type="password" id="old-pass" placeholder="••••••••••••"
+                  class="w-full text-xs text-slate-900 dark:text-white bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none font-mono" />
+                <p id="old-pass-feedback" class="hidden text-[10px] mt-1 font-semibold"></p>
+              </div>
+
+              <div>
+                <label for="new-pass" class="block mb-1 text-[11px] font-semibold text-slate-600 dark:text-slate-300">New Password</label>
+                <input type="password" id="new-pass" disabled placeholder="Unlock by entering old password first"
+                  class="w-full text-xs text-slate-900 dark:text-white bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none font-mono disabled:opacity-50 disabled:cursor-not-allowed" />
+              </div>
+
+              <div>
+                <label for="confirm-pass" class="block mb-1 text-[11px] font-semibold text-slate-600 dark:text-slate-300">Confirm New Password</label>
+                <input type="password" id="confirm-pass" disabled placeholder="Confirm new password"
+                  class="w-full text-xs text-slate-900 dark:text-white bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none font-mono disabled:opacity-50 disabled:cursor-not-allowed" />
+                <p id="pass-match-feedback" class="hidden text-[10px] mt-1 font-semibold"></p>
+              </div>
+            </div>
+
+            <!-- PIN Login Modification -->
+            <div class="p-3.5 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200/80 dark:border-slate-800 space-y-2.5">
+              <div class="flex items-center justify-between">
+                <div>
+                  <span class="font-bold text-slate-800 dark:text-white block font-averta">Quick PIN Code</span>
+                  <span class="text-[10px] text-slate-400">Used for fast keypad PIN authentication on login portal</span>
+                </div>
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+                  4 Digits
+                </span>
+              </div>
+
+              <div class="flex items-center space-x-2">
+                <input type="password" id="set-pin" maxlength="4" placeholder="••••" value="1234"
+                  class="w-32 text-center tracking-[0.5em] text-sm font-black text-slate-900 dark:text-white bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none font-mono" />
+                <button id="pin-reveal" type="button" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition cursor-pointer">
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+          </div>
         </div>
 
-      </div>
+        <!-- SECTION 4: NOTIFICATIONS SETTINGS -->
+        <div id="section-notifications" class="settings-section hidden space-y-4">
+          <div class="pb-3 border-b border-slate-100 dark:border-slate-800">
+            <h2 class="text-base sm:text-lg font-black text-slate-900 dark:text-white font-averta">Notifications</h2>
+            <p class="text-[11px] text-slate-400">Configure real-time audit alerts, pings, and audio sound effects</p>
+          </div>
 
-      <!-- Modal Footer -->
-      <div class="flex items-center justify-end border-t border-slate-200 dark:border-slate-800 space-x-2 pt-4">
-        <button id="cancel-settings" type="button" class="px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition cursor-pointer">
-          Close
-        </button>
-        <button id="save-settings" type="button" class="px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-md shadow-blue-600/30 transition cursor-pointer">
-          Save Settings
-        </button>
-      </div>
+          <div class="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
+            
+            <!-- Row 1: Enable Notifications (Default: Toggled On) -->
+            <div class="py-3 flex items-center justify-between gap-3">
+              <div>
+                <span class="font-semibold text-slate-700 dark:text-slate-300 block">Enable System Notifications</span>
+                <span class="text-[10px] text-slate-400">Receive instant in-app pings for coin harvests & advances</span>
+              </div>
+              <label for="set-notif" class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="set-notif" checked class="sr-only peer">
+                <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+              </label>
+            </div>
+
+            <!-- Row 2: Notification SFX Sounds (Default: Toggled Off) -->
+            <div class="py-3 flex items-center justify-between gap-3">
+              <div>
+                <span class="font-semibold text-slate-700 dark:text-slate-300 block">Audio Sound Effects (SFX)</span>
+                <span class="text-[10px] text-slate-400">Play auditory chimes when new transactions or requests arrive</span>
+              </div>
+              <label for="set-sfx" class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="set-sfx" class="sr-only peer">
+                <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+              </label>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Shared Action Buttons Footer in Main Panel -->
+        <div class="flex items-center justify-end space-x-2.5 pt-4 mt-6 border-t border-slate-100 dark:border-slate-800">
+          <button id="cancel-settings" type="button"
+            class="px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-rose-600 hover:text-white dark:hover:bg-rose-600 dark:hover:text-white rounded-xl transition cursor-pointer">
+            Cancel
+          </button>
+          <button id="save-settings" type="button"
+            class="px-5 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 rounded-xl shadow-md shadow-blue-600/30 transition cursor-pointer">
+            Save Changes
+          </button>
+        </div>
+
+      </main>
 
     </div>
   </div>
+
 </div>
+<!-- END: Settings Flowbite Modal Component -->

@@ -1,11 +1,31 @@
 {
   "rewrites": [
-    { "source": "/dashboard", "destination": "/frontend/pages/dashboard/index.html" },
-    { "source": "/exports", "destination": "/frontend/pages/exports/index.html" },
-    { "source": "/habwa", "destination": "/frontend/pages/habwa/index.html" },
-    { "source": "/frontend/pages/dashboard/", "destination": "/frontend/pages/dashboard/index.html" },
-    { "source": "/frontend/pages/exports", "destination": "/frontend/pages/exports/index.html" },
-    { "source": "/frontend/pages/habwa", "destination": "/frontend/pages/habwa/index.html" },
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/dashboard(/?)", "destination": "/frontend/pages/dashboard/index.html" },
+    { "source": "/habwa(/?)", "destination": "/frontend/pages/habwa/index.html" },
+    { "source": "/bills(/?)", "destination": "/frontend/pages/bills/index.html" },
+    { "source": "/requests(/?)", "destination": "/frontend/pages/requests/index.html" },
+    { "source": "/owners(/?)", "destination": "/frontend/pages/owners/index.html" },
+    { "source": "/exports(/?)", "destination": "/frontend/pages/exports/index.html" },
+
+    { "source": "/users/dashboard(/?)", "destination": "/frontend/users/dashboard/index.html" },
+    { "source": "/users/habwa(/?)", "destination": "/frontend/users/habwa/index.html" },
+    { "source": "/users/bills(/?)", "destination": "/frontend/users/bills/index.html" },
+    { "source": "/users/requests(/?)", "destination": "/frontend/users/requests/index.html" },
+    { "source": "/users/exports(/?)", "destination": "/frontend/users/exports/index.html" },
+    { "source": "/users/notifications(/?)", "destination": "/frontend/users/notifications/index.html" },
+
+    { "source": "/frontend/pages/dashboard/(.*)", "destination": "/frontend/pages/dashboard/index.html" },
+    { "source": "/frontend/pages/habwa/(.*)", "destination": "/frontend/pages/habwa/index.html" },
+    { "source": "/frontend/pages/bills/(.*)", "destination": "/frontend/pages/bills/index.html" },
+    { "source": "/frontend/pages/requests/(.*)", "destination": "/frontend/pages/requests/index.html" },
+    { "source": "/frontend/pages/owners/(.*)", "destination": "/frontend/pages/owners/index.html" },
+    { "source": "/frontend/pages/exports/(.*)", "destination": "/frontend/pages/exports/index.html" },
+
+    { "source": "/frontend/users/dashboard/(.*)", "destination": "/frontend/users/dashboard/index.html" },
+    { "source": "/frontend/users/habwa/(.*)", "destination": "/frontend/users/habwa/index.html" },
+    { "source": "/frontend/users/bills/(.*)", "destination": "/frontend/users/bills/index.html" },
+    { "source": "/frontend/users/requests/(.*)", "destination": "/frontend/users/requests/index.html" },
+    { "source": "/frontend/users/exports/(.*)", "destination": "/frontend/users/exports/index.html" },
+    { "source": "/frontend/users/notifications/(.*)", "destination": "/frontend/users/notifications/index.html" }
   ]
 }

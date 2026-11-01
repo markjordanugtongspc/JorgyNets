@@ -1,17 +1,22 @@
 // START: ExportsManager - Manages live document print layout preview, custom filtering, and pagination
 import { AnimationsManager } from './animations.js'
 import { injectComponent } from './injector.js'
+import { habwaApi, billsApi, requestsApi, storageManager } from '../../api/index.js'
 
 export class ExportsManager {
   constructor(drawerManager = null) {
     this.drawerManager = drawerManager
     this.animations = new AnimationsManager()
 
+    const sessionRole = sessionStorage.getItem('jn_session_role')
+    this.isUserPortal = window.location.pathname.includes('/users/') || (sessionRole && sessionRole !== '0')
+    this.currentOwnerName = sessionStorage.getItem('jn_session_user') || 'Kuya Jorgy'
+
     // Default Filter Criteria
     this.currentFilters = {
-      scope: 'ALL SYSTEM DATA (Full Combined Ledger)',
-      owner: 'ALL OWNERS (Full Fleet)',
-      units: 'ALL PISONETS (Complete Fleet Units 1 to 10)',
+      scope: this.isUserPortal ? 'My Owner Ledger & Units' : 'ALL SYSTEM DATA (Full Combined Ledger)',
+      owner: this.isUserPortal ? 'Kuya Jorgy (Unit 1 & 2)' : 'ALL OWNERS (Full Fleet)',
+      units: this.isUserPortal ? 'Unit 1 & 2' : 'ALL PISONETS (Complete Fleet Units 1 to 10)',
       startDate: '2026-01-01',
       endDate: '2026-10-31'
     }
@@ -208,6 +213,72 @@ export class ExportsManager {
     this.renderPreview()
   }
   // END: ExportsManager.init
+
+  // START: ExportsManager.loadFromSupabase - Queries live records across habwa, bills, and requests
+  async loadFromSupabase() {
+    try {
+      const [habwaRes, billsRes, reqRes] = await Promise.all([
+        habwaApi.getAll(),
+        billsApi.getAll(),
+        requestsApi.getAll()
+      ])
+
+      const records = []
+      if (habwaRes.success && Array.isArray(habwaRes.data)) {
+        habwaRes.data.forEach((h) => {
+          records.push({
+            id: h.ref_code,
+            category: 'Coin Revenue & Habwa',
+            desc: h.description,
+            owner: h.users ? `${h.users.full_name} (${h.users.units || 'Units'})` : 'Unit Owner',
+            units: h.users?.units || 'Unit 1 & 2',
+            amount: Number(h.amount),
+            type: 'credit',
+            date: h.harvested_at ? h.harvested_at.slice(0, 10) : '2026-10-04',
+            attendant: h.attendant || 'Admin Leo',
+            status: h.status || 'Audited'
+          })
+        })
+      }
+      if (billsRes.success && Array.isArray(billsRes.data)) {
+        billsRes.data.forEach((b) => {
+          records.push({
+            id: b.ref_code,
+            category: 'Operational Bills',
+            desc: b.description,
+            owner: 'ALL OWNERS (Full Fleet)',
+            units: 'All Pisonets',
+            amount: -Number(b.total_amount),
+            type: 'debit',
+            date: b.bill_date || '2026-10-04',
+            attendant: b.attendant || 'Admin Leo',
+            status: b.status || 'Audited'
+          })
+        })
+      }
+      if (reqRes.success && Array.isArray(reqRes.data)) {
+        reqRes.data.forEach((r) => {
+          records.push({
+            id: r.ref_code,
+            category: 'Owner Expense Requests',
+            desc: r.category,
+            owner: r.users ? `${r.users.full_name} (${r.users.units || 'Units'})` : 'Unit Owner',
+            units: r.users?.units || 'Unit 1 & 2',
+            amount: -Number(r.amount),
+            type: 'debit',
+            date: r.request_date || '2026-10-04',
+            attendant: 'Attendant Verified',
+            status: r.status || 'Pending'
+          })
+        })
+      }
+
+      this.masterRecords = records.sort((a, b) => new Date(b.date) - new Date(a.date))
+    } catch {
+      // Fallback
+    }
+  }
+  // END: ExportsManager.loadFromSupabase
 
   // START: ExportsManager.mountPrintComponent - Injects custom print layout from /src/components/exports.html
   async mountPrintComponent() {

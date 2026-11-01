@@ -9,6 +9,31 @@
   --font-money: "Space Grotesk", "JetBrains Mono", "Poppins", monospace;
   --color-dirty-white: #f8fafc;
   --color-dirty-card: #f4f6f8;
+  --animate-sudden-shake: sudden-shake 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+
+  @keyframes sudden-shake {
+    0%, 100% {
+      transform: translateX(0);
+    }
+    15% {
+      transform: translateX(-6px);
+    }
+    30% {
+      transform: translateX(5px);
+    }
+    45% {
+      transform: translateX(-4px);
+    }
+    60% {
+      transform: translateX(3px);
+    }
+    75% {
+      transform: translateX(-2px);
+    }
+    90% {
+      transform: translateX(1px);
+    }
+  }
 }
 
 body {
@@ -43,6 +68,35 @@ body {
   background: rgba(100, 116, 139, 0.6);
 }
 
+/* ApexCharts Legend 2-Column Responsive Grid on Mobile View (Series 1 on Left, Series 2 on Right) */
+@media (max-width: 640px) {
+  .apexcharts-legend {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    width: 100% !important;
+    gap: 4px 8px !important;
+    justify-content: space-between !important;
+    padding: 0 4px !important;
+  }
+  .apexcharts-legend .apexcharts-legend-series {
+    margin: 2px 0 !important;
+    display: flex !important;
+    align-items: center !important;
+  }
+  .apexcharts-legend .apexcharts-legend-series:first-child {
+    justify-content: flex-start !important;
+    text-align: left !important;
+  }
+  .apexcharts-legend .apexcharts-legend-series:last-child {
+    justify-content: flex-end !important;
+    text-align: right !important;
+  }
+  .apexcharts-legend .apexcharts-legend-text {
+    white-space: normal !important;
+    word-break: break-word !important;
+    font-size: 10px !important;
+  }
+}
 
 /* Flowbite Datepicker Popover Solid Styling (Fix transparency & theme support) */
 .datepicker-picker {

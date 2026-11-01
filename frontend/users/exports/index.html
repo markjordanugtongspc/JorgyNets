@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JorgyNets - My Statement & Exports</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link href="https://cdn.jsdelivr.net/npm/flowbite@4.0.2/dist/flowbite.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body class="bg-dirty-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-poppins min-h-screen antialiased transition-colors duration-200 print:bg-white print:text-slate-900">
+    <!-- Component Placeholders (Injected via JS) -->
+    <div id="navbar-slot" class="print:hidden"></div>
+    <div id="sidebar-slot" class="print:hidden"></div>
+    <div id="settings-slot" class="print:hidden"></div>
+
+    <!-- Main Content Area: Expanded Upper-Left Align matching Owners layout -->
+    <main id="main-area" class="p-4 sm:p-6 lg:p-8 sm:ml-72 transition-all duration-300 print:p-0 print:m-0 print:ml-0 print:pt-0">
+      <div id="main-container" class="w-full space-y-6 print:max-w-none print:space-y-0">
+        
+        <!-- Header Row with Page Title, Description, and Quick Action Buttons -->
+        <div id="header-row" class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 print:hidden">
+          <div id="header-text">
+            <h1 id="page-title" class="text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white font-averta">
+              My Statement & Exports
+            </h1>
+            <p id="page-desc" class="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1">
+              Live document preview of owner unit remittances, expense deductions, and official habwa printouts
+            </p>
+          </div>
+
+          <!-- Action Buttons Group: Direct Print, CSV, JSON, and Configure Drawer -->
+          <div id="action-group" class="flex items-center flex-wrap gap-2">
+            <!-- Direct Print Document Button (Amber Outline with Printer SVG) -->
+            <button id="print-btn" type="button"
+              class="inline-flex items-center px-3.5 py-2 text-xs font-semibold text-amber-700 dark:text-amber-300 bg-white dark:bg-slate-800 border border-amber-300 dark:border-amber-800 hover:bg-amber-400 hover:text-amber-950 rounded-xl transition shadow-2xs cursor-pointer">
+              <svg class="w-3.5 h-3.5 me-1.5 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4H7v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+              </svg>
+              <span>Print Document</span>
+            </button>
+
+            <!-- Download CSV Button -->
+            <button id="csv-btn" type="button"
+              class="inline-flex items-center px-3.5 py-2 text-xs font-semibold text-emerald-700 dark:text-emerald-300 bg-white dark:bg-slate-800 border border-emerald-300 dark:border-emerald-800 hover:bg-emerald-500 hover:text-white rounded-xl transition shadow-2xs cursor-pointer">
+              <svg class="w-3.5 h-3.5 me-1.5 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              <span>CSV</span>
+            </button>
+
+            <!-- Download JSON Button -->
+            <button id="json-btn" type="button"
+              class="inline-flex items-center px-3.5 py-2 text-xs font-semibold text-blue-700 dark:text-blue-300 bg-white dark:bg-slate-800 border border-blue-300 dark:border-blue-800 hover:bg-blue-600 hover:text-white rounded-xl transition shadow-2xs cursor-pointer">
+              <svg class="w-3.5 h-3.5 me-1.5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+              </svg>
+              <span>JSON</span>
+            </button>
+
+            <!-- Configure Export Parameters (Opens Flowbite Off-Canvas Drawer with Printer SVG on Left) -->
+            <button id="export-btn" type="button"
+              class="inline-flex items-center px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 rounded-xl shadow-md shadow-blue-600/30 transition cursor-pointer">
+              <!-- Printer SVG on left side -->
+              <svg class="w-4 h-4 me-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4H7v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+              </svg>
+              <span>Configure Export</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Live Document Print Preview Container: Full View with Sleek Subtle Scrollbar -->
+        <div id="exports-container-card"
+          class="w-full bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-md p-4 sm:p-6 lg:p-8 overflow-y-auto scrollbar-subtle transition-all print:p-0 print:border-none print:shadow-none print:overflow-visible">
+          <!-- Injected dynamically via ExportsManager with /src/components/exports.html -->
+        </div>
+
+      </div>
+    </main>
+
+    <!-- Flowbite Off-Canvas Drawer for Export & Print Configuration -->
+    <div id="drawer-export"
+      class="fixed top-0 right-0 z-50 h-screen p-6 sm:p-7 overflow-y-auto transition-transform translate-x-full bg-white w-full sm:w-[480px] md:w-[540px] dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 shadow-2xl font-poppins print:hidden"
+      tabindex="-1" aria-labelledby="drawer-title">
+      
+      <!-- Drawer Header Row with Title and Top-Right Close SVG Icon Button -->
+      <div id="drawer-header" class="flex items-center justify-between pb-4 mb-5 border-b border-slate-200 dark:border-slate-800">
+        <div>
+          <h2 id="drawer-title" class="text-lg font-bold text-slate-900 dark:text-white font-averta">
+            Configure Export & Report
+          </h2>
+          <p id="drawer-desc" class="text-xs text-slate-400 mt-1">
+            Customize scope, fleet owners, unit terminals, and print pagination
+          </p>
+        </div>
+        <button id="close-drawer" type="button"
+          class="text-slate-400 hover:text-white hover:bg-rose-600 dark:hover:bg-rose-600 rounded-xl p-2 inline-flex items-center transition-colors duration-150 cursor-pointer">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+          <span class="sr-only">Close drawer</span>
+        </button>
+      </div>
+
+      <!-- Export Configuration Form -->
+      <form id="export-form" class="space-y-5">
+        
+        <!-- 1. Report Scope Editable Input with Custom Flowbite Dropdown -->
+        <div id="scope-block" class="relative">
+          <label for="scope-btn" class="block mb-2 text-xs font-semibold text-slate-700 dark:text-slate-300">
+            Report Scope Category
+          </label>
+          <input type="hidden" id="export-scope" value="all">
+
+          <div class="relative flex items-center">
+            <input id="scope-btn" data-dropdown-toggle="scope-menu" data-dropdown-placement="bottom" type="text"
+              autocomplete="off" value="ALL SYSTEM DATA (Full Combined Ledger)" placeholder="Type or select scope..."
+              class="w-full text-xs sm:text-sm text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-blue-500 font-semibold rounded-xl ps-4 pe-10 py-2.5 transition shadow-2xs cursor-text">
+            <div class="absolute inset-y-0 end-0 flex items-center pe-3 pointer-events-none text-slate-400">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7" />
+              </svg>
+            </div>
+          </div>
+
+          <!-- Flowbite Scope Dropdown Menu -->
+          <div id="scope-menu"
+            class="z-50 hidden bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl w-full p-2 font-poppins">
+            <ul id="scope-list" class="max-h-52 p-1 text-xs text-slate-700 dark:text-slate-200 font-medium overflow-y-auto space-y-1">
+              <!-- Dynamically populated via ScopeDropdownController -->
+            </ul>
+          </div>
+        </div>
+
+        <!-- 2. Target Owner Editable Input with Custom Flowbite Dropdown -->
+        <div id="owner-block" class="relative">
+          <label for="owner-btn" class="block mb-2 text-xs font-semibold text-slate-700 dark:text-slate-300">
+            Target Owner Fleet
+          </label>
+          <input type="hidden" id="export-owner" value="all">
+
+          <div class="relative flex items-center">
+            <input id="owner-btn" data-dropdown-toggle="owner-menu" data-dropdown-placement="bottom" type="text"
+              autocomplete="off" value="ALL OWNERS (Full Fleet)" placeholder="Type or select owner..."
+              class="w-full text-xs sm:text-sm text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-blue-500 font-semibold rounded-xl ps-4 pe-10 py-2.5 transition shadow-2xs cursor-text">
+            <div class="absolute inset-y-0 end-0 flex items-center pe-3 pointer-events-none text-slate-400">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7" />
+              </svg>
+            </div>
+          </div>
+
+          <!-- Flowbite Owner Dropdown Menu -->
+          <div id="owner-menu"
+            class="z-50 hidden bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl w-full p-2 font-poppins">
+            <ul id="owner-list" class="max-h-52 p-1 text-xs text-slate-700 dark:text-slate-200 font-medium overflow-y-auto space-y-1">
+              <!-- Dynamically populated via OwnerDropdownController -->
+            </ul>
+          </div>
+        </div>
+
+        <!-- 3. Terminal Units Editable Input with Custom Flowbite Dropdown -->
+        <div id="units-block" class="relative">
+          <label for="units-btn" class="block mb-2 text-xs font-semibold text-slate-700 dark:text-slate-300">
+            Pisonet Units Coverage
+          </label>
+          <input type="hidden" id="export-units" value="all">
+
+          <div class="relative flex items-center">
+            <input id="units-btn" data-dropdown-toggle="units-menu" data-dropdown-placement="bottom" type="text"
+              autocomplete="off" value="ALL PISONETS (Complete Fleet Units 1 to 10)" placeholder="Type or select terminals..."
+              class="w-full text-xs sm:text-sm text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-blue-500 font-semibold rounded-xl ps-4 pe-10 py-2.5 transition shadow-2xs cursor-text">
+            <div class="absolute inset-y-0 end-0 flex items-center pe-3 pointer-events-none text-slate-400">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7" />
+              </svg>
+            </div>
+          </div>
+
+          <!-- Flowbite Units Dropdown Menu -->
+          <div id="units-menu"
+            class="z-50 hidden bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl w-full p-2 font-poppins">
+            <ul id="units-list" class="max-h-52 p-1 text-xs text-slate-700 dark:text-slate-200 font-medium overflow-y-auto space-y-1">
+              <!-- Dynamically populated via UnitsDropdownController -->
+            </ul>
+          </div>
+        </div>
+
+        <!-- 4. Date Range Selection with Flowbite Datepicker & Quick Range Pills -->
+        <div id="date-block">
+          <label class="block mb-2 text-xs font-semibold text-slate-700 dark:text-slate-300">
+            Audit Date Range
+          </label>
+
+          <!-- Quick Presets -->
+          <div id="preset-grid" class="grid grid-cols-4 gap-1.5 mb-3">
+            <button id="preset-all" type="button" data-date-preset="all"
+              class="px-2 py-1.5 text-[11px] font-bold rounded-lg border bg-blue-600 text-white border-blue-600 transition cursor-pointer text-center">
+              All Time
+            </button>
+            <button id="preset-month" type="button" data-date-preset="month"
+              class="px-2 py-1.5 text-[11px] font-bold rounded-lg border bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700 hover:bg-slate-200 transition cursor-pointer text-center">
+              This Month
+            </button>
+            <button id="preset-prev" type="button" data-date-preset="prev-month"
+              class="px-2 py-1.5 text-[11px] font-bold rounded-lg border bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700 hover:bg-slate-200 transition cursor-pointer text-center">
+              Last Month
+            </button>
+            <button id="preset-year" type="button" data-date-preset="year"
+              class="px-2 py-1.5 text-[11px] font-bold rounded-lg border bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700 hover:bg-slate-200 transition cursor-pointer text-center">
+              All 2026
+            </button>
+          </div>
+
+          <!-- Wide Datepickers (Start & End) -->
+          <div id="picker-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <span class="block text-[11px] text-slate-500 dark:text-slate-400 font-medium mb-1">From Date</span>
+              <div class="relative">
+                <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none text-slate-400">
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <input type="text" id="export-start-date" value="2026-01-01"
+                  class="w-full ps-9 pe-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 font-mono">
+              </div>
+            </div>
+
+            <div>
+              <span class="block text-[11px] text-slate-500 dark:text-slate-400 font-medium mb-1">To Date</span>
+              <div class="relative">
+                <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none text-slate-400">
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <input type="text" id="export-end-date" value="2026-10-31"
+                  class="w-full ps-9 pe-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 font-mono">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. Export Actions & Close Drawer Button with Hover Rose Styling at Footer -->
+        <div id="footer-actions" class="pt-4 border-t border-slate-200 dark:border-slate-800 space-y-3">
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+            Export & Delivery Actions
+          </label>
+
+          <div id="format-grid" class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <!-- Print Report Button (Amber Outline with Printer SVG) -->
+            <button id="print-export-btn" type="button"
+              class="inline-flex items-center justify-center px-3.5 py-2.5 text-xs font-bold text-amber-700 dark:text-amber-300 bg-white dark:bg-slate-800 border border-amber-300 dark:border-amber-700 hover:bg-amber-400 hover:text-amber-950 rounded-xl transition cursor-pointer">
+              <svg class="w-3.5 h-3.5 me-1.5 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4H7v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+              </svg>
+              <span>Print Report</span>
+            </button>
+
+            <!-- CSV Export Button (Solid Emerald) -->
+            <button id="csv-export-btn" type="button"
+              class="inline-flex items-center justify-center px-3.5 py-2.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 rounded-xl transition cursor-pointer shadow-xs">
+              <svg class="w-3.5 h-3.5 me-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              <span>Export CSV</span>
+            </button>
+
+            <!-- JSON Dataset Button (Solid Blue) -->
+            <button id="json-export-btn" type="button"
+              class="inline-flex items-center justify-center px-3.5 py-2.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 rounded-xl transition cursor-pointer shadow-xs">
+              <svg class="w-3.5 h-3.5 me-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+              </svg>
+              <span>Export JSON</span>
+            </button>
+          </div>
+        </div>
+
+      </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/flowbite@4.0.2/dist/flowbite.min.js"></script>
+    <script type="module">
+      import { initializeApp } from '/src/scripts/main.js'
+      import { ExportsManager } from '/src/scripts/modules/exports.js'
+      import { DrawerManager } from '/src/scripts/modules/drawer.js'
+      import { AnimationsManager } from '/src/scripts/modules/animations.js'
+
+      // Initialize Drawer Manager with 'exports' mode
+      const drawerManager = new DrawerManager(null, 'exports')
+      const exportsModule = new ExportsManager(drawerManager)
+      const animationsManager = new AnimationsManager()
+
+      // Connect parent tableManager reference back to exports module
+      drawerManager.tableManager = exportsModule
+
+      // Bootstrap page and inject shared components
+      initializeApp(exportsModule)
+      drawerManager.init()
+      animationsManager.init()
+    </script>
+  </body>
+</html>

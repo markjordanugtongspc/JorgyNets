@@ -127,11 +127,11 @@
             <!-- Amount & Desc Row: Skeleton & Loaded -->
             <div class="relative z-10 mt-3">
               <div id="revenue-amount-skeleton" class="h-8 bg-emerald-400/40 rounded-lg w-36 mb-2 animate-pulse"></div>
-              <p id="revenue-amount" class="hidden text-3xl font-black text-dirty-white tracking-tight font-money" data-count-money="12042" data-prefix="₱" data-duration="1500">
+              <p id="revenue-amount" class="hidden text-3xl font-black text-dirty-white tracking-tight font-money" data-count-money="0" data-prefix="₱" data-duration="1500">
                 ₱0
               </p>
               <div id="revenue-desc-skeleton" class="h-2.5 bg-emerald-400/30 rounded-full w-48 mt-1.5 animate-pulse"></div>
-              <p id="revenue-desc" class="hidden text-[11px] text-dirty-white/90 mt-1 font-semibold">Overall 4 Pisonets collection (PC1/2, PC3, PC4)</p>
+              <p id="revenue-desc" class="hidden text-[11px] text-dirty-white/90 mt-1 font-semibold">Overall fleet collection</p>
             </div>
           </div>
 
@@ -158,11 +158,11 @@
             <!-- Amount & Desc Row: Skeleton & Loaded -->
             <div class="relative z-10 mt-3">
               <div id="terminals-count-skeleton" class="h-8 bg-rose-400/40 rounded-lg w-36 mb-2 animate-pulse"></div>
-              <p id="terminals-count" class="hidden text-3xl font-black text-dirty-white tracking-tight font-money" data-count-money="11067" data-prefix="-₱" data-duration="1500">
+              <p id="terminals-count" class="hidden text-3xl font-black text-dirty-white tracking-tight font-money" data-count-money="0" data-prefix="-₱" data-duration="1500">
                 -₱0
               </p>
               <div id="terminals-desc-skeleton" class="h-2.5 bg-rose-400/30 rounded-full w-48 mt-1.5 animate-pulse"></div>
-              <p id="terminals-desc" class="hidden text-[11px] text-dirty-white/90 mt-1 font-semibold">Electricity, PLDT, Other/Misc & PC-4 Return</p>
+              <p id="terminals-desc" class="hidden text-[11px] text-dirty-white/90 mt-1 font-semibold">Electricity, PLDT & operational deductions</p>
             </div>
           </div>
 
@@ -188,7 +188,7 @@
             <!-- Amount & Desc Row: Skeleton & Loaded -->
             <div class="relative z-10 mt-3">
               <div id="monthly-amount-skeleton" class="h-8 bg-amber-300/40 rounded-lg w-32 mb-2 animate-pulse"></div>
-              <p id="monthly-amount" class="hidden text-3xl font-black text-dirty-white tracking-tight font-money" data-count-money="975" data-prefix="₱" data-duration="1800">
+              <p id="monthly-amount" class="hidden text-3xl font-black text-dirty-white tracking-tight font-money" data-count-money="0" data-prefix="₱" data-duration="1800">
                 ₱0
               </p>
               <div id="monthly-desc-skeleton" class="h-2.5 bg-amber-300/30 rounded-full w-48 mt-1.5 animate-pulse"></div>
@@ -879,58 +879,58 @@
             <div id="logs-real-wrapper" class="hidden flex flex-col w-full">
               <div id="logs-header" class="flex items-center justify-between mb-3">
                 <div>
-                  <h3 id="logs-title" class="text-sm font-bold text-slate-900 font-averta">Owner Private Net Takeaway</h3>
-                  <p class="text-[11px] text-slate-500">October 4, 2026 Reconciled Statement</p>
+                  <h3 id="logs-title" class="text-sm font-bold text-slate-900 dark:text-white font-averta">Owner Private Net Takeaway</h3>
+                  <p id="logs-subtitle" class="text-[11px] text-slate-500 dark:text-slate-400">Reconciled Telemetry Statement</p>
                 </div>
-                <span id="owner-tag" class="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 uppercase tracking-wide">
-                  Owner Only
+                <span id="owner-tag" class="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 uppercase tracking-wide">
+                  Live Audit
                 </span>
               </div>
 
-              <!-- Placeholder for Admin View Notice -->
-              <div class="p-3 mb-4 rounded-lg bg-amber-50 border border-amber-200/80 text-amber-900 text-xs flex items-start space-x-2">
-                <svg class="w-4 h-4 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <!-- Admin View Notice -->
+              <div class="p-3 mb-4 rounded-lg bg-amber-50 dark:bg-amber-950/50 border border-amber-200/80 dark:border-amber-800 text-amber-900 dark:text-amber-200 text-xs flex items-start space-x-2">
+                <svg class="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
                 </svg>
                 <div>
-                  <span class="font-bold uppercase tracking-wider text-[10px] text-amber-800 block">FOR PERSONAL ONLY PLACEHOLDER</span>
-                  <p class="text-[11px] text-amber-700 leading-snug">
-                    Admin preview mode active. Individual terminal owners will only see their own net share on their branch view.
+                  <span class="font-bold uppercase tracking-wider text-[10px] text-amber-800 dark:text-amber-300 block">Fleet & Personal Reconciliation</span>
+                  <p class="text-[11px] text-amber-700 dark:text-amber-300/80 leading-snug">
+                    Telemetry is calculated dynamically from live Supabase collections, shared operational bills, and approved requests.
                   </p>
                 </div>
               </div>
 
-              <!-- Owner Snapshot Breakdown (Matching October 4 Audit) -->
+              <!-- Owner Snapshot Breakdown (Live Database Calculation) -->
               <div id="logs-content" class="space-y-3 overflow-y-auto">
-                <div class="p-3 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-between">
+                <div class="p-3 rounded-lg bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex items-center justify-between">
                   <div>
-                    <p class="text-xs font-bold text-slate-900">Total Month Habwa Collection</p>
-                    <p class="text-[10px] text-slate-400">Date: 10/04/2026 (4 Units)</p>
+                    <p class="text-xs font-bold text-slate-900 dark:text-white">Total Habwa Collection</p>
+                    <p id="logs-habwa-meta" class="text-[10px] text-slate-400">Gross Coin Drop Harvest</p>
                   </div>
-                  <span class="text-sm font-black text-emerald-600 font-money" data-count-money="12042" data-prefix="+₱" data-duration="1200" data-delay="300">+₱0</span>
+                  <span id="logs-habwa-amt" class="text-sm font-black text-emerald-600 dark:text-emerald-400 font-money">+₱0</span>
                 </div>
 
-                <div class="p-3 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-between">
+                <div class="p-3 rounded-lg bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex items-center justify-between">
                   <div>
-                    <p class="text-xs font-bold text-slate-900">Total Deductions (Power, PLDT, Misc, PC-4)</p>
-                    <p class="text-[10px] text-slate-400">Bills & Return</p>
+                    <p class="text-xs font-bold text-slate-900 dark:text-white">Total Deductions (Bills & Requests)</p>
+                    <p id="logs-bills-meta" class="text-[10px] text-slate-400">Utilities, Fiber & Advances</p>
                   </div>
-                  <span class="text-sm font-black text-rose-600 font-money" data-count-money="11067" data-prefix="-₱" data-duration="1200" data-delay="450">-₱0</span>
+                  <span id="logs-deduct-amt" class="text-sm font-black text-rose-600 dark:text-rose-400 font-money">-₱0</span>
                 </div>
 
-                <div class="p-3.5 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-between">
+                <div class="p-3.5 rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 flex items-center justify-between">
                   <div>
-                    <p class="text-xs font-extrabold text-blue-950 uppercase tracking-wide">Net Profit Left</p>
-                    <p class="text-[10px] text-blue-700 font-semibold">Remaining cash take-home</p>
+                    <p class="text-xs font-extrabold text-blue-950 dark:text-blue-200 uppercase tracking-wide">Net Profit Balance</p>
+                    <p class="text-[10px] text-blue-700 dark:text-blue-400 font-semibold">Net remaining cash takeaway</p>
                   </div>
-                  <span class="text-lg font-black text-emerald-700 font-money" data-count-money="975" data-prefix="₱" data-duration="1400" data-delay="600">₱0</span>
+                  <span id="logs-net-amt" class="text-lg font-black text-emerald-700 dark:text-emerald-400 font-money">₱0</span>
                 </div>
               </div>
 
               <!-- Footer indicator -->
-              <div class="pt-3 border-t border-slate-200 mt-4 flex items-center justify-between text-[11px] text-slate-400">
-                <span>Audited Date: 10/04/2026</span>
-                <span class="font-semibold text-emerald-700">Status: Balanced (<span class="font-money" data-count-money="975" data-prefix="₱" data-suffix=" Net" data-duration="1200" data-delay="700">₱0 Net</span>)</span>
+              <div class="pt-3 border-t border-slate-200 dark:border-slate-800 mt-4 flex items-center justify-between text-[11px] text-slate-400">
+                <span id="logs-audited-date">Audited: Live Supabase</span>
+                <span id="logs-status-indicator" class="font-semibold text-emerald-700 dark:text-emerald-400">Status: Balanced</span>
               </div>
             </div>
           </div>

@@ -1,512 +1,31 @@
 // START: TableManager - Parent OOP coordinator for Pisonet Habwa logs & Bills deductions, interactive data tables, filters, and off-canvas drawers
 import { AnimationsManager } from './animations.js'
 import { userAccountManager } from './auth.js'
+import { habwaApi, billsApi, requestsApi, usersApi, storageManager } from '../../api/index.js'
 
 export class TableManager {
   constructor(mode = 'habwa') {
-    this.mode = mode // 'habwa' or 'bills'
+    this.mode = mode // 'habwa', 'bills', 'requests', or 'owners'
     this.animations = new AnimationsManager()
     
-    // Bills & Deductions Telemetry Records (Fixed Operational Expenses & Utility Allocations)
-    // Option C Formula:
-    // Electricity: split by units (Kuya Jorgy: 2/4, Boss Roldan: 1/4, Ate Gina: 1/4)
-    // Shared costs (Internet, Hardware, Maintenance, Water): split equally among active owners
-    this.billsRecords = [
-      {
-        id: 'bil-1',
-        category: 'PLDT FIBR INTERNET',
-        desc: 'Main Gaming Line 300 Mbps High-Speed Fiber + Mesh Hub',
-        owner: 'ALL',
-        roles: ['1', '2', '3'],
-        amount: 3649.75,
-        shares: '1 = -₱1,216.58 | 2 = -₱1,216.58 | 3 = -₱1,216.59',
-        detailedBreakdown: [
-          { role: '1', name: 'Kuya Jorgy', units: 2, totalUnits: 4, shareAmount: 1216.58, method: 'Shared equally (1/3)' },
-          { role: '2', name: 'Boss Roldan', units: 1, totalUnits: 4, shareAmount: 1216.58, method: 'Shared equally (1/3)' },
-          { role: '3', name: 'Ate Gina', units: 1, totalUnits: 4, shareAmount: 1216.59, method: 'Shared equally (1/3)' }
-        ],
-        date: '2026-10-28',
-        timestamp: '2026-10-28 14:15:22 PHT',
-        attendant: 'Admin Leo',
-        status: 'Audited'
-      },
-      {
-        id: 'bil-2',
-        category: 'VECO ELECTRICITY',
-        desc: 'Sub-metered Power Consumption for Pisonet Units 1 to 6',
-        owner: 'ALL',
-        roles: ['1', '2', '3'],
-        amount: 4872.86,
-        shares: '1 = -₱2,436.43 | 2 = -₱1,218.21 | 3 = -₱1,218.22',
-        detailedBreakdown: [
-          { role: '1', name: 'Kuya Jorgy', units: 2, totalUnits: 4, shareAmount: 2436.43, method: 'Unit-based (2/4 units)' },
-          { role: '2', name: 'Boss Roldan', units: 1, totalUnits: 4, shareAmount: 1218.21, method: 'Unit-based (1/4 units)' },
-          { role: '3', name: 'Ate Gina', units: 1, totalUnits: 4, shareAmount: 1218.22, method: 'Unit-based (1/4 units)' }
-        ],
-        date: '2026-10-26',
-        timestamp: '2026-10-26 11:20:05 PHT',
-        attendant: 'Marc C.',
-        status: 'Audited'
-      },
-      {
-        id: 'bil-3',
-        category: 'CONVERGE BACKUP FIBER',
-        desc: 'Failover Fiber Line 150 Mbps for VIP Terminals',
-        owner: 'Kuya Jorgy & Boss Roldan',
-        roles: ['1', '2'],
-        amount: 1538.50,
-        shares: '1 = -₱769.25 | 2 = -₱769.25',
-        detailedBreakdown: [
-          { role: '1', name: 'Kuya Jorgy', units: 2, totalUnits: 3, shareAmount: 769.25, method: 'Shared equally (1/2)' },
-          { role: '2', name: 'Boss Roldan', units: 1, totalUnits: 3, shareAmount: 769.25, method: 'Shared equally (1/2)' }
-        ],
-        date: '2026-10-24',
-        timestamp: '2026-10-24 16:45:00 PHT',
-        attendant: 'Admin Leo',
-        status: 'Audited'
-      },
-      {
-        id: 'bil-4',
-        category: 'COIN CHUTE CLEANING & REPAIRS',
-        desc: 'Replacement Allan Dual-coin Chutes & Sensor Cleaning',
-        owner: 'ALL',
-        roles: ['1', '2', '3'],
-        amount: 1245.73,
-        shares: '1 = -₱415.24 | 2 = -₱415.24 | 3 = -₱415.25',
-        detailedBreakdown: [
-          { role: '1', name: 'Kuya Jorgy', units: 2, totalUnits: 4, shareAmount: 415.24, method: 'Shared equally (1/3)' },
-          { role: '2', name: 'Boss Roldan', units: 1, totalUnits: 4, shareAmount: 415.24, method: 'Shared equally (1/3)' },
-          { role: '3', name: 'Ate Gina', units: 1, totalUnits: 4, shareAmount: 415.25, method: 'Shared equally (1/3)' }
-        ],
-        date: '2026-10-21',
-        timestamp: '2026-10-21 09:30:11 PHT',
-        attendant: 'Leo B.',
-        status: 'Audited'
-      },
-      {
-        id: 'bil-5',
-        category: 'WATER UTILITY',
-        desc: 'Storefront Water Dispenser & Attendant Restroom Share',
-        owner: 'Kuya Jorgy & Ate Gina',
-        roles: ['1', '3'],
-        amount: 628.40,
-        shares: '1 = -₱314.20 | 3 = -₱314.20',
-        detailedBreakdown: [
-          { role: '1', name: 'Kuya Jorgy', units: 2, totalUnits: 3, shareAmount: 314.20, method: 'Shared equally (1/2)' },
-          { role: '3', name: 'Ate Gina', units: 1, totalUnits: 3, shareAmount: 314.20, method: 'Shared equally (1/2)' }
-        ],
-        date: '2026-10-18',
-        timestamp: '2026-10-18 10:12:44 PHT',
-        attendant: 'Marc C.',
-        status: 'Audited'
-      },
-      {
-        id: 'bil-6',
-        category: 'NETWORK SWITCH UPGRADE',
-        desc: 'TP-Link 16-Port Gigabit Switch & Cat6 Patch Cables',
-        owner: 'Kuya Jorgy',
-        roles: ['1'],
-        amount: 1849.90,
-        shares: '1 = -₱1,849.90',
-        detailedBreakdown: [
-          { role: '1', name: 'Kuya Jorgy', units: 2, totalUnits: 2, shareAmount: 1849.90, method: 'Direct owner deduction' }
-        ],
-        date: '2026-10-15',
-        timestamp: '2026-10-15 13:00:20 PHT',
-        attendant: 'Admin Leo',
-        status: 'Audited'
-      }
-    ]
+    // Live Supabase Telemetry Records
+    this.billsRecords = []
 
-    // Master Habwa (Coin Harvest & Monthly Profit) Telemetry Records
-    this.masterHabwaRecords = [
-      {
-        id: 'HBW-084',
-        desc: 'End-Month Habwa Harvest - Main Station',
-        owner: 'Kuya Jorgy (Unit 1 & 2)',
-        category: 'Dual Coin Slot',
-        amount: 8450.00,
-        coins: '₱1: 650 | ₱5: 980 | ₱10: 290',
-        date: '2026-10-28',
-        timestamp: '2026-10-28 17:42:15 PHT',
-        attendant: 'Marc C.',
-        status: 'Audited'
-      },
-      {
-        id: 'HBW-083',
-        desc: 'Weekend Coin Box Clearance',
-        owner: 'Boss Roldan (Unit 3 & 4)',
-        category: 'VIP Gaming Rig',
-        amount: 9820.00,
-        coins: '₱1: 420 | ₱5: 1100 | ₱10: 390',
-        date: '2026-10-27',
-        timestamp: '2026-10-27 18:30:00 PHT',
-        attendant: 'Leo B.',
-        status: 'Audited'
-      },
-      {
-        id: 'HBW-082',
-        desc: 'Mid-Month Habwa Collection',
-        owner: 'Ate Gina (Unit 5 & 6)',
-        category: 'Standard Pisonet',
-        amount: 5640.00,
-        coins: '₱1: 840 | ₱5: 720 | ₱10: 120',
-        date: '2026-10-25',
-        timestamp: '2026-10-25 15:14:02 PHT',
-        attendant: 'Marc C.',
-        status: 'Remitted'
-      },
-      {
-        id: 'HBW-081',
-        desc: 'Unit 7 & 8 Weekly Coin Harvest',
-        owner: 'Nanay Tessie (Unit 7 & 8)',
-        category: 'High-Yield Terminal',
-        amount: 7290.00,
-        coins: '₱1: 590 | ₱5: 860 | ₱10: 240',
-        date: '2026-10-24',
-        timestamp: '2026-10-24 19:05:44 PHT',
-        attendant: 'Leo B.',
-        status: 'Audited'
-      },
-      {
-        id: 'HBW-080',
-        desc: 'Night Shift Coin Box Retrieval',
-        owner: 'Uncle Dan (Unit 9 & 10)',
-        category: 'Standard Pisonet',
-        amount: 4950.00,
-        coins: '₱1: 750 | ₱5: 600 | ₱10: 120',
-        date: '2026-10-22',
-        timestamp: '2026-10-22 21:18:10 PHT',
-        attendant: 'Leo B.',
-        status: 'Audited'
-      },
-      {
-        id: 'HBW-079',
-        desc: 'Sunday Peak Hours Habwa',
-        owner: 'Kuya Jorgy (Unit 1 & 2)',
-        category: 'VIP Gaming Rig',
-        amount: 11200.00,
-        coins: '₱1: 700 | ₱5: 1300 | ₱10: 400',
-        date: '2026-10-20',
-        timestamp: '2026-10-20 22:00:15 PHT',
-        attendant: 'Marc C.',
-        status: 'Audited'
-      },
-      {
-        id: 'HBW-078',
-        desc: 'Mid-Month Profit Remittance Batch #041',
-        owner: 'Boss Roldan (Unit 3 & 4)',
-        category: 'Dual Coin Slot',
-        amount: 6780.00,
-        coins: '₱1: 580 | ₱5: 840 | ₱10: 200',
-        date: '2026-10-18',
-        timestamp: '2026-10-18 16:45:33 PHT',
-        attendant: 'Marc C.',
-        status: 'Remitted'
-      },
-      {
-        id: 'HBW-077',
-        desc: 'Terminal Coin Chute Maintenance & Habwa',
-        owner: 'Ate Gina (Unit 5 & 6)',
-        category: 'Standard Pisonet',
-        amount: 4320.00,
-        coins: '₱1: 620 | ₱5: 540 | ₱10: 100',
-        date: '2026-10-15',
-        timestamp: '2026-10-15 14:10:20 PHT',
-        attendant: 'Leo B.',
-        status: 'Audited'
-      },
-      {
-        id: 'HBW-076',
-        desc: 'Fiesta Special Tournament Collection',
-        owner: 'Nanay Tessie (Unit 7 & 8)',
-        category: 'High-Yield Terminal',
-        amount: 12450.00,
-        coins: '₱1: 950 | ₱5: 1500 | ₱10: 400',
-        date: '2026-10-12',
-        timestamp: '2026-10-12 23:10:05 PHT',
-        attendant: 'Marc C.',
-        status: 'Audited'
-      },
-      {
-        id: 'HBW-075',
-        desc: 'First Week October Opening Habwa',
-        owner: 'Uncle Dan (Unit 9 & 10)',
-        category: 'Standard Pisonet',
-        amount: 5100.00,
-        coins: '₱1: 600 | ₱5: 700 | ₱10: 100',
-        date: '2026-10-08',
-        timestamp: '2026-10-08 17:30:19 PHT',
-        attendant: 'Leo B.',
-        status: 'Audited'
-      },
-      {
-        id: 'HBW-074',
-        desc: 'Payday Weekend Coin Sweep',
-        owner: 'Kuya Jorgy (Unit 1 & 2)',
-        category: 'Dual Coin Slot',
-        amount: 8900.00,
-        coins: '₱1: 800 | ₱5: 1020 | ₱10: 300',
-        date: '2026-10-05',
-        timestamp: '2026-10-05 20:15:00 PHT',
-        attendant: 'Marc C.',
-        status: 'Audited'
-      },
-      {
-        id: 'HBW-083',
-        desc: 'Weekend Coin Box Clearance',
-        owner: 'Boss Roldan (Unit 3 & 4)',
-        category: 'VIP Gaming Rig',
-        amount: 9820.00,
-        coins: '₱1: 420 | ₱5: 1100 | ₱10: 390',
-        date: '2026-10-27',
-        timestamp: '2026-10-27 18:30:00 PHT',
-        attendant: 'Leo B.',
-        status: 'Audited'
-      },
-      {
-        id: 'HBW-082',
-        desc: 'Mid-Month Habwa Collection',
-        owner: 'Ate Gina (Unit 5 & 6)',
-        category: 'Standard Pisonet',
-        amount: 5640.00,
-        coins: '₱1: 840 | ₱5: 720 | ₱10: 120',
-        date: '2026-10-25',
-        timestamp: '2026-10-25 15:14:02 PHT',
-        attendant: 'Marc C.',
-        status: 'Remitted'
-      },
-      {
-        id: 'HBW-081',
-        desc: 'Unit 7 & 8 Weekly Coin Harvest',
-        owner: 'Nanay Tessie (Unit 7 & 8)',
-        category: 'High-Yield Terminal',
-        amount: 7290.00,
-        coins: '₱1: 590 | ₱5: 860 | ₱10: 240',
-        date: '2026-10-24',
-        timestamp: '2026-10-24 19:05:44 PHT',
-        attendant: 'Leo B.',
-        status: 'Audited'
-      },
-      {
-        id: 'HBW-080',
-        desc: 'Night Shift Coin Box Retrieval',
-        owner: 'Uncle Dan (Unit 9 & 10)',
-        category: 'Standard Pisonet',
-        amount: 4950.00,
-        coins: '₱1: 750 | ₱5: 600 | ₱10: 120',
-        date: '2026-10-22',
-        timestamp: '2026-10-22 21:18:10 PHT',
-        attendant: 'Leo B.',
-        status: 'Audited'
-      },
-      {
-        id: 'HBW-079',
-        desc: 'Sunday Peak Hours Habwa',
-        owner: 'Kuya Jorgy (Unit 1 & 2)',
-        category: 'VIP Gaming Rig',
-        amount: 11200.00,
-        coins: '₱1: 700 | ₱5: 1300 | ₱10: 400',
-        date: '2026-10-20',
-        timestamp: '2026-10-20 22:00:15 PHT',
-        attendant: 'Marc C.',
-        status: 'Audited'
-      },
-      {
-        id: 'HBW-078',
-        desc: 'Mid-Month Profit Remittance Batch #041',
-        owner: 'Boss Roldan (Unit 3 & 4)',
-        category: 'Dual Coin Slot',
-        amount: 6780.00,
-        coins: '₱1: 580 | ₱5: 840 | ₱10: 200',
-        date: '2026-10-18',
-        timestamp: '2026-10-18 16:45:33 PHT',
-        attendant: 'Marc C.',
-        status: 'Remitted'
-      },
-      {
-        id: 'HBW-077',
-        desc: 'Terminal Coin Chute Maintenance & Habwa',
-        owner: 'Ate Gina (Unit 5 & 6)',
-        category: 'Standard Pisonet',
-        amount: 4320.00,
-        coins: '₱1: 620 | ₱5: 540 | ₱10: 100',
-        date: '2026-10-15',
-        timestamp: '2026-10-15 14:10:20 PHT',
-        attendant: 'Leo B.',
-        status: 'Audited'
-      },
-      {
-        id: 'HBW-076',
-        desc: 'Fiesta Special Tournament Collection',
-        owner: 'Nanay Tessie (Unit 7 & 8)',
-        category: 'High-Yield Terminal',
-        amount: 12450.00,
-        coins: '₱1: 950 | ₱5: 1500 | ₱10: 400',
-        date: '2026-10-12',
-        timestamp: '2026-10-12 23:10:05 PHT',
-        attendant: 'Marc C.',
-        status: 'Audited'
-      },
-      {
-        id: 'HBW-075',
-        desc: 'First Week October Opening Habwa',
-        owner: 'Uncle Dan (Unit 9 & 10)',
-        category: 'Standard Pisonet',
-        amount: 5100.00,
-        coins: '₱1: 600 | ₱5: 700 | ₱10: 100',
-        date: '2026-10-08',
-        timestamp: '2026-10-08 17:30:19 PHT',
-        attendant: 'Leo B.',
-        status: 'Audited'
-      },
-      {
-        id: 'HBW-074',
-        desc: 'Payday Weekend Coin Sweep',
-        owner: 'Kuya Jorgy (Unit 1 & 2)',
-        category: 'Dual Coin Slot',
-        amount: 8900.00,
-        coins: '₱1: 800 | ₱5: 1020 | ₱10: 300',
-        date: '2026-10-05',
-        timestamp: '2026-10-05 20:15:00 PHT',
-        attendant: 'Marc C.',
-        status: 'Audited'
-      },
-      {
-        id: 'HBW-073',
-        desc: 'Month-Start Opening Coin Drop Clearance',
-        owner: 'Boss Roldan (Unit 3 & 4)',
-        category: 'VIP Gaming Rig',
-        amount: 7650.00,
-        coins: '₱1: 550 | ₱5: 920 | ₱10: 250',
-        date: '2026-10-02',
-        timestamp: '2026-10-02 18:00:12 PHT',
-        attendant: 'Leo B.',
-        status: 'Audited'
-      }
-    ]
+    this.masterHabwaRecords = []
+    this.requestsRecords = []
+    this.ownersRecords = []
 
-    // Custom Owner Requests Telemetry Records (Owner profit deduction requests, e.g. food delivery, medicine, cash advance)
-    this.requestsRecords = [
-      {
-        id: 'REQ-00831',
-        owner: 'Kuya Jorgy (Unit 1 & 2)',
-        ownerShort: 'Kuya Jorgy',
-        roleId: '1',
-        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-        profitLeft: 5987.45,
-        category: 'Food Panda / Delivery',
-        amount: 859.50,
-        status: 'Pending', // 'Pending', 'Approved', 'Declined'
-        date: '2026-10-30',
-        timestamp: '2026-10-30 18:24:10 PHT',
-        submittedDate: 'Oct 30, 2026',
-        source: 'Mobile Web App',
-        note: 'Deduct for my son food panda dinner order tonight. Please approve kuya admin.',
-        receiptPhoto: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=500&auto=format&fit=crop&q=80',
-        hasSignature: true,
-        signature: null,
-        signatureName: 'Jorgy Fernandez',
-        policy: 'Food & Personal Allowance: Max ₱2,000 / day',
-        policyCheck: 'Within limit'
-      },
-      {
-        id: 'REQ-00830',
-        owner: 'Boss Roldan (Unit 3 & 4)',
-        ownerShort: 'Boss Roldan',
-        roleId: '2',
-        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
-        profitLeft: 4987.80,
-        category: 'Emergency Cash Advance',
-        amount: 1545.25,
-        status: 'Approved',
-        date: '2026-10-29',
-        timestamp: '2026-10-29 14:10:05 PHT',
-        submittedDate: 'Oct 29, 2026',
-        source: 'Branch Terminal 03',
-        note: 'Advance for weekend household grocery. Remit excess to GCash.',
-        receiptPhoto: null,
-        hasSignature: true,
-        signature: null,
-        signatureName: 'Roldan Cruz',
-        policy: 'Cash Advance: Requires verified net profit > ₱3,000',
-        policyCheck: 'Eligible (₱4,987.80 net)'
-      },
-      {
-        id: 'REQ-00829',
-        owner: 'Ate Gina (Unit 5 & 6)',
-        ownerShort: 'Ate Gina',
-        roleId: '3',
-        avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
-        profitLeft: 1027.60,
-        category: 'Hardware Maintenance / Chute Spare',
-        amount: 475.75,
-        status: 'Approved',
-        date: '2026-10-27',
-        timestamp: '2026-10-27 11:35:42 PHT',
-        submittedDate: 'Oct 27, 2026',
-        source: 'Mobile App',
-        note: 'Allan coin acceptor sensor cleaning fluid and 2 spare microswitches.',
-        receiptPhoto: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=500&auto=format&fit=crop&q=80',
-        hasSignature: true,
-        signature: null,
-        signatureName: 'Gina Santos',
-        policy: 'Maintenance & Parts: Direct deduction against unit habwa',
-        policyCheck: 'Within limit'
-      },
-      {
-        id: 'REQ-00828',
-        owner: 'Nanay Tessie (Unit 7 & 8)',
-        ownerShort: 'Nanay Tessie',
-        roleId: '4',
-        avatar: 'https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?w=150&auto=format&fit=crop&q=80',
-        profitLeft: 3450.25,
-        category: 'Medicine / Pharmacy',
-        amount: 628.90,
-        status: 'Pending',
-        date: '2026-10-26',
-        timestamp: '2026-10-26 16:50:18 PHT',
-        submittedDate: 'Oct 26, 2026',
-        source: 'Attendant Remit Desk',
-        note: 'Maintenance vitamins and BP medicine for Nanay Tessie.',
-        receiptPhoto: null,
-        hasSignature: true,
-        signature: null,
-        signatureName: 'Tessie Dela Cruz',
-        policy: 'Personal Emergency Allowance',
-        policyCheck: 'Within limit'
-      },
-      {
-        id: 'REQ-00827',
-        owner: 'Uncle Dan (Unit 9 & 10)',
-        ownerShort: 'Uncle Dan',
-        roleId: '5',
-        avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
-        profitLeft: 2200.50,
-        category: 'Personal Withdrawal',
-        amount: 3000.00,
-        status: 'Declined',
-        date: '2026-10-25',
-        timestamp: '2026-10-25 09:12:00 PHT',
-        submittedDate: 'Oct 25, 2026',
-        source: 'Mobile Web App',
-        note: 'Withdrawal requested exceeds remaining current cycle profit balance.',
-        receiptPhoto: null,
-        hasSignature: false,
-        signature: null,
-        signatureName: '',
-        policy: 'Withdrawal: Max cannot exceed current profit balance',
-        policyCheck: 'Exceeded (Profit ₱2,200.50 < ₱3,000.00)'
-      }
-    ]
+    // Detect if page is in User Portal (/users/ path or logged-in client role)
+    const sessionRole = storageManager.session.getRole()
+    this.isUserPortal = window.location.pathname.includes('/users/') || (sessionRole && sessionRole !== '0')
+    this.currentOwnerName = storageManager.session.getUser() || 'Kuya Jorgy'
+    this.currentUserId = storageManager.session.getUserId()
 
-    this.ownersRecords = userAccountManager.getUsers()
+    this.habwaUserRecords = []
+    this.billsUserRecords = []
+    this.requestsUserRecords = []
 
-    this.records = this.mode === 'bills' 
-      ? this.billsRecords 
-      : (this.mode === 'requests' 
-          ? this.requestsRecords 
-          : (this.mode === 'owners' ? this.ownersRecords : this.masterHabwaRecords))
+    this.records = []
 
     // State management
     this.searchQuery = ''
@@ -532,15 +51,139 @@ export class TableManager {
     this.drawer = null
   }
 
+  // Live query loader connecting directly to Supabase Backend
+  async loadFromSupabase() {
+    try {
+      const currentUid = this.currentUserId || storageManager.session.getUserId()
+
+      if (this.mode === 'bills') {
+        const res = this.isUserPortal && currentUid
+          ? await billsApi.getByOwner(currentUid)
+          : await billsApi.getAll()
+
+        if (res.success && Array.isArray(res.data)) {
+          this.billsRecords = res.data.map((b) => ({
+            id: b.ref_code,
+            dbId: b.id,
+            category: b.category,
+            desc: b.description,
+            owner: (b.owner_ids && b.owner_ids.length > 1) ? 'ALL' : 'Unit Owner',
+            owner_ids: b.owner_ids || [],
+            roles: ['1', '2', '3'],
+            amount: Number(b.total_amount),
+            shares: '',
+            detailedBreakdown: Array.isArray(b.detailed_breakdown) ? b.detailed_breakdown : [],
+            date: b.bill_date,
+            timestamp: b.created_at || '',
+            attendant: b.attendant,
+            status: b.status,
+            notes: b.notes || ''
+          }))
+          this.records = this.billsRecords
+        }
+      } else if (this.mode === 'requests') {
+        const res = this.isUserPortal && currentUid
+          ? await requestsApi.getByOwner(currentUid)
+          : await requestsApi.getAll()
+
+        if (res.success && Array.isArray(res.data)) {
+          this.requestsRecords = res.data.map((r) => ({
+            id: r.ref_code,
+            dbId: r.id,
+            owner: r.users?.full_name || 'Unit Owner',
+            ownerShort: (r.users?.full_name || '').split('(')[0].trim(),
+            owner_id: r.owner_id,
+            roleId: '1',
+            avatar: r.users?.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+            profitLeft: Number(r.pool_value || 0),
+            category: r.category,
+            amount: Number(r.amount),
+            status: r.status,
+            date: r.request_date,
+            timestamp: r.created_at || '',
+            submittedDate: r.created_at ? new Date(r.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : r.request_date,
+            source: 'Web App',
+            note: r.note || '',
+            receiptPhoto: r.receipt_photo_url,
+            hasSignature: Boolean(r.signature_url),
+            signature: r.signature_url,
+            signatureName: (r.users?.full_name || '').split('(')[0].trim(),
+            policy: r.policy_label || 'Standard Policy',
+            policyCheck: r.policy_check || 'Within limit',
+            adminNote: r.admin_note
+          }))
+          this.records = this.requestsRecords
+        }
+      } else if (this.mode === 'owners') {
+        const res = await usersApi.getAll()
+        if (res.success && Array.isArray(res.data)) {
+          this.ownersRecords = res.data.map((u) => ({
+            id: u.id,
+            role_id: u.role_id,
+            name: u.full_name,
+            username: u.username,
+            phone: u.phone || '+63 917-000-0000',
+            category: u.category,
+            units: u.units,
+            role: u.roles?.label || (u.role_id === 0 ? 'Admin' : 'Owner'),
+            status: u.status,
+            dateCreated: u.created_at ? u.created_at.slice(0, 10) : '',
+            avatar: u.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'
+          }))
+          this.records = this.ownersRecords
+        }
+      } else {
+        // Habwa Mode
+        const res = this.isUserPortal && currentUid
+          ? await habwaApi.getByOwner(currentUid)
+          : await habwaApi.getAll()
+
+        if (res.success && Array.isArray(res.data)) {
+          this.masterHabwaRecords = res.data.map((h) => ({
+            id: h.ref_code,
+            dbId: h.id,
+            desc: h.description,
+            owner: h.users?.full_name || 'Unit Owner',
+            owner_id: h.owner_id,
+            category: h.category,
+            amount: Number(h.amount),
+            coins: h.coins_breakdown || '',
+            date: h.harvested_at ? h.harvested_at.slice(0, 10) : '',
+            timestamp: h.harvested_at || '',
+            attendant: h.attendant,
+            status: h.status
+          }))
+          this.records = this.masterHabwaRecords
+        }
+      }
+    } catch {
+      this.records = []
+    }
+  }
+
   // START: TableManager.init - Bootstraps all table subcomponents and listeners
-  init(drawerManager = null) {
+  async init(drawerManager = null) {
     if (drawerManager) {
       this.drawer = drawerManager
     }
+    await this.loadFromSupabase()
     if (this.mode === 'bills') {
       this.bills.init()
     } else if (this.mode === 'requests') {
       this.requests.init()
+
+      // Set up realtime sync so admin immediately sees new requests created by owners
+      if (this.isUserPortal && this.currentUserId) {
+        requestsApi.subscribeToOwnerRequests(this.currentUserId, async () => {
+          await this.loadFromSupabase()
+          this.render()
+        })
+      } else {
+        requestsApi.subscribeToAllRequests(async () => {
+          await this.loadFromSupabase()
+          this.render()
+        })
+      }
     } else if (this.mode === 'owners') {
       this.owners.init()
     } else {
@@ -560,14 +203,33 @@ export class TableManager {
     const summaryCards = document.getElementById('summary-cards')
     if (!toggleBtn || !summaryCards) return
 
-    toggleBtn.addEventListener('click', () => {
-      const isHidden = summaryCards.classList.toggle('hidden')
+    const icon = toggleBtn.querySelector('svg')
+    const label = document.getElementById('summary-toggle-label')
+
+    const updateToggleState = (isHidden) => {
       toggleBtn.setAttribute('aria-expanded', (!isHidden).toString())
       if (isHidden) {
-        toggleBtn.classList.add('bg-slate-100', 'dark:bg-slate-700/60')
+        // Inactive / Hidden state: light neutral background, dark legible text
+        toggleBtn.classList.remove('bg-blue-600', 'text-white', 'border-blue-600', 'dark:bg-blue-600', 'dark:text-white', 'dark:border-blue-600')
+        toggleBtn.classList.add('bg-slate-100', 'text-slate-700', 'border-slate-300', 'dark:bg-slate-800', 'dark:text-slate-300', 'dark:border-slate-700')
+        if (icon) {
+          icon.classList.remove('text-white')
+          icon.classList.add('text-slate-500', 'dark:text-slate-400')
+        }
       } else {
-        toggleBtn.classList.remove('bg-slate-100', 'dark:bg-slate-700/60')
+        // Active / Visible state: solid blue filled with crisp white text
+        toggleBtn.classList.remove('bg-slate-100', 'text-slate-700', 'border-slate-300', 'dark:bg-slate-800', 'dark:text-slate-300', 'dark:border-slate-700')
+        toggleBtn.classList.add('bg-blue-600', 'text-white', 'border-blue-600', 'dark:bg-blue-600', 'dark:text-white', 'dark:border-blue-600')
+        if (icon) {
+          icon.classList.remove('text-slate-500', 'dark:text-slate-400')
+          icon.classList.add('text-white')
+        }
       }
+    }
+
+    toggleBtn.addEventListener('click', () => {
+      const isHidden = summaryCards.classList.toggle('hidden')
+      updateToggleState(isHidden)
     })
   }
   // END: TableManager.bindSummaryToggle - Toggle bound
@@ -598,6 +260,10 @@ export class TableManager {
       })
 
       result.sort((a, b) => {
+        // Always pin Admin (role_id === 0) to the very top
+        if (a.role_id === 0 && b.role_id !== 0) return -1
+        if (b.role_id === 0 && a.role_id !== 0) return 1
+
         let valA = a[this.sortKey] || a.name || ''
         let valB = b[this.sortKey] || b.name || ''
         if (typeof valA === 'string') {
@@ -702,7 +368,7 @@ export class TableManager {
     }
 
     // Direct proxy to update request status (Pending -> Approved / Declined) with optional Admin Review Note
-    this.updateRequestStatus = (id, newStatus, adminNote = '') => {
+    this.updateRequestStatus = async (id, newStatus, adminNote = '') => {
       this.requests.updateStatus(id, newStatus, adminNote)
     }
 
@@ -943,24 +609,35 @@ export class TableManager {
                 </div>
               </td>
 
-              <!-- Col 6: Actions (Regular Column) -->
+              <!-- Col 6: Actions (Regular Column: View Details for Owner Portal; Edit & Delete for Admin) -->
               <td class="px-6 py-4 text-right">
                 <div class="flex items-center justify-end space-x-1.5">
-                  <!-- Edit Action Button (Solid Amber) -->
-                  <button id="edit-${item.id}" type="button" data-action="edit" data-id="${item.id}" title="Edit Habwa Entry" class="p-1.5 rounded-lg text-white bg-amber-500 hover:bg-amber-600 active:bg-amber-700 transition cursor-pointer shadow-xs">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
-                    <span class="sr-only">Edit ${item.id}</span>
-                  </button>
+                  ${this.parent.isUserPortal ? `
+                    <!-- Inspect / View Details Button (View-only for Unit Owners) -->
+                    <button id="view-${item.id}" type="button" data-action="view" data-id="${item.id}" title="View Habwa Audit" class="inline-flex items-center px-2.5 py-1.5 rounded-lg text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 transition cursor-pointer shadow-xs space-x-1">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                      <span>View</span>
+                    </button>
+                  ` : `
+                    <!-- Edit Action Button (Solid Amber) -->
+                    <button id="edit-${item.id}" type="button" data-action="edit" data-id="${item.id}" title="Edit Habwa Entry" class="p-1.5 rounded-lg text-white bg-amber-500 hover:bg-amber-600 active:bg-amber-700 transition cursor-pointer shadow-xs">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                      <span class="sr-only">Edit ${item.id}</span>
+                    </button>
 
-                  <!-- Delete Action Button (Solid Rose) -->
-                  <button id="del-${item.id}" type="button" data-action="delete" data-id="${item.id}" title="Delete Record" class="p-1.5 rounded-lg text-white bg-rose-600 hover:bg-rose-700 active:bg-rose-800 transition cursor-pointer shadow-xs">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                    <span class="sr-only">Delete ${item.id}</span>
-                  </button>
+                    <!-- Delete Action Button (Solid Rose) -->
+                    <button id="del-${item.id}" type="button" data-action="delete" data-id="${item.id}" title="Delete Record" class="p-1.5 rounded-lg text-white bg-rose-600 hover:bg-rose-700 active:bg-rose-800 transition cursor-pointer shadow-xs">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                      <span class="sr-only">Delete ${item.id}</span>
+                    </button>
+                  `}
                 </div>
               </td>
             </tr>
@@ -1165,24 +842,35 @@ export class TableManager {
                 </div>
               </td>
 
-              <!-- Col 6: Actions (Regular Column for Admin) -->
+              <!-- Col 6: Actions (Regular Column: View Details for Owner Portal; Edit & Delete for Admin) -->
               <td class="px-6 py-4 text-right">
                 <div class="flex items-center justify-end space-x-1.5">
-                  <!-- Edit Action Button (Solid Amber) -->
-                  <button id="edit-${item.id}" type="button" data-action="edit" data-id="${item.id}" title="Edit Deduction Bill" class="p-1.5 rounded-lg text-white bg-amber-500 hover:bg-amber-600 active:bg-amber-700 transition cursor-pointer shadow-xs">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
-                    <span class="sr-only">Edit ${item.id}</span>
-                  </button>
+                  ${this.parent.isUserPortal ? `
+                    <!-- Inspect / View Details Button (View-only for Unit Owners) -->
+                    <button id="view-${item.id}" type="button" data-action="view" data-id="${item.id}" title="View Deduction Details" class="inline-flex items-center px-2.5 py-1.5 rounded-lg text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 active:bg-rose-800 transition cursor-pointer shadow-xs space-x-1">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                      <span>View</span>
+                    </button>
+                  ` : `
+                    <!-- Edit Action Button (Solid Amber) -->
+                    <button id="edit-${item.id}" type="button" data-action="edit" data-id="${item.id}" title="Edit Deduction Bill" class="p-1.5 rounded-lg text-white bg-amber-500 hover:bg-amber-600 active:bg-amber-700 transition cursor-pointer shadow-xs">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                      <span class="sr-only">Edit ${item.id}</span>
+                    </button>
 
-                  <!-- Delete Action Button (Solid Rose) -->
-                  <button id="del-${item.id}" type="button" data-action="delete" data-id="${item.id}" title="Delete Record" class="p-1.5 rounded-lg text-white bg-rose-600 hover:bg-rose-700 active:bg-rose-800 transition cursor-pointer shadow-xs">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                    <span class="sr-only">Delete ${item.id}</span>
-                  </button>
+                    <!-- Delete Action Button (Solid Rose) -->
+                    <button id="del-${item.id}" type="button" data-action="delete" data-id="${item.id}" title="Delete Record" class="p-1.5 rounded-lg text-white bg-rose-600 hover:bg-rose-700 active:bg-rose-800 transition cursor-pointer shadow-xs">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                      <span class="sr-only">Delete ${item.id}</span>
+                    </button>
+                  `}
                 </div>
               </td>
             </tr>
@@ -1263,11 +951,42 @@ export class TableManager {
     }
 
     deleteEntry(id) {
-      const idx = this.parent.records.findIndex((r) => r.id === id)
-      if (idx !== -1) {
-        this.parent.records.splice(idx, 1)
-        this.parent.selectedIds.delete(id)
-        this.parent.render()
+      const idx = this.parent.records.findIndex((r) => r.id === id || r.dbId === id)
+      if (idx === -1) return
+      const removed = this.parent.records[idx]
+      const targetDbId = removed.dbId || id
+
+      // Optimistically remove from view
+      this.parent.records.splice(idx, 1)
+      this.parent.selectedIds.delete(id)
+      this.parent.render()
+
+      // Show 5-second Undo Toast at bottom-right
+      const toast = this.parent.animations?.toast
+      if (toast && typeof toast.showUndo === 'function') {
+        toast.showUndo(
+          `Request "${removed.id || 'Entry'}" deleted`,
+          () => {
+            // On Undo clicked: restore entry into records and re-render
+            this.parent.records.splice(idx, 0, removed)
+            this.parent.render()
+          },
+          async () => {
+            // On Expire (after 5 seconds): permanently delete from Supabase backend
+            try {
+              await requestsApi.delete(targetDbId)
+            } catch {}
+            await this.parent.loadFromSupabase()
+            this.parent.render()
+          },
+          5
+        )
+      } else {
+        // Fallback if toast not available
+        requestsApi.delete(targetDbId).then(async () => {
+          await this.parent.loadFromSupabase()
+          this.parent.render()
+        })
       }
     }
 
@@ -1278,19 +997,22 @@ export class TableManager {
       }
     }
 
-    updateStatus(id, newStatus, adminNote = '') {
-      const entry = this.parent.records.find((r) => r.id === id)
-      if (entry) {
-        entry.status = newStatus
-        if (adminNote) {
-          entry.adminNote = adminNote
-        }
-        // Deduct from profitLeft if approved
-        if (newStatus === 'Approved' && !entry._hasDeducted) {
-          entry.profitLeft = Math.max(0, entry.profitLeft - entry.amount)
-          entry._hasDeducted = true
-        }
+    async updateStatus(id, newStatus, adminNote = '') {
+      const entry = this.parent.records.find((r) => r.id === id || r.dbId === id)
+      const targetId = entry?.dbId || id
+      const adminId = storageManager.session.getUserId()
+
+      try {
+        await requestsApi.updateStatus(targetId, newStatus, adminNote, adminId)
+        await this.parent.loadFromSupabase()
         this.parent.render()
+        this.parent.animations?.toast?.show(`Request ${newStatus.toLowerCase()} successfully!`)
+      } catch {
+        if (entry) {
+          entry.status = newStatus
+          if (adminNote) entry.adminNote = adminNote
+          this.parent.render()
+        }
       }
     }
 
@@ -1424,41 +1146,43 @@ export class TableManager {
                 </div>
               </td>
 
-              <!-- Col 6: Actions (View Drawer Preview, Edit, Delete) -->
+              <!-- Col 6: Actions (View Drawer Preview for Owner; Approve/Edit/Delete for Admin) -->
               <td class="px-6 py-4 text-right">
                 <div class="flex items-center justify-end space-x-1.5">
-                  <!-- Quick Approve Action Button (Disabled with off-colors if already Approved) -->
-                  <button id="approve-${item.id}" type="button" data-action="approve" data-id="${item.id}" title="${item.status === 'Approved' ? 'Already Approved' : 'Approve Request'}" ${item.status === 'Approved' ? 'disabled' : ''} class="p-1.5 rounded-lg transition shadow-xs ${item.status === 'Approved' ? 'text-slate-400 bg-slate-200 dark:bg-slate-800 dark:text-slate-600 cursor-not-allowed border border-slate-300 dark:border-slate-700 opacity-60' : 'text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 cursor-pointer'}">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span class="sr-only">Approve ${item.id}</span>
-                  </button>
+                  ${this.parent.isUserPortal ? `
+                    <!-- View Details Action Button (Owner View Only - Finalized & Signed) -->
+                    <button id="view-${item.id}" type="button" data-action="view" data-id="${item.id}" title="Inspect Request" class="inline-flex items-center px-2.5 py-1.5 rounded-lg text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 transition cursor-pointer shadow-xs space-x-1">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                      <span>View</span>
+                    </button>
+                  ` : `
+                    <!-- Quick Approve Action Button (Disabled with off-colors if already Approved) -->
+                    <button id="approve-${item.id}" type="button" data-action="approve" data-id="${item.id}" title="${item.status === 'Approved' ? 'Already Approved' : 'Approve Request'}" ${item.status === 'Approved' ? 'disabled' : ''} class="p-1.5 rounded-lg transition shadow-xs ${item.status === 'Approved' ? 'text-slate-400 bg-slate-200 dark:bg-slate-800 dark:text-slate-600 cursor-not-allowed border border-slate-300 dark:border-slate-700 opacity-60' : 'text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 cursor-pointer'}">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span class="sr-only">Approve ${item.id}</span>
+                    </button>
 
-                  <!-- View Drawer Details Button (Hidden by default for Admin view, only unhidden for future OWNERS/USERS view) -->
-                  <button id="view-${item.id}" type="button" data-action="view" data-id="${item.id}" title="Inspect Request" class="hidden p-1.5 rounded-lg text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 transition cursor-pointer shadow-xs">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
-                    <span class="sr-only">Inspect ${item.id}</span>
-                  </button>
+                    <!-- Edit Action Button (Owner & Admin can tap to edit requested details) -->
+                    <button id="edit-${item.id}" type="button" data-action="edit" data-id="${item.id}" title="Edit Request" class="p-1.5 rounded-lg text-white bg-amber-500 hover:bg-amber-600 active:bg-amber-700 transition cursor-pointer shadow-xs">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                      <span class="sr-only">Edit ${item.id}</span>
+                    </button>
 
-                  <!-- Edit Action Button (Owner & Admin can tap to edit requested details) -->
-                  <button id="edit-${item.id}" type="button" data-action="edit" data-id="${item.id}" title="Edit Request" class="p-1.5 rounded-lg text-white bg-amber-500 hover:bg-amber-600 active:bg-amber-700 transition cursor-pointer shadow-xs">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
-                    <span class="sr-only">Edit ${item.id}</span>
-                  </button>
-
-                  <!-- Delete Action Button (For Admin only; hidden in owner view later) -->
-                  <button id="del-${item.id}" type="button" data-action="delete" data-id="${item.id}" title="Delete Record" class="p-1.5 rounded-lg text-white bg-rose-600 hover:bg-rose-700 active:bg-rose-800 transition cursor-pointer shadow-xs">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                    <span class="sr-only">Delete ${item.id}</span>
-                  </button>
+                    <!-- Delete Action Button (For Admin only; hidden in owner view later) -->
+                    <button id="del-${item.id}" type="button" data-action="delete" data-id="${item.id}" title="Delete Record" class="p-1.5 rounded-lg text-white bg-rose-600 hover:bg-rose-700 active:bg-rose-800 transition cursor-pointer shadow-xs">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                      <span class="sr-only">Delete ${item.id}</span>
+                    </button>
+                  `}
                 </div>
               </td>
             </tr>
@@ -1529,12 +1253,24 @@ export class TableManager {
 
       // Batch Delete
       const batchDeleteBtn = document.getElementById('batch-delete')
-      batchDeleteBtn?.addEventListener('click', () => {
+      batchDeleteBtn?.addEventListener('click', async () => {
         if (this.parent.selectedIds.size === 0) return
-        const ids = Array.from(this.parent.selectedIds)
+        const ids = Array.from(this.parent.selectedIds).filter((id) => {
+          const rec = this.parent.records.find((r) => r.id === id)
+          return rec && rec.role_id !== 0
+        })
+
+        if (ids.length === 0) {
+          this.parent.animations?.toast?.show('Cannot delete Admin accounts.')
+          return
+        }
+
         this.parent.records = this.parent.records.filter((r) => !ids.includes(r.id))
         this.parent.selectedIds.clear()
-        ids.forEach(id => userAccountManager.deleteUser(id))
+        for (const id of ids) {
+          await userAccountManager.deleteUser(id)
+        }
+        await this.parent.loadFromSupabase()
         this.parent.render()
         this.parent.animations?.toast?.show(`Deleted ${ids.length} selected owner accounts!`)
       })
@@ -1554,6 +1290,12 @@ export class TableManager {
       if (idx === -1) return
       const removed = this.parent.records[idx]
 
+      // Guard: Admin account role 0 can never be deleted
+      if (removed.role_id === 0) {
+        this.parent.animations?.toast?.show('Admin account cannot be deleted, only modified.')
+        return
+      }
+
       // Optimistically remove from view
       this.parent.records.splice(idx, 1)
       this.parent.render()
@@ -1568,14 +1310,19 @@ export class TableManager {
             this.parent.records.splice(idx, 0, removed)
             this.parent.render()
           },
-          () => {
+          async () => {
             // On Expire
-            userAccountManager.deleteUser(id)
+            await userAccountManager.deleteUser(id)
+            await this.parent.loadFromSupabase()
+            this.parent.render()
           },
           4
         )
       } else {
-        userAccountManager.deleteUser(id)
+        userAccountManager.deleteUser(id).then(async () => {
+          await this.parent.loadFromSupabase()
+          this.parent.render()
+        })
       }
     }
 
@@ -1600,9 +1347,12 @@ export class TableManager {
       const countEl = document.getElementById('stat-count') || document.getElementById('stat-active-owners')
       const avgEl = document.getElementById('stat-avg') || document.getElementById('stat-categories')
 
-      const totalOwners = filtered.length
-      const approvedCount = filtered.filter((o) => (o.status || '').toLowerCase() === 'approved').length
-      const totalComputers = filtered.reduce((sum, o) => sum + this.parseUnitsCount(o.units), 0)
+      // Exclude Admin (role_id === 0) since Admin does not have units, computers, or partner accounts
+      const partnerOwners = filtered.filter((o) => o.role_id !== 0 && (o.role || '').toLowerCase() !== 'admin')
+
+      const totalOwners = partnerOwners.length
+      const approvedCount = partnerOwners.filter((o) => (o.status || '').toLowerCase() === 'approved').length
+      const totalComputers = partnerOwners.reduce((sum, o) => sum + this.parseUnitsCount(o.units), 0)
 
       if (totalEl) {
         if (this.parent.animations?.counter) {
@@ -1657,7 +1407,9 @@ export class TableManager {
 
           // Category Badge Styling
           let catBadgeClass = 'bg-blue-100 text-blue-800 dark:bg-blue-950/80 dark:text-blue-300 border-blue-300/40'
-          if (owner.category?.includes('VIP')) {
+          if (owner.role_id === 0) {
+            catBadgeClass = 'bg-rose-100 text-rose-800 dark:bg-rose-950/80 dark:text-rose-300 border-rose-300/40'
+          } else if (owner.category?.includes('VIP')) {
             catBadgeClass = 'bg-purple-100 text-purple-800 dark:bg-purple-950/80 dark:text-purple-300 border-purple-300/40'
           } else if (owner.category?.includes('High-Yield')) {
             catBadgeClass = 'bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 border-amber-300/40'
@@ -1677,8 +1429,10 @@ export class TableManager {
             statusDotClass = 'bg-amber-500'
           }
 
+          const isAdmin = owner.role_id === 0
+
           return `
-            <tr id="row-${owner.id}" class="${rowBg} border-b border-slate-200/70 dark:border-slate-800/80 hover:bg-blue-50/50 dark:hover:bg-slate-800/70 transition-colors">
+            <tr id="row-${owner.id}" class="${isAdmin ? 'bg-blue-50/40 dark:bg-slate-800/80 border-l-4 border-l-blue-600' : rowBg} border-b border-slate-200/70 dark:border-slate-800/80 hover:bg-blue-50/50 dark:hover:bg-slate-800/70 transition-colors">
               <!-- Checkbox Column -->
               <td class="w-4 p-3.5 text-center">
                 <input id="check-${owner.id}" type="checkbox" data-select-row="${owner.id}" ${isSelected ? 'checked' : ''} class="w-4 h-4 text-blue-600 bg-slate-100 border-slate-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-slate-800 focus:ring-2 dark:bg-slate-700 dark:border-slate-600 cursor-pointer">
@@ -1687,10 +1441,14 @@ export class TableManager {
               <!-- Owner Profile (Avatar, Full Name & Username) - Clickable to Open View Drawer -->
               <td class="px-4 py-3 text-slate-900 dark:text-white font-medium">
                 <div class="flex items-center space-x-3 cursor-pointer group/profile" data-view-owner="${owner.id}" title="Click to view owner profile">
-                  <img src="${owner.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}" alt="${owner.name}" class="w-9 h-9 rounded-full object-cover border border-slate-200 dark:border-slate-700 shrink-0 group-hover/profile:ring-2 group-hover/profile:ring-blue-500 transition">
+                  <div class="relative">
+                    <img src="${owner.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}" alt="${owner.name}" class="w-9 h-9 rounded-full object-cover border border-slate-200 dark:border-slate-700 shrink-0 group-hover/profile:ring-2 group-hover/profile:ring-blue-500 transition">
+                    ${isAdmin ? '<span class="absolute -top-1 -right-1 w-3.5 h-3.5 bg-blue-600 text-white rounded-full flex items-center justify-center text-[9px] font-bold shadow-xs" title="Pinned Admin">★</span>' : ''}
+                  </div>
                   <div class="min-w-0">
                     <div class="font-bold text-xs sm:text-sm text-slate-900 dark:text-white truncate font-averta group-hover/profile:text-blue-600 dark:group-hover/profile:text-blue-400 transition flex items-center space-x-1.5">
                       <span>${owner.name}</span>
+                      ${isAdmin ? '<span class="px-1.5 py-0.2 rounded text-[9px] font-extrabold uppercase bg-blue-600 text-white font-averta tracking-wider">PINNED ADMIN</span>' : ''}
                       <svg class="w-3.5 h-3.5 text-slate-400 group-hover/profile:text-blue-500 shrink-0 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                       </svg>
@@ -1705,14 +1463,14 @@ export class TableManager {
                 </div>
               </td>
 
-              <!-- Category & Assigned Units -->
+              <!-- Category & Units Count -->
               <td class="px-4 py-3">
                 <div class="space-y-1">
                   <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold border ${catBadgeClass}">
-                    ${owner.category || 'Standard Pisonet'}
+                    ${owner.category || 'VIP Gaming Rig'}
                   </span>
                   <div class="text-[11px] font-medium text-slate-500 dark:text-slate-400">
-                    ${owner.units || 'Unassigned Units'}
+                    ${owner.units ? (String(owner.units).includes('Unit') ? owner.units : `Units #${owner.units}`) : 'Units #1'}
                   </div>
                 </div>
               </td>
@@ -1723,22 +1481,22 @@ export class TableManager {
                   <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
                   </svg>
-                  <span class="font-semibold">${owner.phone || '0917-000-0000'}</span>
+                  <span class="font-semibold">${owner.phone ? (owner.phone.startsWith('+63') ? owner.phone : `+63 ${owner.phone}`) : '+63 917-000-0000'}</span>
                 </div>
                 <span class="text-[10px] text-slate-400 block mt-0.5">Recovery contact</span>
               </td>
 
-              <!-- Date Created -->
+              <!-- Business Started Date -->
               <td class="px-4 py-3 text-xs text-slate-600 dark:text-slate-400 whitespace-nowrap">
-                <div class="font-medium">${owner.dateCreated || '2026-10-31'}</div>
-                <span class="text-[10px] text-slate-400">Registered</span>
+                <div class="font-medium">${owner.dateCreated || new Date().toISOString().slice(0, 10)}</div>
+                <span class="text-[10px] text-slate-400">Started</span>
               </td>
 
               <!-- Status -->
               <td class="px-4 py-3 text-xs whitespace-nowrap">
                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold border ${statusBadgeClass}">
                   <span class="w-1.5 h-1.5 rounded-full ${statusDotClass} me-1.5"></span>
-                  ${owner.status || 'Pending'}
+                  ${owner.status || 'Approved'}
                 </span>
               </td>
 
@@ -1761,8 +1519,8 @@ export class TableManager {
                     <span class="sr-only">Edit ${owner.id}</span>
                   </button>
 
-                  <!-- Delete Action Button (Solid Rose) -->
-                  <button id="del-${owner.id}" type="button" data-del-owner="${owner.id}" title="Delete Owner" class="p-1.5 rounded-lg text-white bg-rose-600 hover:bg-rose-700 active:bg-rose-800 transition cursor-pointer shadow-xs">
+                  <!-- Delete Action Button (Solid Rose, Disabled for Admin role 0) -->
+                  <button id="del-${owner.id}" type="button" data-del-owner="${owner.id}" title="${owner.role_id === 0 ? 'Admin account cannot be deleted' : 'Delete Owner'}" ${owner.role_id === 0 ? 'disabled' : ''} class="p-1.5 rounded-lg transition shadow-xs ${owner.role_id === 0 ? 'text-slate-400 bg-slate-200 dark:bg-slate-800 dark:text-slate-600 cursor-not-allowed border border-slate-300 dark:border-slate-700 opacity-60' : 'text-white bg-rose-600 hover:bg-rose-700 active:bg-rose-800 cursor-pointer'}">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                     </svg>

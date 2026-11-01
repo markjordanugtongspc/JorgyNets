@@ -52,37 +52,126 @@ export class ChartsManager {
     this.showSkeleton()
 
     setTimeout(() => {
-      // If month is October (monthIndex === 9) and year is 2026, show authentic telemetry data
-      const isOct2026 = monthIndex === 9 && year === 2026
-
-      if (this.salesChartInstance) {
-        if (isOct2026) {
-          this.salesChartInstance.updateSeries([
-            { name: 'Gross Habwa (Income)', data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 12042, 0, 0] },
-            { name: 'Total Expenses (Deductions)', data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 11067, 0, 0] },
-          ])
-        } else {
-          // All totally zero when it's not October 2026
-          this.salesChartInstance.updateSeries([
-            { name: 'Gross Habwa (Income)', data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
-            { name: 'Total Expenses (Deductions)', data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
-          ])
-        }
-      }
-
-      if (this.expensesChartInstance) {
-        if (isOct2026) {
-          this.expensesChartInstance.updateSeries([47.3, 27.1, 16.3, 9.2])
-        } else {
-          // Zero/empty distribution for dates with no mock logs
-          this.expensesChartInstance.updateSeries([0, 0, 0, 0])
-        }
-      }
-
       this.hideSkeleton()
-    }, 450)
+    }, 350)
   }
   // END: ChartsManager.setDateFilter - Chart data refreshed for date
+
+  // START: ChartsManager.updateSalesBreakdown - Aggregates 12-month annual gross habwa & expenses from Supabase
+  updateSalesBreakdown(habwaRecords = [], billsRecords = [], year = 2026) {
+    if (!this.salesChartInstance) return
+
+    const isClient = (sessionStorage.getItem('jn_session_role') && sessionStorage.getItem('jn_session_role') !== '0') || window.location.pathname.includes('/users/')
+    const clientName = sessionStorage.getItem('jn_session_user') || 'Owner'
+    const currentUid = sessionStorage.getItem('jn_session_uid')
+
+    const monthlyGross = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    const monthlyExpenses = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+    // 1. Ingest gross habwa by month (0-11)
+    habwaRecords.forEach((h) => {
+      if (!h.harvested_at) return
+      const d = new Date(h.harvested_at)
+      if (d.getFullYear() === year) {
+        const month = d.getMonth()
+        monthlyGross[month] += Number(h.amount || 0)
+      }
+    })
+
+    // 2. Ingest operational expenses & deductions by month (0-11)
+    billsRecords.forEach((b) => {
+      if (!b.bill_date) return
+      const d = new Date(b.bill_date)
+      if (d.getFullYear() === year) {
+        const month = d.getMonth()
+        if (isClient && currentUid) {
+          const breakdown = Array.isArray(b.detailed_breakdown) ? b.detailed_breakdown : []
+          const userShare = breakdown.find((item) => item.owner_id === currentUid)
+          if (userShare && userShare.shareAmount) {
+            monthlyExpenses[month] += Number(userShare.shareAmount || 0)
+          } else if (b.owner_ids && b.owner_ids.includes(currentUid)) {
+            monthlyExpenses[month] += Number(b.total_amount || 0) / b.owner_ids.length
+          }
+        } else {
+          monthlyExpenses[month] += Number(b.total_amount || 0)
+        }
+      }
+    })
+
+    // Calculate maximum amount to dynamically adjust Y-axis scale if revenue exceeds 16k
+    const maxVal = Math.max(...monthlyGross, ...monthlyExpenses, 0)
+    const yMax = maxVal > 14000 ? Math.ceil((maxVal * 1.2) / 1000) * 1000 : 16000
+
+    this.salesChartInstance.updateOptions({
+      yaxis: {
+        min: 0,
+        max: yMax,
+        tickAmount: 4,
+        labels: {
+          formatter: (val) => `₱${(val / 1000).toFixed(0)}k`,
+          style: { colors: '#64748b', fontSize: '11px', fontWeight: 500 },
+        },
+      },
+    })
+
+    this.salesChartInstance.updateSeries([
+      {
+        name: isClient ? `${clientName} Habwa (Income)` : 'Gross Habwa (Income)',
+        data: monthlyGross,
+      },
+      {
+        name: isClient ? 'Personal Deductions' : 'Total Expenses (Deductions)',
+        data: monthlyExpenses,
+      },
+    ])
+  }
+
+  updateExpensesBreakdown(billsList = [], grossRevenue = 0, totalDeductions = 0) {
+    if (!this.expensesChartInstance) return
+
+    let electricity = 0
+    let internet = 0
+    let maintenance = 0
+    let other = 0
+
+    billsList.forEach((b) => {
+      const cat = (b.category || '').toUpperCase()
+      const amt = Number(b.total_amount || 0)
+      if (cat.includes('ELEC') || cat.includes('VECO') || cat.includes('POWER')) {
+        electricity += amt
+      } else if (cat.includes('PLDT') || cat.includes('CONVERGE') || cat.includes('INTERNET') || cat.includes('FIBER')) {
+        internet += amt
+      } else if (cat.includes('CHUTE') || cat.includes('REPAIR') || cat.includes('HARDWARE') || cat.includes('SWITCH')) {
+        maintenance += amt
+      } else {
+        other += amt
+      }
+    })
+
+    const totalBills = electricity + internet + maintenance + other
+    const series = totalBills > 0
+      ? [
+          Number(((electricity / totalBills) * 100).toFixed(1)),
+          Number(((other / totalBills) * 100).toFixed(1)),
+          Number(((internet / totalBills) * 100).toFixed(1)),
+          Number(((maintenance / totalBills) * 100).toFixed(1))
+        ]
+      : [0, 0, 0, 0]
+
+    const labels = [
+      `Electricity (${series[0]}%)`,
+      `Other / Misc (${series[1]}%)`,
+      `PLDT Internet (${series[2]}%)`,
+      `PC Hardware / Maint (${series[3]}%)`
+    ]
+
+    this.expensesChartInstance.customTotalDeductions = totalDeductions
+    this.expensesChartInstance.customGrossRevenue = grossRevenue
+    this.expensesChartInstance.customCategoryAmounts = [electricity, other, internet, maintenance]
+
+    this.expensesChartInstance.updateOptions({ labels })
+    this.expensesChartInstance.updateSeries(series)
+  }
 
   // START: ChartsManager.refreshWithSkeleton - Triggers dynamic skeleton reload for charts
   refreshWithSkeleton(monthIndex = 9, year = 2026) {
@@ -101,16 +190,23 @@ export class ChartsManager {
       const container = document.getElementById('sales-chart-slot')
       if (!container) return
 
-      // Continuous line starting at 0 from Jan-Sep, spiking to October actuals, and going back down to 0 for Nov-Dec
+      // Determine role from session: role !== '0' means Client/Unit Owner
+      const isClient = (sessionStorage.getItem('jn_session_role') && sessionStorage.getItem('jn_session_role') !== '0') || window.location.pathname.includes('/users/')
+      const clientName = sessionStorage.getItem('jn_session_user') || 'Owner'
+
+      // Zero initialized series ready for live Supabase sync
+      const grossData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      const expenseData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
       const options = {
         series: [
           {
-            name: 'Gross Habwa (Income)',
-            data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 12042, 0, 0],
+            name: isClient ? `${clientName} Habwa (Income)` : 'Gross Habwa (Income)',
+            data: grossData,
           },
           {
-            name: 'Total Expenses (Deductions)',
-            data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 11067, 0, 0],
+            name: isClient ? 'Personal Deductions' : 'Total Expenses (Deductions)',
+            data: expenseData,
           },
         ],
         chart: {
@@ -222,31 +318,34 @@ export class ChartsManager {
               }
             }, 60)
 
+            const isClientUser = (sessionStorage.getItem('jn_session_role') && sessionStorage.getItem('jn_session_role') !== '0') || window.location.pathname.includes('/users/')
+            const currentClientName = sessionStorage.getItem('jn_session_user') || 'My Unit'
+
             return `
               <div class="bg-slate-900 border border-slate-700/80 rounded-xl p-3.5 shadow-2xl min-w-[220px] text-xs font-poppins">
                 <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-700/60">
                   <span class="font-extrabold text-white text-xs font-averta tracking-wide">${month} 2026</span>
                   <span class="text-[10px] font-bold px-1.5 py-0.5 rounded ${netProfit >= 0 ? 'bg-emerald-950 text-emerald-400 border border-emerald-500/40' : 'bg-rose-950 text-rose-400 border border-rose-500/40'}">
-                    ${netProfit >= 0 ? '+ PROFIT' : '- LOSS'}
+                    ${netProfit >= 0 ? (isClientUser ? '+ NET PAYOUT' : '+ PROFIT') : '- LOSS'}
                   </span>
                 </div>
                 <div class="space-y-1.5">
                   <div class="flex items-center justify-between">
                     <div class="flex items-center space-x-2">
                       <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
-                      <span class="text-slate-300 text-[11px]">Gross Habwa:</span>
+                      <span class="text-slate-300 text-[11px]">${isClientUser ? `${currentClientName} Habwa:` : 'Gross Habwa:'}</span>
                     </div>
                     <span class="font-extrabold text-white text-[11px] font-money" data-count-money="${grossVal}" data-prefix="₱" data-decimals="2" data-duration="600" data-delay="50">${formattedGross}</span>
                   </div>
                   <div class="flex items-center justify-between">
                     <div class="flex items-center space-x-2">
                       <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
-                      <span class="text-slate-300 text-[11px]">Total Deductions:</span>
+                      <span class="text-slate-300 text-[11px]">${isClientUser ? 'Unit Deductions:' : 'Total Deductions:'}</span>
                     </div>
                     <span class="font-extrabold text-rose-400 text-[11px] font-money" data-count-money="${expenseVal}" data-prefix="-₱" data-decimals="2" data-duration="600" data-delay="100">${formattedExpense}</span>
                   </div>
                   <div class="pt-1.5 border-t border-slate-800 flex items-center justify-between">
-                    <span class="text-slate-400 text-[10px] font-bold uppercase">Net Remaining:</span>
+                    <span class="text-slate-400 text-[10px] font-bold uppercase">${isClientUser ? 'Net Takeaway:' : 'Net Remaining:'}</span>
                     <span class="font-black ${netProfit >= 0 ? 'text-emerald-400' : 'text-rose-400'} text-xs font-money" data-count-money="${Math.abs(netProfit)}" data-prefix="${netProfit >= 0 ? '₱' : '-₱'}" data-decimals="2" data-duration="700" data-delay="150">
                       ${formattedNet}
                     </span>
@@ -276,15 +375,14 @@ export class ChartsManager {
       const container = document.getElementById('status-chart-slot')
       if (!container) return
 
-      // Total Deductions = 5,240 + 3,000 + 1,806 + 1,021 = ₱11,067
-      // Percentages: Electricity 47.3%, Misc 27.1%, PLDT 16.3%, PC4 Return 9.2%
+      // Zero-initialized series ready for live Supabase deduction breakdown
       const options = {
-        series: [47.3, 27.1, 16.3, 9.2],
+        series: [0, 0, 0, 0],
         labels: [
-          'Electricity (47.3%)',
-          'Other / Misc (27.1%)',
-          'PLDT Internet (16.3%)',
-          'PC-4 Return to Owner (9.2%)',
+          'Electricity (0%)',
+          'Other / Misc (0%)',
+          'PLDT Internet (0%)',
+          'PC-4 Return to Owner (0%)',
         ],
         chart: {
           height: 300,
@@ -324,11 +422,17 @@ export class ChartsManager {
                   fontFamily: 'Averta, sans-serif',
                   color: '#64748b',
                   formatter: function (w) {
-                    // Actual dynamic overall percentage: 100% of expense breakdown (or 91.9% of gross habwa)
-                    const totalDeductions = 11067
-                    const grossRevenue = 12042
-                    const shareOfRevenue = ((totalDeductions / grossRevenue) * 100).toFixed(1)
-                    return `${shareOfRevenue}%`
+                    const totalDeductions = w.globals.chartObject?.customTotalDeductions ?? 0
+                    const grossRevenue = w.globals.chartObject?.customGrossRevenue ?? 0
+                    if (grossRevenue > 0 && totalDeductions > 0) {
+                      const shareOfRevenue = ((totalDeductions / grossRevenue) * 100).toFixed(1)
+                      return `${shareOfRevenue}%`
+                    }
+                    const seriesSum = (w.globals.seriesTotals || []).reduce((a, b) => a + b, 0)
+                    if (seriesSum > 0) {
+                      return '100%'
+                    }
+                    return '0.0%'
                   },
                 },
               },
@@ -355,9 +459,9 @@ export class ChartsManager {
         tooltip: {
           custom: function ({ series, seriesIndex, w }) {
             const label = w.globals.labels[seriesIndex]
-            const percent = series[seriesIndex]
+            const percent = series[seriesIndex] || 0
             const color = w.globals.colors[seriesIndex]
-            const amounts = [5240, 3000, 1806, 1021]
+            const amounts = w.globals.chartObject?.customCategoryAmounts || [0, 0, 0, 0]
             const amount = amounts[seriesIndex] || 0
 
             return `
@@ -372,7 +476,7 @@ export class ChartsManager {
                 </div>
                 <div class="flex items-center justify-between mt-1 text-[10px] text-slate-400">
                   <span>Share of Total:</span>
-                  <span class="font-bold text-blue-400 font-money">${percent}%</span>
+                  <span class="font-bold text-blue-400 font-money">${percent.toFixed(1)}%</span>
                 </div>
               </div>
             `

@@ -1,6 +1,6 @@
 {
   "name": "jorgynets",
-  "version": "0.1.50",
+  "version": "0.1.68",
   "private": true,
   "type": "module",
   "scripts": {
@@ -18,6 +18,7 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.118.0",
     "apexcharts": "^8.6.0",
+    "bcryptjs": "^3.0.3",
     "dotenv": "^18.0.9",
     "flowbite": "^4.0.2",
     "postgres": "^3.4.9"

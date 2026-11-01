@@ -1,12 +1,21 @@
 // START: DashboardManager - Manages telemetry data, live Supabase records, and interactive calendar date filtering
+import { habwaApi, billsApi, requestsApi, usersApi, storageManager } from '../../api/index.js'
+
 export class DashboardManager {
   constructor() {
-    this.logs = []
+    this.habwaRecords = []
+    this.billsRecords = []
+    this.requestsRecords = []
     this.chartsInstance = null
-    // Default to mock data date: October 4, 2026
-    this.selectedDate = new Date(2026, 9, 4)
-    this.viewMonth = 9 // 0-indexed: 9 = October
-    this.viewYear = 2026
+
+    // Calendar state
+    this.selectedDate = new Date()
+    this.viewMonth = this.selectedDate.getMonth()
+    this.viewYear = this.selectedDate.getFullYear()
+
+    const sessionRole = storageManager.session.getRole()
+    this.isUserPortal = window.location.pathname.includes('/users/') || (sessionRole && sessionRole !== '0')
+    this.currentUserId = storageManager.session.getUserId()
   }
 
   // START: DashboardManager.init - Bootstraps dashboard data, calendar picker, and charts binding
@@ -25,7 +34,7 @@ export class DashboardManager {
     const logsCard = document.getElementById('logs-card')
     if (logsCard) logsCard.style.maxHeight = 'none'
   }
-  // END: DashboardManager.syncLogsCardMaxHeight - Ceiling limit synced
+  // END: DashboardManager.syncLogsCardMaxHeight
 
   // START: DashboardManager.initCalendar - Builds Flowbite calendar picker UI and date switching logic
   initCalendar() {
@@ -39,7 +48,6 @@ export class DashboardManager {
 
     if (!trigger || !dropdown) return
 
-    // Toggle calendar dropdown visibility
     trigger.addEventListener('click', (e) => {
       e.stopPropagation()
       const isHidden = dropdown.classList.contains('hidden')
@@ -53,7 +61,6 @@ export class DashboardManager {
       }
     })
 
-    // Click outside to dismiss calendar dropdown
     document.addEventListener('click', (e) => {
       if (!dropdown.contains(e.target) && !trigger.contains(e.target)) {
         dropdown.classList.add('hidden')
@@ -61,7 +68,6 @@ export class DashboardManager {
       }
     })
 
-    // Month Navigation: Previous
     prevBtn?.addEventListener('click', (e) => {
       e.stopPropagation()
       this.viewMonth--
@@ -72,7 +78,6 @@ export class DashboardManager {
       this.renderCalendarGrid()
     })
 
-    // Month Navigation: Next
     nextBtn?.addEventListener('click', (e) => {
       e.stopPropagation()
       this.viewMonth++
@@ -83,7 +88,6 @@ export class DashboardManager {
       this.renderCalendarGrid()
     })
 
-    // Shortcut: October 2026 (Live Mock Data)
     octBtn?.addEventListener('click', (e) => {
       e.stopPropagation()
       this.selectDate(new Date(2026, 9, 4))
@@ -91,7 +95,6 @@ export class DashboardManager {
       arrow?.classList.remove('rotate-180')
     })
 
-    // Shortcut: Current Today's Date
     todayBtn?.addEventListener('click', (e) => {
       e.stopPropagation()
       this.selectDate(new Date())
@@ -101,7 +104,7 @@ export class DashboardManager {
 
     this.updateDateDisplay()
   }
-  // END: DashboardManager.initCalendar - Calendar initialized
+  // END: DashboardManager.initCalendar
 
   // START: DashboardManager.renderCalendarGrid - Generates month days grid inside dropdown
   renderCalendarGrid() {
@@ -115,56 +118,51 @@ export class DashboardManager {
     ]
     monthYearEl.textContent = `${monthNames[this.viewMonth]} ${this.viewYear}`
 
-    // Compute first day of month and total days
     const firstDayIndex = new Date(this.viewYear, this.viewMonth, 1).getDay()
     const totalDays = new Date(this.viewYear, this.viewMonth + 1, 0).getDate()
-    const prevMonthDays = new Date(this.viewYear, this.viewMonth, 0).getDate()
 
     let html = ''
-
-    // Leading days from previous month
-    for (let i = firstDayIndex - 1; i >= 0; i--) {
-      const dayNum = prevMonthDays - i
-      html += `<div class="p-1.5 text-slate-300 dark:text-slate-600 cursor-not-allowed select-none">${dayNum}</div>`
+    for (let i = 0; i < firstDayIndex; i++) {
+      html += '<span class="p-1.5 text-slate-300 dark:text-slate-700"></span>'
     }
 
-    // Current month days
+    const today = new Date()
     for (let day = 1; day <= totalDays; day++) {
       const isSelected =
         this.selectedDate.getDate() === day &&
         this.selectedDate.getMonth() === this.viewMonth &&
         this.selectedDate.getFullYear() === this.viewYear
 
-      const isOct2026Active = this.viewMonth === 9 && this.viewYear === 2026 && day === 4
+      const isToday =
+        today.getDate() === day &&
+        today.getMonth() === this.viewMonth &&
+        today.getFullYear() === this.viewYear
 
-      let dayClasses = 'p-1.5 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer font-medium'
+      let btnClass = 'p-1.5 rounded-lg font-medium transition cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800'
       if (isSelected) {
-        dayClasses = 'p-1.5 rounded-lg bg-emerald-600 text-white font-bold shadow-xs cursor-pointer'
-      } else if (isOct2026Active) {
-        dayClasses = 'p-1.5 rounded-lg text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-300 dark:border-emerald-700/60 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 cursor-pointer'
+        btnClass = 'p-1.5 rounded-lg font-bold bg-blue-600 text-white shadow-xs cursor-pointer'
+      } else if (isToday) {
+        btnClass += ' text-blue-600 dark:text-blue-400 font-bold border border-blue-500/30'
+      } else {
+        btnClass += ' text-slate-700 dark:text-slate-300'
       }
 
-      html += `<button type="button" data-cal-day="${day}" class="${dayClasses}">${day}</button>`
+      html += `<button type="button" class="${btnClass}" data-cal-day="${day}">${day}</button>`
     }
 
     gridEl.innerHTML = html
 
-    // Bind click to each day button
     gridEl.querySelectorAll('[data-cal-day]').forEach((btn) => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation()
         const day = parseInt(btn.getAttribute('data-cal-day'), 10)
         this.selectDate(new Date(this.viewYear, this.viewMonth, day))
-        const dropdown = document.getElementById('date-calendar-dropdown')
-        const arrow = document.getElementById('date-arrow')
-        dropdown?.classList.add('hidden')
-        arrow?.classList.remove('rotate-180')
+        document.getElementById('date-calendar-dropdown')?.classList.add('hidden')
+        document.getElementById('date-arrow')?.classList.remove('rotate-180')
       })
     })
   }
-  // END: DashboardManager.renderCalendarGrid - Calendar grid rendered
 
-  // START: DashboardManager.selectDate - Applies user's selected date and updates all stats + charts
   selectDate(date) {
     this.selectedDate = date
     this.viewMonth = date.getMonth()
@@ -172,251 +170,371 @@ export class DashboardManager {
     this.updateDateDisplay()
     this.applyDateFilter()
   }
-  // END: DashboardManager.selectDate - Date applied
 
-  // START: DashboardManager.updateDateDisplay - Updates button label with formatted current selected date
   updateDateDisplay() {
     const label = document.getElementById('date-label')
     if (!label) return
     const options = { year: 'numeric', month: 'long', day: 'numeric' }
     label.textContent = this.selectedDate.toLocaleDateString('en-US', options)
   }
-  // END: DashboardManager.updateDateDisplay - Date label synced
 
-  // START: DashboardManager.applyDateFilter - Dynamically updates stats and charts based on date
-  applyDateFilter() {
-    const isOct2026 = this.selectedDate.getMonth() === 9 && this.selectedDate.getFullYear() === 2026
-    const revEl = document.getElementById('revenue-amount')
-    const termEl = document.getElementById('terminals-amount')
-    const monthlyEl = document.getElementById('monthly-amount')
-    const fleetWrap = document.getElementById('fleet-card')
-    const fleetTitle = document.getElementById('fleet-title')
-    const statusMeta = document.getElementById('status-percent-meta')
+  // START: DashboardManager.loadData - Fetches live telemetry from Supabase
+  async loadData() {
+    try {
+      const currentUid = this.currentUserId || storageManager.session.getUserId()
 
-    // Update ApexCharts double-line and donut distributions
-    if (this.chartsInstance && typeof this.chartsInstance.setDateFilter === 'function') {
-      this.chartsInstance.setDateFilter(this.selectedDate.getMonth(), this.selectedDate.getFullYear())
-    }
+      const [habwaRes, billsRes, reqRes] = await Promise.all([
+        this.isUserPortal && currentUid ? habwaApi.getByOwner(currentUid) : habwaApi.getAll(),
+        this.isUserPortal && currentUid ? billsApi.getByOwner(currentUid) : billsApi.getAll(),
+        this.isUserPortal && currentUid ? requestsApi.getByOwner(currentUid) : requestsApi.getAll()
+      ])
 
-    if (isOct2026) {
-      // Restore October 2026 telemetry numbers
-      if (revEl) revEl.textContent = '₱12,042.00'
-      if (termEl) termEl.textContent = '₱11,067.00'
-      if (monthlyEl) monthlyEl.textContent = '₱975.00'
+      this.habwaRecords = habwaRes.success ? (habwaRes.data || []) : []
+      this.billsRecords = billsRes.success ? (billsRes.data || []) : []
+      this.requestsRecords = reqRes.success ? (reqRes.data || []) : []
 
-      if (statusMeta) {
-        statusMeta.innerHTML = `
-          <div class="flex items-center space-x-1.5">
-            <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
-            <span class="text-slate-500 font-medium text-[11px]">Deduction Ratio:</span>
-          </div>
-          <div class="flex items-center space-x-1">
-            <span class="font-extrabold text-rose-600 font-money text-xs">91.9%</span>
-            <span class="text-[10px] text-slate-400 font-medium">(₱11,067 / ₱12,042)</span>
-          </div>
-        `
-      }
-
-      if (fleetTitle) {
-        fleetTitle.textContent = 'Habwa & Utilities Expense Audit'
-      }
-      this.restoreFleetTable()
-    } else {
-      // Date has no mock sample data: stats are all totally ZERO
-      if (revEl) revEl.textContent = '₱0'
-      if (termEl) termEl.textContent = '₱0'
-      if (monthlyEl) monthlyEl.textContent = '₱0'
-
-      if (statusMeta) {
-        statusMeta.innerHTML = `
-          <div class="flex items-center space-x-1.5">
-            <span class="w-2 h-2 rounded-full bg-slate-300"></span>
-            <span class="text-slate-500 font-medium text-[11px]">Deduction Ratio:</span>
-          </div>
-          <div class="flex items-center space-x-1">
-            <span class="font-extrabold text-slate-400 font-money text-xs">0.0%</span>
-            <span class="text-[10px] text-slate-400 font-medium">(No records logged)</span>
-          </div>
-        `
-      }
-
-      if (fleetTitle) {
-        fleetTitle.textContent = `Audit Logs (${this.selectedDate.toLocaleDateString('en-US')})`
-      }
-
-      // Empty audit state for unrecorded dates
-      const tbody = document.querySelector('#fleet-table tbody')
-      if (tbody) {
-        tbody.innerHTML = `
-          <tr>
-            <td colspan="4" class="px-4 py-8 text-center text-slate-400">
-              <svg class="w-8 h-8 mx-auto mb-2 text-slate-300 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-              </svg>
-              <p class="font-semibold text-xs text-slate-600 dark:text-slate-300">No Habwa or Expense Records Found</p>
-              <p class="text-[11px] text-slate-400 mt-0.5">There is no mock sample data for this selected date. Select October 2026 to view historical records.</p>
-            </td>
-          </tr>
-        `
-      }
+      this.applyDateFilter()
+    } catch {
+      // Fallback gracefully
     }
   }
-  // END: DashboardManager.applyDateFilter - Filter executed
 
-  // START: DashboardManager.restoreFleetTable - Restores complete October 4 mock rows
-  restoreFleetTable() {
+  // START: DashboardManager.applyDateFilter - Recomputes live KPI cards and fleet table
+  applyDateFilter() {
+    const revEl = document.getElementById('revenue-amount')
+    const termEl = document.getElementById('terminals-count') || document.getElementById('terminals-amount')
+    const monthlyEl = document.getElementById('monthly-amount')
+    const statusMeta = document.getElementById('status-percent-meta')
+    const fleetTitle = document.getElementById('fleet-title')
+
+    // Filter habwa and bills according to selected month or all-time if empty
+    const selectedMonth = this.selectedDate.getMonth()
+    const selectedYear = this.selectedDate.getFullYear()
+
+    let filteredHabwa = this.habwaRecords.filter((h) => {
+      if (!h.harvested_at) return true
+      const d = new Date(h.harvested_at)
+      return d.getMonth() === selectedMonth && d.getFullYear() === selectedYear
+    })
+    // If no records in chosen month, fallback to full dataset so stats aren't blank
+    if (filteredHabwa.length === 0) {
+      filteredHabwa = this.habwaRecords
+    }
+
+    let filteredBills = this.billsRecords.filter((b) => {
+      if (!b.bill_date) return true
+      const d = new Date(b.bill_date)
+      return d.getMonth() === selectedMonth && d.getFullYear() === selectedYear
+    })
+    if (filteredBills.length === 0) {
+      filteredBills = this.billsRecords
+    }
+
+    // Gross Revenue
+    const grossRevenue = filteredHabwa.reduce((sum, h) => sum + (Number(h.amount) || 0), 0)
+
+    // Deductions: Bills + ONLY Approved Requests (Pending requests do NOT deduct!)
+    let billsTotal = 0
+    if (this.isUserPortal) {
+      const uid = this.currentUserId || storageManager.session.getUserId()
+      filteredBills.forEach((b) => {
+        const breakdown = Array.isArray(b.detailed_breakdown) ? b.detailed_breakdown : []
+        const userShare = breakdown.find((item) => item.owner_id === uid)
+        if (userShare && userShare.shareAmount) {
+          billsTotal += Number(userShare.shareAmount || 0)
+        } else if (b.owner_ids && b.owner_ids.length > 0 && b.owner_ids.includes(uid)) {
+          billsTotal += Number(b.total_amount || 0) / b.owner_ids.length
+        }
+      })
+    } else {
+      billsTotal = filteredBills.reduce((sum, b) => sum + (Number(b.total_amount) || 0), 0)
+    }
+
+    // Approved requests only
+    const approvedRequests = this.requestsRecords.filter((r) => r.status === 'Approved')
+    const approvedReqTotal = approvedRequests.reduce((sum, r) => sum + (Number(r.amount) || 0), 0)
+
+    const totalDeductions = billsTotal + approvedReqTotal
+    const netProfit = Math.max(0, grossRevenue - totalDeductions)
+    const deductionRatio = grossRevenue > 0 ? ((totalDeductions / grossRevenue) * 100).toFixed(1) : '0.0'
+
+    // Update KPI Card UI values & data-count-money attributes to prevent counter resets
+    if (revEl) {
+      revEl.setAttribute('data-count-money', grossRevenue)
+      revEl.textContent = `₱${Math.ceil(grossRevenue).toLocaleString('en-PH', { maximumFractionDigits: 0 })}`
+    }
+    if (termEl) {
+      termEl.setAttribute('data-count-money', totalDeductions)
+      termEl.textContent = `-₱${Math.ceil(totalDeductions).toLocaleString('en-PH', { maximumFractionDigits: 0 })}`
+    }
+    if (monthlyEl) {
+      monthlyEl.setAttribute('data-count-money', netProfit)
+      monthlyEl.textContent = `₱${Math.ceil(netProfit).toLocaleString('en-PH', { maximumFractionDigits: 0 })}`
+    }
+
+    // If MoneyCounter is accessible and cards are already revealed, animate the counters to live Supabase amounts
+    const counter = window.animationsManager?.counter
+    if (counter && revEl && !revEl.classList.contains('hidden')) {
+      counter.animate(revEl, grossRevenue, '₱', '', 0, 800)
+      if (termEl) counter.animate(termEl, totalDeductions, '-₱', '', 0, 800)
+      if (monthlyEl) counter.animate(monthlyEl, netProfit, '₱', '', 0, 800)
+    }
+
+    if (statusMeta) {
+      statusMeta.innerHTML = `
+        <div class="flex items-center space-x-1.5">
+          <span class="w-2 h-2 rounded-full ${Number(deductionRatio) > 80 ? 'bg-rose-500 animate-pulse' : 'bg-emerald-500'}"></span>
+          <span class="text-slate-500 font-medium text-[11px]">Deduction Ratio:</span>
+        </div>
+        <div class="flex items-center space-x-1">
+          <span class="font-extrabold ${Number(deductionRatio) > 80 ? 'text-rose-600' : 'text-emerald-600'} font-money text-xs">${deductionRatio}%</span>
+          <span class="text-[10px] text-slate-400 font-medium">(₱${Math.ceil(totalDeductions).toLocaleString()} / ₱${Math.ceil(grossRevenue).toLocaleString()})</span>
+        </div>
+      `
+    }
+
+    if (fleetTitle) {
+      fleetTitle.textContent = `Live Telemetry Audit (${this.selectedDate.toLocaleDateString('en-US')})`
+    }
+
+    // Update #logs-card with live database numbers
+    this.updateLogsCard(grossRevenue, totalDeductions, netProfit)
+
+    // Sync ApexCharts Annual Sales Trends with live Supabase habwa and bills
+    if (this.chartsInstance && typeof this.chartsInstance.updateSalesBreakdown === 'function') {
+      this.chartsInstance.updateSalesBreakdown(this.habwaRecords, this.billsRecords, selectedYear)
+    }
+
+    // Sync ApexCharts Donut with live Supabase expense categories
+    if (this.chartsInstance && typeof this.chartsInstance.updateExpensesBreakdown === 'function') {
+      this.chartsInstance.updateExpensesBreakdown(filteredBills, grossRevenue, totalDeductions)
+    }
+
+    // Filter requests according to selected month or all-time if empty
+    let filteredRequests = this.requestsRecords.filter((r) => {
+      if (!r.created_at) return true
+      const d = new Date(r.created_at)
+      return d.getMonth() === selectedMonth && d.getFullYear() === selectedYear
+    })
+    if (filteredRequests.length === 0) {
+      filteredRequests = this.requestsRecords
+    }
+
+    // Render live Supabase transactions in #fleet-table
+    this.renderFleetTable(filteredHabwa, filteredBills, filteredRequests)
+  }
+
+  // START: DashboardManager.updateLogsCard - Populates telemetry breakdown in logs-card
+  updateLogsCard(grossRevenue, totalDeductions, netProfit) {
+    const habwaAmt = document.getElementById('logs-habwa-amt')
+    const deductAmt = document.getElementById('logs-deduct-amt')
+    const netAmt = document.getElementById('logs-net-amt')
+    const auditedDate = document.getElementById('logs-audited-date')
+    const statusIndicator = document.getElementById('logs-status-indicator')
+
+    if (habwaAmt) {
+      habwaAmt.textContent = `+₱${Math.ceil(grossRevenue).toLocaleString('en-PH', { maximumFractionDigits: 0 })}`
+    }
+    if (deductAmt) {
+      deductAmt.textContent = `-₱${Math.ceil(totalDeductions).toLocaleString('en-PH', { maximumFractionDigits: 0 })}`
+    }
+    if (netAmt) {
+      netAmt.textContent = `₱${Math.ceil(netProfit).toLocaleString('en-PH', { maximumFractionDigits: 0 })}`
+    }
+    if (auditedDate) {
+      auditedDate.textContent = `Audited: ${this.selectedDate.toLocaleDateString('en-US')}`
+    }
+    if (statusIndicator) {
+      const isBalanced = netProfit >= 0
+      statusIndicator.textContent = isBalanced
+        ? `Status: Balanced (₱${Math.ceil(netProfit).toLocaleString('en-PH')} Net)`
+        : `Status: Deficit (-₱${Math.ceil(Math.abs(netProfit)).toLocaleString('en-PH')} Net)`
+      statusIndicator.className = `font-semibold ${isBalanced ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`
+    }
+  }
+
+  // START: DashboardManager.getCategoryBadge - Resolves uniform category tag badge styles matching Habwa, Bills, and Requests tables
+  getCategoryBadge(category = '', type = 'bill') {
+    const cat = (category || '').trim()
+    const catLower = cat.toLowerCase()
+
+    if (type === 'habwa' || catLower.includes('habwa')) {
+      return {
+        name: cat || 'Habwa Deposit',
+        badgeClass: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700'
+      }
+    }
+
+    if (type === 'request') {
+      if (catLower.includes('mama') || catLower.includes('personal') || catLower.includes('withdrawal')) {
+        return {
+          name: cat || 'Personal Deduction',
+          badgeClass: 'bg-purple-100 text-purple-800 dark:bg-purple-950/80 dark:text-purple-300 border border-purple-300 dark:border-purple-700'
+        }
+      }
+      if (catLower.includes('panda') || catLower.includes('food') || catLower.includes('meal') || catLower.includes('delivery')) {
+        return {
+          name: cat || 'Food Delivery',
+          badgeClass: 'bg-orange-100 text-orange-800 dark:bg-orange-950/80 dark:text-orange-300 border border-orange-300 dark:border-orange-700'
+        }
+      }
+      if (catLower.includes('emergency') || catLower.includes('advance') || catLower.includes('cash')) {
+        return {
+          name: cat || 'Cash Advance',
+          badgeClass: 'bg-rose-100 text-rose-800 dark:bg-rose-950/80 dark:text-rose-300 border border-rose-300 dark:border-rose-700'
+        }
+      }
+      if (catLower.includes('hardware') || catLower.includes('chute') || catLower.includes('maintenance')) {
+        return {
+          name: cat || 'Chute Spare',
+          badgeClass: 'bg-blue-100 text-blue-800 dark:bg-blue-950/80 dark:text-blue-300 border border-blue-300 dark:border-blue-700'
+        }
+      }
+      if (catLower.includes('grocer') || catLower.includes('store') || catLower.includes('supplies')) {
+        return {
+          name: cat || 'Store Supplies',
+          badgeClass: 'bg-teal-100 text-teal-800 dark:bg-teal-950/80 dark:text-teal-300 border border-teal-300 dark:border-teal-700'
+        }
+      }
+      if (catLower.includes('grab') || catLower.includes('transpo') || catLower.includes('taxi')) {
+        return {
+          name: cat || 'Transportation',
+          badgeClass: 'bg-cyan-100 text-cyan-800 dark:bg-cyan-950/80 dark:text-cyan-300 border border-cyan-300 dark:border-cyan-700'
+        }
+      }
+      if (catLower.includes('med') || catLower.includes('pharmacy')) {
+        return {
+          name: cat || 'Medicine',
+          badgeClass: 'bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 border border-amber-300 dark:border-amber-700'
+        }
+      }
+      return {
+        name: cat || 'Request Deduction',
+        badgeClass: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950/80 dark:text-indigo-300 border border-indigo-300 dark:border-indigo-700'
+      }
+    }
+
+    // Bills categories
+    if (catLower.includes('elec') || catLower.includes('veco') || catLower.includes('power')) {
+      return {
+        name: cat || 'VECO ELECTRICITY',
+        badgeClass: 'bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 border border-amber-300 dark:border-amber-700'
+      }
+    }
+    if (catLower.includes('pldt') || catLower.includes('converge') || catLower.includes('internet') || catLower.includes('fiber')) {
+      return {
+        name: cat || 'PLDT FIBR INTERNET',
+        badgeClass: 'bg-sky-100 text-sky-800 dark:bg-sky-950/80 dark:text-sky-300 border border-sky-300 dark:border-sky-700'
+      }
+    }
+    if (catLower.includes('water')) {
+      return {
+        name: cat || 'WATER UTILITY',
+        badgeClass: 'bg-blue-100 text-blue-800 dark:bg-blue-950/80 dark:text-blue-300 border border-blue-300 dark:border-blue-700'
+      }
+    }
+    if (catLower.includes('chute') || catLower.includes('repair') || catLower.includes('maintenance')) {
+      return {
+        name: cat || 'COIN CHUTE CLEANING & REPAIRS',
+        badgeClass: 'bg-rose-100 text-rose-800 dark:bg-rose-950/80 dark:text-rose-300 border border-rose-300 dark:border-rose-700'
+      }
+    }
+    if (catLower.includes('switch') || catLower.includes('network') || catLower.includes('hardware')) {
+      return {
+        name: cat || 'NETWORK SWITCH UPGRADE',
+        badgeClass: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950/80 dark:text-indigo-300 border border-indigo-300 dark:border-indigo-700'
+      }
+    }
+
+    return {
+      name: cat || 'Utility Bill',
+      badgeClass: 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300 border border-slate-300 dark:border-slate-700'
+    }
+  }
+
+  // START: DashboardManager.renderFleetTable - Renders live Supabase transactions
+  renderFleetTable(habwaList = [], billsList = [], requestsList = []) {
     const tbody = document.querySelector('#fleet-table tbody')
     if (!tbody) return
-    tbody.innerHTML = `
-      <tr class="hover:bg-slate-100">
-        <td class="px-3 py-2.5 font-medium text-slate-700">10/04/2026</td>
-        <td class="px-3 py-2.5 font-bold text-slate-900">PISONET 1 & 2 Combined Coin Drop Collection</td>
-        <td class="px-3 py-2.5"><span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-800">Habwa Deposit</span></td>
-        <td class="px-3 py-2.5 text-right font-bold text-emerald-600 font-money">+₱5,689</td>
-      </tr>
-      <tr class="hover:bg-slate-100">
-        <td class="px-3 py-2.5 font-medium text-slate-700">10/04/2026</td>
-        <td class="px-3 py-2.5 font-bold text-slate-900">PISONET 3 Coin Drop Collection</td>
-        <td class="px-3 py-2.5"><span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-800">Habwa Deposit</span></td>
-        <td class="px-3 py-2.5 text-right font-bold text-emerald-600 font-money">+₱5,332</td>
-      </tr>
-      <tr class="hover:bg-slate-100">
-        <td class="px-3 py-2.5 font-medium text-slate-700">10/04/2026</td>
-        <td class="px-3 py-2.5 font-bold text-slate-900">PISONET 4 Coin Drop Collection</td>
-        <td class="px-3 py-2.5"><span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-800">Habwa Deposit</span></td>
-        <td class="px-3 py-2.5 text-right font-bold text-emerald-600 font-money">+₱1,021</td>
-      </tr>
-      <tr class="hover:bg-slate-100">
-        <td class="px-3 py-2.5 font-medium text-slate-700">10/04/2026</td>
-        <td class="px-3 py-2.5 font-bold text-slate-900">PC-4 Return to Owner Deduction</td>
-        <td class="px-3 py-2.5"><span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-rose-100 text-rose-800">Direct Return</span></td>
-        <td class="px-3 py-2.5 text-right font-bold text-rose-600 font-money">-₱1,021</td>
-      </tr>
-      <tr class="hover:bg-slate-100">
-        <td class="px-3 py-2.5 font-medium text-slate-700">10/04/2026</td>
-        <td class="px-3 py-2.5 font-bold text-slate-900">Electricity & Power Utility Allocation</td>
-        <td class="px-3 py-2.5"><span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-100 text-blue-800">Utility Bill</span></td>
-        <td class="px-3 py-2.5 text-right font-bold text-rose-600 font-money">-₱5,240</td>
-      </tr>
-      <tr class="hover:bg-slate-100">
-        <td class="px-3 py-2.5 font-medium text-slate-700">10/04/2026</td>
-        <td class="px-3 py-2.5 font-bold text-slate-900">PLDT Home Fiber Internet Connectivity</td>
-        <td class="px-3 py-2.5"><span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-teal-100 text-teal-800">ISP Telecom</span></td>
-        <td class="px-3 py-2.5 text-right font-bold text-rose-600 font-money">-₱1,806</td>
-      </tr>
-      <tr class="hover:bg-slate-100">
-        <td class="px-3 py-2.5 font-medium text-slate-700">10/04/2026</td>
-        <td class="px-3 py-2.5 font-bold text-slate-900">Other / Miscellaneous Operational Overhead</td>
-        <td class="px-3 py-2.5"><span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-100 text-amber-800">Operations</span></td>
-        <td class="px-3 py-2.5 text-right font-bold text-rose-600 font-money">-₱3,000</td>
-      </tr>
-      <tr class="hover:bg-slate-100">
-        <td class="px-3 py-2.5 font-medium text-slate-700">10/04/2026</td>
-        <td class="px-3 py-2.5 font-bold text-slate-900">Optical Gaming Mouse & Keyboard Replacement (Unit 2)</td>
-        <td class="px-3 py-2.5"><span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-purple-100 text-purple-800">Hardware</span></td>
-        <td class="px-3 py-2.5 text-right font-bold text-slate-500 font-money">₱0 (Stock)</td>
-      </tr>
-      <tr class="hover:bg-slate-100">
-        <td class="px-3 py-2.5 font-medium text-slate-700">10/04/2026</td>
-        <td class="px-3 py-2.5 font-bold text-slate-900">Coin Slot Electronic Sensor Cleaning & Calibration</td>
-        <td class="px-3 py-2.5"><span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-sky-100 text-sky-800">Maintenance</span></td>
-        <td class="px-3 py-2.5 text-right font-bold text-slate-500 font-money">₱0 (Self)</td>
-      </tr>
-      <tr class="hover:bg-slate-100">
-        <td class="px-3 py-2.5 font-medium text-slate-700">10/04/2026</td>
-        <td class="px-3 py-2.5 font-bold text-slate-900">Cat6 Gigabit LAN Cable Crimp & RJ45 Termination</td>
-        <td class="px-3 py-2.5"><span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-teal-100 text-teal-800">Network</span></td>
-        <td class="px-3 py-2.5 text-right font-bold text-slate-500 font-money">₱0 (Internal)</td>
-      </tr>
-      <tr class="hover:bg-slate-100">
-        <td class="px-3 py-2.5 font-medium text-slate-700">10/04/2026</td>
-        <td class="px-3 py-2.5 font-bold text-slate-900">Attendant Refreshment & Snack Token Allowance</td>
-        <td class="px-3 py-2.5"><span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-indigo-100 text-indigo-800">Allowance</span></td>
-        <td class="px-3 py-2.5 text-right font-bold text-slate-500 font-money">₱0 (Included)</td>
-      </tr>
-    `
-  }
-  // END: DashboardManager.restoreFleetTable - Rows restored
 
-  // START: DashboardManager.bindEvents - Attaches refresh event listener
-  bindEvents() {
-    const refreshBtn = document.getElementById('dash-refresh')
-    refreshBtn?.addEventListener('click', () => {
-      this.applyDateFilter()
-      this.loadData()
-    })
-  }
-  // END: DashboardManager.bindEvents - Event listeners bound
+    const combined = [
+      ...habwaList.map((h) => {
+        const badge = this.getCategoryBadge(h.category || 'Habwa Deposit', 'habwa')
+        return {
+          date: h.harvested_at ? h.harvested_at.slice(0, 10) : '2026-10-04',
+          desc: `${h.description || 'Coin Box Habwa'} • ${h.users?.full_name || 'Unit Owner'}`,
+          category: badge.name,
+          badgeClass: badge.badgeClass,
+          amount: Number(h.amount || 0),
+          isCredit: true
+        }
+      }),
+      ...billsList.map((b) => {
+        const badge = this.getCategoryBadge(b.category || 'Utility Bill', 'bill')
+        return {
+          date: b.bill_date || '2026-10-04',
+          desc: b.description || 'Operational Utility Deduction',
+          category: badge.name,
+          badgeClass: badge.badgeClass,
+          amount: Number(b.total_amount || 0),
+          isCredit: false
+        }
+      }),
+      ...requestsList.map((r) => {
+        const badge = this.getCategoryBadge(r.category || 'Request Deduction', 'request')
+        const ownerName = r.users?.full_name || 'Unit Owner'
+        return {
+          date: r.created_at ? r.created_at.slice(0, 10) : (r.date || '2026-10-04'),
+          desc: `${r.ref_code ? `${r.ref_code} • ` : ''}${ownerName} (${r.status || 'Pending'})`,
+          category: badge.name,
+          badgeClass: badge.badgeClass,
+          amount: Number(r.amount || 0),
+          isCredit: false
+        }
+      })
+    ].sort((a, b) => new Date(b.date) - new Date(a.date))
 
-  // START: DashboardManager.loadData - Fetches live records from Supabase
-  async loadData() {
-    const container = document.getElementById('dash-log-list')
-    if (!container) return
-
-    container.innerHTML = `<p class="text-sm text-gray-500 py-4 text-center animate-pulse">Querying live Supabase data...</p>`
-
-    try {
-      const { data, error } = await supabase
-        .from('system_logs')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(10)
-
-      if (error) {
-        this.renderFallback(container, error.message)
-        return
-      }
-
-      this.logs = data || []
-      this.render(container)
-    } catch (err) {
-      this.renderFallback(container, err.message)
-    }
-  }
-  // END: DashboardManager.loadData - Records fetched and rendered
-
-  // START: DashboardManager.handleQuickAdd - Inserts telemetry coin drop event into Supabase
-  async handleQuickAdd() {
-    try {
-      const { error } = await supabase
-        .from('system_logs')
-        .insert([{ action: 'Pisonet Coin Drop (₱5)', status: 'Success' }])
-
-      if (error) throw error
-      await this.loadData()
-    } catch (err) {
-      console.warn('Supabase Insert:', err.message)
-      alert(`Insert Note: ${err.message}`)
-    }
-  }
-  // END: DashboardManager.handleQuickAdd - Coin drop logged
-
-  // START: DashboardManager.render - Displays logs in the telemetry feed
-  render(container) {
-    if (this.logs.length === 0) {
-      container.innerHTML = `<p class="text-sm text-gray-400 py-4 text-center">No records found. Supabase is connected!</p>`
+    if (combined.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="4" class="px-4 py-8 text-center text-slate-400">
+            <svg class="w-8 h-8 mx-auto mb-2 text-slate-300 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+            <p class="font-semibold text-xs text-slate-600 dark:text-slate-300">No Transactions Found</p>
+            <p class="text-[11px] text-slate-400 mt-0.5">Habwa, Bills, and Requests added through drawers will appear here dynamically.</p>
+          </td>
+        </tr>
+      `
       return
     }
 
-    container.innerHTML = this.logs.map(log => `
-      <div class="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50 border border-gray-100 dark:border-gray-700">
-        <span class="text-sm font-medium text-gray-900 dark:text-white">${log.action}</span>
-        <span class="text-xs px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 font-semibold">${log.status}</span>
-      </div>
+    tbody.innerHTML = combined.slice(0, 8).map((item) => `
+      <tr class="hover:bg-slate-100 dark:hover:bg-slate-800/50 transition">
+        <td class="px-3 py-2.5 font-medium text-slate-700 dark:text-slate-300 whitespace-nowrap">
+          ${item.date}
+        </td>
+        <td class="px-3 py-2.5 font-bold text-slate-900 dark:text-white">
+          ${item.desc}
+        </td>
+        <td class="px-3 py-2.5">
+          <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold ${item.badgeClass}">${item.category}</span>
+        </td>
+        <td class="px-3 py-2.5 text-right font-bold ${item.isCredit ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'} font-money whitespace-nowrap">
+          ${item.isCredit ? '+' : '-'}₱${Math.ceil(item.amount).toLocaleString('en-PH', { maximumFractionDigits: 0 })}
+        </td>
+      </tr>
     `).join('')
   }
-  // END: DashboardManager.render - Feed updated
 
-  // START: DashboardManager.renderFallback - Displays informative status alert
-  renderFallback(container, message) {
-    container.innerHTML = `
-      <div class="p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-xs">
-        <p class="font-bold text-blue-900 dark:text-blue-300 mb-1">Direct Supabase HTTPS REST Active</p>
-        <p class="text-blue-700 dark:text-blue-400">Notice: ${message}.</p>
-        <p class="text-gray-500 dark:text-gray-400 mt-2">When deploying to Vercel, set your <code>VITE_SUPABASE_ANON_KEY</code> in Vercel Environment Variables.</p>
-      </div>
-    `
+  bindEvents() {
+    const refreshBtn = document.getElementById('dash-refresh')
+    refreshBtn?.addEventListener('click', async () => {
+      refreshBtn.querySelector('svg')?.classList.add('animate-spin')
+      await this.loadData()
+      setTimeout(() => {
+        refreshBtn.querySelector('svg')?.classList.remove('animate-spin')
+      }, 500)
+    })
   }
-  // END: DashboardManager.renderFallback - Fallback rendered
 }
-// END: DashboardManager - Dashboard manager module ready

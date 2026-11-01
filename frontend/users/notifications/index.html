@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JorgyNets - My Notifications</title>
+  <!-- Google Fonts: Poppins & Space Grotesk -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap"
+    rel="stylesheet" />
+  <!-- Flowbite Stylesheet -->
+  <link href="https://cdn.jsdelivr.net/npm/flowbite@4.0.2/dist/flowbite.min.css" rel="stylesheet" />
+  <!-- Tailwind CSS v4 Main Stylesheet -->
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+
+<body id="notif-body"
+  class="bg-dirty-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-poppins min-h-screen antialiased transition-colors duration-200">
+
+  <!-- Component Injected Layout Slots -->
+  <div id="sidebar-slot"></div>
+  <div id="settings-slot"></div>
+
+  <!-- Main Expandable Layout Canvas -->
+  <div id="notif-main" class="p-4 sm:p-6 lg:p-8 sm:ml-72 transition-all duration-300">
+    <div id="notif-container" class="w-full space-y-6">
+
+      <!-- Header Controls Row: Title, Context & Action Controls -->
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <div class="flex items-center space-x-2.5">
+            <h1 id="page-title"
+              class="text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white font-averta">
+              Notifications & Activity Alerts
+            </h1>
+            <span id="badge-notif"
+              class="hidden sm:inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-300 dark:border-blue-800">
+              Live Feed
+            </span>
+          </div>
+          <p id="page-desc" class="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1">
+            Real-time updates regarding your submitted deduction requests, remittance status, and system alerts.
+          </p>
+        </div>
+
+        <!-- Top Actions -->
+        <div class="flex items-center space-x-2">
+          <button id="mark-all-btn" type="button"
+            class="inline-flex items-center px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition shadow-2xs cursor-pointer">
+            <svg class="w-4 h-4 me-1.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            <span>Mark All Read</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- KPI Summary Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
+          <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400 font-averta">Unread Alerts</p>
+          <p id="unread-count" class="text-2xl font-black text-rose-500 mt-1 font-money">0</p>
+        </div>
+        <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
+          <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400 font-averta">Total Remittance Updates</p>
+          <p id="total-count" class="text-2xl font-black text-blue-600 dark:text-blue-400 mt-1 font-money">0</p>
+        </div>
+        <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
+          <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400 font-averta">Supabase Realtime Status</p>
+          <div class="flex items-center space-x-2 mt-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400">Connected & Synced</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filter Tabs -->
+      <div class="flex items-center space-x-2 border-b border-slate-200 dark:border-slate-800 pb-3">
+        <button id="filter-all" type="button"
+          class="px-3 py-1.5 text-xs font-bold rounded-lg bg-blue-600 text-white shadow-xs cursor-pointer">
+          All Alerts
+        </button>
+        <button id="filter-unread" type="button"
+          class="px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer">
+          Unread Only
+        </button>
+      </div>
+
+      <!-- Notifications Feed List Container -->
+      <div id="notif-feed-card"
+        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xs overflow-hidden">
+        <ul id="notif-list" class="divide-y divide-slate-100 dark:divide-slate-800">
+          <li class="p-8 text-center text-slate-400 text-xs animate-pulse">
+            Connecting to Supabase notifications telemetry...
+          </li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Scripts: Flowbite CDN and Live Realtime Notifications Engine -->
+  <script src="https://cdn.jsdelivr.net/npm/flowbite@4.0.2/dist/flowbite.min.js"></script>
+  <script type="module">
+    import { initializeApp } from '/src/scripts/main.js'
+    import { notificationsApi, storageManager } from '/src/api/index.js'
+
+    class NotificationsPageController {
+      constructor() {
+        this.notifications = []
+        this.filter = 'all' // 'all' or 'unread'
+        this.subscription = null
+      }
+
+      async init() {
+        this.bindEvents()
+        await this.loadNotifications()
+        this.setupRealtime()
+      }
+
+      bindEvents() {
+        const markAllBtn = document.getElementById('mark-all-btn')
+        const filterAllBtn = document.getElementById('filter-all')
+        const filterUnreadBtn = document.getElementById('filter-unread')
+
+        markAllBtn?.addEventListener('click', async () => {
+          const uid = storageManager.session.getUserId()
+          if (!uid) return
+          await notificationsApi.markAllAsRead(uid)
+          await this.loadNotifications()
+        })
+
+        filterAllBtn?.addEventListener('click', () => {
+          this.filter = 'all'
+          filterAllBtn.className = 'px-3 py-1.5 text-xs font-bold rounded-lg bg-blue-600 text-white shadow-xs cursor-pointer'
+          filterUnreadBtn.className = 'px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer'
+          this.render()
+        })
+
+        filterUnreadBtn?.addEventListener('click', () => {
+          this.filter = 'unread'
+          filterUnreadBtn.className = 'px-3 py-1.5 text-xs font-bold rounded-lg bg-blue-600 text-white shadow-xs cursor-pointer'
+          filterAllBtn.className = 'px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer'
+          this.render()
+        })
+      }
+
+      async loadNotifications() {
+        const uid = storageManager.session.getUserId()
+        if (!uid) return
+
+        const res = await notificationsApi.getByUser(uid)
+        if (res.success && Array.isArray(res.data)) {
+          this.notifications = res.data
+        } else {
+          this.notifications = []
+        }
+        this.render()
+      }
+
+      setupRealtime() {
+        const uid = storageManager.session.getUserId()
+        if (!uid) return
+
+        this.subscription = notificationsApi.subscribeUser(uid, (payload) => {
+          if (payload.new) {
+            this.notifications.unshift(payload.new)
+            this.render()
+          }
+        })
+      }
+
+      render() {
+        const listEl = document.getElementById('notif-list')
+        const unreadEl = document.getElementById('unread-count')
+        const totalEl = document.getElementById('total-count')
+        if (!listEl) return
+
+        const unreadCount = this.notifications.filter((n) => !n.is_read).length
+        if (unreadEl) unreadEl.textContent = unreadCount
+        if (totalEl) totalEl.textContent = this.notifications.length
+
+        const displayItems = this.filter === 'unread'
+          ? this.notifications.filter((n) => !n.is_read)
+          : this.notifications
+
+        if (displayItems.length === 0) {
+          listEl.innerHTML = `
+            <li class="p-12 text-center text-slate-400">
+              <svg class="w-10 h-10 mx-auto mb-2 text-slate-300 dark:text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+              <p class="text-xs font-semibold text-slate-600 dark:text-slate-400">No notifications found</p>
+              <p class="text-[11px] text-slate-400 mt-0.5">You're all caught up with your latest account updates!</p>
+            </li>
+          `
+          return
+        }
+
+        listEl.innerHTML = displayItems.map((n) => {
+          const isUnread = !n.is_read
+          const isApproved = n.type === 'request_approved'
+          const isDeclined = n.type === 'request_declined'
+
+          let iconBg = 'bg-blue-100 text-blue-600 dark:bg-blue-950/80 dark:text-blue-400'
+          if (isApproved) iconBg = 'bg-emerald-100 text-emerald-600 dark:bg-emerald-950/80 dark:text-emerald-400'
+          if (isDeclined) iconBg = 'bg-rose-100 text-rose-600 dark:bg-rose-950/80 dark:text-rose-400'
+
+          return `
+            <li class="p-4 sm:p-5 flex items-start justify-between gap-4 transition hover:bg-slate-50 dark:hover:bg-slate-800/50 ${isUnread ? 'bg-blue-50/40 dark:bg-blue-950/20' : ''}" data-notif-id="${n.id}">
+              <div class="flex items-start space-x-3.5">
+                <div class="w-9 h-9 rounded-xl ${iconBg} flex items-center justify-center shrink-0 mt-0.5">
+                  ${isApproved
+                    ? '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>'
+                    : (isDeclined
+                      ? '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>'
+                      : '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>')
+                  }
+                </div>
+                <div>
+                  <div class="flex items-center space-x-2">
+                    <h3 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white font-averta">
+                      ${n.title}
+                    </h3>
+                    ${isUnread ? '<span class="w-2 h-2 rounded-full bg-blue-600 shrink-0"></span>' : ''}
+                  </div>
+                  <p class="text-xs text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
+                    ${n.message}
+                  </p>
+                  <span class="block text-[10px] text-slate-400 mt-1.5 font-mono">
+                    ${n.created_at ? new Date(n.created_at).toLocaleString('en-US') : 'Just now'}
+                  </span>
+                </div>
+              </div>
+
+              ${isUnread ? `
+                <button type="button" data-mark-id="${n.id}" class="text-[11px] font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400 hover:underline shrink-0 cursor-pointer">
+                  Mark read
+                </button>
+              ` : ''}
+            </li>
+          `
+        }).join('')
+
+        listEl.querySelectorAll('[data-mark-id]').forEach((btn) => {
+          btn.addEventListener('click', async (e) => {
+            e.stopPropagation()
+            const notifId = btn.getAttribute('data-mark-id')
+            await notificationsApi.markAsRead(notifId)
+            await this.loadNotifications()
+          })
+        })
+      }
+    }
+
+    const pageController = new NotificationsPageController()
+    initializeApp(pageController)
+  </script>
+</body>
+
+</html>

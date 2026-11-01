@@ -1,5 +1,6 @@
 import { AnimationsManager } from './animations.js'
 import { userAccountManager } from './auth.js'
+import { habwaApi, billsApi, requestsApi, usersApi, notificationsApi, storageManager } from '../../api/index.js'
 
 // START: DrawerManager - Parent OOP coordinator for Flowbite Off-Canvas Drawers and action modals
 export class DrawerManager {
@@ -118,14 +119,9 @@ export class DrawerManager {
       this.editingOwnerIndex = null
       this.editingCategoryIndex = null
 
-      // Mockable lists for dynamic dropdown items with edit and delete capabilities
-      this.owners = [
-        'Kuya Jorgy (Unit 1 & 2)',
-        'Boss Roldan (Unit 3 & 4)',
-        'Ate Gina (Unit 5 & 6)',
-        'Nanay Tessie (Unit 7 & 8)',
-        'Uncle Dan (Unit 9 & 10)'
-      ]
+      // Live owner list populated directly from Supabase users table (excluding role_id 0)
+      this.owners = []
+      this.ownersList = []
 
       this.categories = [
         'Standard Pisonet',
@@ -142,6 +138,8 @@ export class DrawerManager {
       const closeBtn = document.getElementById('close-drawer')
       const cancelBtn = document.getElementById('cancel-btn')
       const form = document.getElementById('habwa-form')
+
+      this.loadOwnersFromDb()
 
       // Open drawer for new entry
       addBtn?.addEventListener('click', () => {
@@ -307,6 +305,29 @@ export class DrawerManager {
       })
     }
     // END: HabwaDrawerController.initAmountFormatter
+
+    async loadOwnersFromDb() {
+      try {
+        const res = await usersApi.getOwners()
+        if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+          this.ownersList = res.data
+          this.owners = res.data.map((u) => `${u.full_name} (${u.units || 'Units'})`)
+        } else {
+          this.ownersList = []
+          this.owners = []
+        }
+        this.renderOwnerList('')
+        const hiddenInput = document.getElementById('habwa-owner')
+        const ownerInput = document.getElementById('owner-btn')
+        if (hiddenInput && !hiddenInput.value && this.owners[0]) {
+          hiddenInput.value = this.owners[0]
+          if (ownerInput) ownerInput.value = this.owners[0]
+        }
+      } catch {
+        this.owners = []
+        this.ownersList = []
+      }
+    }
 
     // START: HabwaDrawerController.initOwnerDropdown - Renders list, edit/delete options, and add action
     initOwnerDropdown() {
@@ -919,10 +940,15 @@ export class DrawerManager {
       if (title) title.textContent = 'Log New Habwa Collection'
       if (form) form.reset()
 
-      this.selectOwner(this.owners[0] || 'Kuya Jorgy (Unit 1 & 2)')
-      if (document.getElementById('habwa-cat')) {
-        this.selectCategory(this.categories[0] || 'Standard Pisonet')
+      if (this.owners.length > 0) {
+        this.selectOwner(this.owners[0])
+      } else {
+        const hiddenInput = document.getElementById('habwa-owner')
+        const ownerInput = document.getElementById('owner-btn')
+        if (hiddenInput) hiddenInput.value = ''
+        if (ownerInput) ownerInput.value = ''
       }
+      this.loadOwnersFromDb()
 
       const dateInput = document.getElementById('habwa-date')
       if (dateInput) {
@@ -1004,48 +1030,66 @@ export class DrawerManager {
     }
     // END: HabwaDrawerController.close - Closed
 
-    // START: HabwaDrawerController.saveEntry - Validates and persists entry into table records
-    saveEntry() {
-      const desc = document.getElementById('habwa-desc')?.value.trim() || 'General Habwa'
-      const owner = document.getElementById('habwa-owner')?.value || 'Kuya Jorgy (Unit 1 & 2)'
+    // START: HabwaDrawerController.saveEntry - Validates and persists entry into Supabase backend
+    async saveEntry() {
+      const desc = document.getElementById('habwa-desc')?.value.trim() || 'Coin Box Habwa Collection'
+      const ownerName = document.getElementById('habwa-owner')?.value || 'Unassigned Owner'
       const category = document.getElementById('habwa-cat')?.value || 'Standard Pisonet'
       const rawAmtStr = document.getElementById('habwa-amount')?.value.replace(/,/g, '') || '0'
       const amount = parseFloat(rawAmtStr) || 0
       const date = document.getElementById('habwa-date')?.value || new Date().toISOString().slice(0, 10)
       const coins = document.getElementById('habwa-notes')?.value.trim() || '₱1: 200 | ₱5: 400 | ₱10: 100'
 
-      const now = new Date()
-      const timestamp = `${date} ${now.toTimeString().slice(0, 8)} PHT`
+      // Match selected owner to their Supabase user ID
+      let ownerId = null
+      if (Array.isArray(this.ownersList) && this.ownersList.length > 0) {
+        const found = this.ownersList.find(
+          (u) =>
+            ownerName.toLowerCase().includes(u.full_name.toLowerCase()) ||
+            u.full_name.toLowerCase().includes(ownerName.split('(')[0].trim().toLowerCase())
+        )
+        if (found) ownerId = found.id
+      }
+
+      if (!ownerId && this.ownersList && this.ownersList[0]) {
+        ownerId = this.ownersList[0].id
+      }
 
       const tm = this.parent.tableManager
+
+      if (this.editingId) {
+        const item = tm?.records?.find((r) => r.id === this.editingId)
+        const targetDbId = item?.dbId || this.editingId
+
+        await habwaApi.update(targetDbId, {
+          description: desc,
+          category,
+          amount,
+          coins_breakdown: coins,
+          harvested_at: new Date(date).toISOString(),
+          ...(ownerId ? { owner_id: ownerId } : {})
+        })
+        this.parent.animations?.toast?.show('Habwa collection updated successfully!')
+      } else {
+        const nextNum = (tm?.records?.length || 0) + 1
+        const refCode = `HBW-${nextNum.toString().padStart(3, '0')}`
+
+        await habwaApi.create({
+          ref_code: refCode,
+          owner_id: ownerId,
+          description: desc,
+          category,
+          amount,
+          coins_breakdown: coins,
+          attendant: 'Admin Leo',
+          status: 'Audited',
+          harvested_at: new Date(date).toISOString()
+        })
+        this.parent.animations?.toast?.show('Habwa collection logged to database!')
+      }
+
       if (tm) {
-        if (this.editingId) {
-          const item = tm.records.find((r) => r.id === this.editingId)
-          if (item) {
-            item.desc = desc
-            item.owner = owner
-            item.category = category
-            item.amount = amount
-            item.date = date
-            item.timestamp = timestamp
-            item.coins = coins
-          }
-        } else {
-          const nextNum = tm.records.length + 85
-          const newEntry = {
-            id: `HBW-${nextNum.toString().padStart(3, '0')}`,
-            desc,
-            owner,
-            category,
-            amount,
-            coins,
-            date,
-            timestamp,
-            attendant: 'Admin',
-            status: 'Audited'
-          }
-          tm.records.unshift(newEntry)
-        }
+        await tm.loadFromSupabase()
         tm.render()
       }
 
@@ -1433,6 +1477,19 @@ export class DrawerManager {
     }
     // END: BillsDrawerController.initCategoryDropdown
 
+    async loadOwnersFromDb() {
+      try {
+        const res = await usersApi.getOwners()
+        if (res.success && Array.isArray(res.data)) {
+          this.ownersList = res.data
+          this.renderOwnerCheckboxes()
+          this.updateLiveSplitPreview()
+        }
+      } catch {
+        // Fallback gracefully
+      }
+    }
+
     // START: BillsDrawerController.initOwnerChecklist - Fetches owners from Habwa list with searchable filter
     initOwnerChecklist() {
       const searchInput = document.getElementById('owner-search-input')
@@ -1440,21 +1497,24 @@ export class DrawerManager {
         this.ownerSearchQuery = e.target.value.trim().toLowerCase()
         this.renderOwnerCheckboxes()
       })
-      this.renderOwnerCheckboxes()
+      this.loadOwnersFromDb()
     }
 
     renderOwnerCheckboxes() {
       const container = document.getElementById('owners-checkbox-group')
       if (!container) return
 
-      // Fetch dynamic owner list from habwaDrawer controller if available, otherwise standard fleet
-      const habwaOwners = this.parent.habwaDrawer?.owners || [
-        'Kuya Jorgy (Unit 1 & 2)',
-        'Boss Roldan (Unit 3 & 4)',
-        'Ate Gina (Unit 5 & 6)',
-        'Nanay Tessie (Unit 7 & 8)',
-        'Uncle Dan (Unit 9 & 10)'
-      ]
+      // Use live owners loaded from database
+      const owners = Array.isArray(this.ownersList) ? this.ownersList : []
+
+      if (owners.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-3 text-xs text-slate-400">
+            No registered unit owners found in database. Please register an owner in Owners page.
+          </div>
+        `
+        return
+      }
 
       // Remember previously checked roles
       const currentlyChecked = new Set(
@@ -1471,8 +1531,9 @@ export class DrawerManager {
         'text-pink-500'
       ]
 
-      const filtered = habwaOwners.filter((ownerStr) => {
-        return !this.ownerSearchQuery || ownerStr.toLowerCase().includes(this.ownerSearchQuery)
+      const filtered = owners.filter((u) => {
+        const displayStr = `${u.full_name}${u.units ? ` (${u.units})` : ''}`
+        return !this.ownerSearchQuery || displayStr.toLowerCase().includes(this.ownerSearchQuery)
       })
 
       if (filtered.length === 0) {
@@ -1485,16 +1546,17 @@ export class DrawerManager {
       }
 
       container.innerHTML = filtered
-        .map((ownerStr) => {
-          const roleIndex = (habwaOwners.indexOf(ownerStr) + 1).toString()
-          const colorClass = badgeColors[(parseInt(roleIndex, 10) - 1) % badgeColors.length]
+        .map((u, idx) => {
+          const roleIndex = (idx + 1).toString()
+          const colorClass = badgeColors[idx % badgeColors.length]
           const isChecked = hasInitialSelection ? currentlyChecked.has(roleIndex) : true
+          const displayStr = `${u.full_name}${u.units ? ` (${u.units})` : ''}`
 
           return `
             <label class="flex items-center space-x-2.5 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700/50 p-1.5 rounded-lg transition">
-              <input type="checkbox" name="owner-role" value="${roleIndex}" data-owner-name="${ownerStr}" ${isChecked ? 'checked' : ''} class="w-4 h-4 text-rose-600 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 rounded-sm focus:ring-rose-500">
+              <input type="checkbox" name="owner-role" value="${roleIndex}" data-owner-id="${u.id}" data-owner-name="${displayStr}" ${isChecked ? 'checked' : ''} class="w-4 h-4 text-rose-600 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 rounded-sm focus:ring-rose-500">
               <span class="text-xs font-medium text-slate-800 dark:text-slate-200">
-                <span class="font-bold ${colorClass}">${roleIndex}</span> - ${ownerStr}
+                <span class="font-bold ${colorClass}">${roleIndex}</span> - ${displayStr}
               </span>
             </label>
           `
@@ -1510,22 +1572,17 @@ export class DrawerManager {
 
     // START: BillsDrawerController.getOwnerStatsFromHabwa - Dynamically tallies revenue and unit count per owner from Habwa records
     getOwnerStatsFromHabwa() {
-      const habwaOwners = this.parent.habwaDrawer?.owners || [
-        'Kuya Jorgy (Unit 1 & 2)',
-        'Boss Roldan (Unit 3 & 4)',
-        'Ate Gina (Unit 5 & 6)',
-        'Nanay Tessie (Unit 7 & 8)',
-        'Uncle Dan (Unit 9 & 10)'
-      ]
-
+      const owners = Array.isArray(this.ownersList) ? this.ownersList : []
       const ownerStats = {}
-      habwaOwners.forEach((ownerStr, idx) => {
+
+      owners.forEach((u, idx) => {
         const roleId = (idx + 1).toString()
-        const shortName = ownerStr.split('(')[0].trim()
+        const fullName = `${u.full_name}${u.units ? ` (${u.units})` : ''}`
         ownerStats[roleId] = {
           role: roleId,
-          name: shortName,
-          fullName: ownerStr,
+          id: u.id,
+          name: u.full_name,
+          fullName: fullName,
           totalIncome: 0,
           units: 1
         }
@@ -1540,23 +1597,18 @@ export class DrawerManager {
           const rawOwner = rec.owner || ''
           const amt = typeof rec.amount === 'number' ? rec.amount : (parseFloat(rec.amount) || 0)
 
-          habwaOwners.forEach((hOwner, idx) => {
+          owners.forEach((u, idx) => {
             const roleId = (idx + 1).toString()
-            const shortName = hOwner.split('(')[0].trim()
-            if (rawOwner.includes(shortName)) {
+            if (rec.owner_id === u.id || rawOwner.toLowerCase().includes(u.full_name.toLowerCase())) {
               ownerStats[roleId].totalIncome += amt
             }
           })
         })
       }
 
-      // Default baseline values if fresh
-      if (ownerStats['1'] && ownerStats['1'].totalIncome === 0) ownerStats['1'].totalIncome = 5987.00
-      if (ownerStats['2'] && ownerStats['2'].totalIncome === 0) ownerStats['2'].totalIncome = 4987.00
-      if (ownerStats['3'] && ownerStats['3'].totalIncome === 0) ownerStats['3'].totalIncome = 1027.00
-
       return ownerStats
     }
+    // END: BillsDrawerController.getOwnerStatsFromHabwa
     // END: BillsDrawerController.getOwnerStatsFromHabwa
 
     // START: BillsDrawerController.calculateSplit - Implements dynamic Option C splitting based on actual Habwa income
@@ -1738,7 +1790,7 @@ export class DrawerManager {
       }
 
       // Re-render dynamic owners checklist
-      this.renderOwnerCheckboxes()
+      this.loadOwnersFromDb()
 
       // Check all owners by default
       document.querySelectorAll('input[name="owner-role"]').forEach((c) => (c.checked = true))
@@ -1827,8 +1879,8 @@ export class DrawerManager {
     }
     // END: BillsDrawerController.close
 
-    // START: BillsDrawerController.saveEntry - Validates and saves deduction bill
-    saveEntry() {
+    // START: BillsDrawerController.saveEntry - Validates and saves deduction bill to Supabase
+    async saveEntry() {
       const categoryInput = document.getElementById('bill-category')
       const descInput = document.getElementById('bill-desc')
       const amountInput = document.getElementById('bill-amount')
@@ -1845,60 +1897,60 @@ export class DrawerManager {
       const ownerStats = this.getOwnerStatsFromHabwa()
       const allRoles = Object.keys(ownerStats)
 
-      // Collect selected role IDs
-      const checkedRoles = Array.from(document.querySelectorAll('input[name="owner-role"]:checked')).map((c) => c.value)
-      const isAllSelected = allRoles.length > 0 && allRoles.every((r) => checkedRoles.includes(r))
-
-      let ownerLabel = 'ALL'
-      if (!isAllSelected) {
-        if (checkedRoles.length === 0) {
-          ownerLabel = 'NONE'
-        } else if (checkedRoles.length === 1) {
-          ownerLabel = ownerStats[checkedRoles[0]]?.name || `Owner ${checkedRoles[0]}`
-        } else {
-          ownerLabel = checkedRoles.map((r) => ownerStats[r]?.name || `Owner ${r}`).join(' & ')
-        }
-      }
+      // Collect selected role IDs and their Supabase user UUIDs
+      const checkedBoxes = Array.from(document.querySelectorAll('input[name="owner-role"]:checked'))
+      const checkedRoles = checkedBoxes.map((c) => c.value)
+      const ownerIds = checkedBoxes.map((c) => c.getAttribute('data-owner-id')).filter(Boolean)
 
       // Execute Option C splitting
       const splitResult = this.calculateSplit(amount, category, checkedRoles)
-      const shares = splitResult.shares
       const detailedBreakdown = splitResult.detailedBreakdown
 
-      const tm = this.parent.tableManager
-      if (tm) {
-        if (this.editingId) {
-          const entry = tm.records.find((r) => r.id === this.editingId)
-          if (entry) {
-            entry.category = category
-            entry.desc = desc
-            entry.owner = ownerLabel
-            entry.roles = checkedRoles
-            entry.amount = amount
-            entry.shares = shares
-            entry.detailedBreakdown = detailedBreakdown
-            entry.date = date
-            entry.notes = notes
-          }
-        } else {
-          const newId = `bil-${Date.now()}`
-          const newEntry = {
-            id: newId,
-            category: category,
-            desc: desc,
-            owner: ownerLabel,
-            roles: checkedRoles,
-            amount: amount,
-            shares: shares,
-            detailedBreakdown: detailedBreakdown,
-            date: date,
-            timestamp: `${date} ${new Date().toLocaleTimeString('en-US', { hour12: false })} PHT`,
-            attendant: 'Admin Leo',
-            notes: notes,
-            status: 'Audited'
-          }
-          tm.records.unshift(newEntry)
+      // Embed owner_id into detailedBreakdown items
+      const enrichedBreakdown = detailedBreakdown.map((item) => {
+        const matchingBox = checkedBoxes.find((b) => b.value === item.role)
+        return {
+          ...item,
+          owner_id: matchingBox ? matchingBox.getAttribute('data-owner-id') : null
         }
+      })
+
+      const tm = this.parent.tableManager
+      if (this.editingId) {
+        const item = tm?.records?.find((r) => r.id === this.editingId)
+        const targetDbId = item?.dbId || this.editingId
+
+        await billsApi.update(targetDbId, {
+          category,
+          description: desc,
+          owner_ids: ownerIds,
+          total_amount: amount,
+          detailed_breakdown: enrichedBreakdown,
+          bill_date: date,
+          notes
+        })
+        this.parent.animations?.toast?.show('Bill deduction updated successfully!')
+      } else {
+        const nextNum = (tm?.records?.length || 0) + 1
+        const refCode = `bil-${nextNum.toString().padStart(4, '0')}`
+
+        await billsApi.create({
+          ref_code: refCode,
+          category,
+          description: desc,
+          owner_ids: ownerIds,
+          total_amount: amount,
+          detailed_breakdown: enrichedBreakdown,
+          bill_date: date,
+          notes,
+          attendant: 'Admin Leo',
+          status: 'Audited'
+        })
+        this.parent.animations?.toast?.show('Bill deduction logged to database!')
+      }
+
+      if (tm) {
+        await tm.loadFromSupabase()
         tm.render()
       }
 
@@ -1916,19 +1968,11 @@ export class DrawerManager {
     constructor(parent) {
       this.parent = parent
       this.editingId = null
-      this.categories = [
-        'Food Panda / Delivery',
-        'Emergency Cash Advance',
-        'Hardware Maintenance / Chute Spare',
-        'Medicine / Pharmacy',
-        'Personal Withdrawal',
-        'Grab / Transportation',
-        'Store Supplies / Restock'
-      ]
+      this.categories = []
       this.editingCategoryIndex = null
     }
 
-    init() {
+    async init() {
       const form = document.getElementById('requests-form') || document.getElementById('request-form')
       const closeBtn = document.getElementById('close-drawer')
       const cancelBtn = document.getElementById('cancel-btn')
@@ -1950,6 +1994,14 @@ export class DrawerManager {
       this.initAmountFormatter()
       this.initOwnerDropdown()
       this.initSignaturePad()
+
+      // Fetch dynamic categories from Supabase backend
+      await this.loadCategoriesFromDb()
+
+      // Realtime subscription for categories so newly added ones appear instantly across sessions
+      requestsApi.subscribeToCategories(() => {
+        this.loadCategoriesFromDb()
+      })
     }
 
     initDatepicker() {
@@ -2060,26 +2112,34 @@ export class DrawerManager {
       })
     }
 
-    getOwnersWithProfits() {
-      const baseOwners = [
-        { name: 'Kuya Jorgy (Unit 1 & 2)', short: 'Kuya Jorgy', profit: 5987.00, avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80' },
-        { name: 'Boss Roldan (Unit 3 & 4)', short: 'Boss Roldan', profit: 4987.00, avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80' },
-        { name: 'Ate Gina (Unit 5 & 6)', short: 'Ate Gina', profit: 1027.00, avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80' },
-        { name: 'Nanay Tessie (Unit 7 & 8)', short: 'Nanay Tessie', profit: 3450.00, avatar: 'https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?w=150&auto=format&fit=crop&q=80' },
-        { name: 'Uncle Dan (Unit 9 & 10)', short: 'Uncle Dan', profit: 2200.00, avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80' }
-      ]
-
-      // If Habwa or tables data exists, dynamically compute each owner's actual accumulated profit
-      const habwaRecords = this.parent.tableManager?.masterHabwaRecords || []
-      if (habwaRecords.length > 0) {
-        baseOwners.forEach((owner) => {
-          const matching = habwaRecords.filter((h) => (h.owner || '').includes(owner.short))
-          if (matching.length > 0) {
-            owner.profit = matching.reduce((sum, h) => sum + (parseFloat(h.amount) || 0), 0)
-          }
-        })
+    async loadOwnersFromDb() {
+      try {
+        const res = await usersApi.getOwners()
+        if (res.success && Array.isArray(res.data)) {
+          const poolPromises = res.data.map(async (u) => {
+            const poolRes = await requestsApi.calculateOwnerPool(u.id)
+            return {
+              id: u.id,
+              name: `${u.full_name}${u.units ? ` (${u.units})` : ''}`,
+              short: u.full_name,
+              profit: poolRes.netBalance || 0,
+              avatar: u.avatar_url || ''
+            }
+          })
+          this.ownersList = await Promise.all(poolPromises)
+          this.renderOwnersList()
+        }
+      } catch {
+        // Fallback gracefully
       }
-      return baseOwners
+    }
+
+    // START: RequestsDrawerController.getOwnersWithProfits
+    getOwnersWithProfits() {
+      if (this.ownersList && Array.isArray(this.ownersList)) {
+        return this.ownersList
+      }
+      return []
     }
 
     selectOwner(owner) {
@@ -2091,7 +2151,10 @@ export class DrawerManager {
       if (ownerInput) {
         ownerInput.value = owner.name
         ownerInput.setAttribute('data-profit', owner.profit)
-        ownerInput.setAttribute('data-avatar', owner.avatar)
+        ownerInput.setAttribute('data-avatar', owner.avatar || '')
+        if (owner.id) {
+          ownerInput.setAttribute('data-owner-id', owner.id)
+        }
       }
       if (hiddenInput) {
         hiddenInput.value = owner.name
@@ -2125,32 +2188,126 @@ export class DrawerManager {
       }
     }
 
-    initOwnerDropdown() {
+    async resolveCurrentLoggedUser() {
+      const sessionRole = storageManager.session.getRole()
+      const sessionUid = storageManager.session.getUserId()
+      const sessionName = storageManager.session.getUser()
+      const isOwnerRole = (sessionRole !== null && sessionRole !== undefined && String(sessionRole) !== '0') ||
+        window.location.pathname.includes('/users/')
+
+      if (!isOwnerRole) return null
+
+      // First check if current user is already in ownersList
+      if (Array.isArray(this.ownersList) && this.ownersList.length > 0) {
+        const found = this.ownersList.find(
+          (o) => o.id === sessionUid ||
+                 (sessionName && (o.name.includes(sessionName) || o.short.includes(sessionName)))
+        )
+        if (found) return found
+      }
+
+      // If not yet loaded or not found, fetch owner details and pool dynamically
+      if (sessionUid) {
+        try {
+          const poolRes = await requestsApi.calculateOwnerPool(sessionUid)
+          const sessionUnits = storageManager.session.get('units') || ''
+          const ownerObj = {
+            id: sessionUid,
+            name: `${sessionName || 'Owner'}${sessionUnits ? ` (${sessionUnits})` : ''}`,
+            short: sessionName || 'Owner',
+            profit: poolRes.netBalance || 0,
+            avatar: storageManager.session.get('avatar') || ''
+          }
+          return ownerObj
+        } catch {
+          // fallback
+        }
+      }
+      return null
+    }
+
+    async initOwnerDropdown() {
       const ownerInput = document.getElementById('req-owner-btn')
       const ownerMenu = document.getElementById('req-owner-menu')
-      const ownerList = document.getElementById('req-owner-list')
-      const hiddenInput = document.getElementById('req-owner')
-      if (!ownerInput || !ownerMenu || !ownerList) return
+      if (!ownerInput || !ownerMenu) return
 
-      const isOwnerPortalSession = Boolean(window.CURRENT_LOGGED_IN_OWNER)
-      if (isOwnerPortalSession) {
-        const loggedOwner = window.CURRENT_LOGGED_IN_OWNER || this.getOwnersWithProfits()[0]
-        this.selectOwner(loggedOwner)
+      const sessionRole = storageManager.session.getRole()
+      const isOwnerRole = (sessionRole !== null && sessionRole !== undefined && String(sessionRole) !== '0') ||
+        window.location.pathname.includes('/users/')
+
+      if (isOwnerRole) {
+        // Owner role (role_id 1+ or /users/ portal): disabled-state in default & auto-select logged user
         ownerInput.readOnly = true
         ownerInput.disabled = true
-        ownerInput.classList.add('cursor-not-allowed', 'bg-slate-100', 'dark:bg-slate-800/50', 'text-slate-500', 'pointer-events-none')
+        ownerInput.classList.add('cursor-not-allowed', 'bg-slate-100', 'dark:bg-slate-800/60', 'text-slate-500', 'dark:text-slate-400', 'pointer-events-none')
         ownerMenu.classList.add('hidden')
+
+        // Resolve logged-in owner and fetch live profit pool
+        await this.loadOwnersFromDb()
+        const loggedUser = await this.resolveCurrentLoggedUser()
+        if (loggedUser) {
+          this.selectOwner(loggedUser)
+        }
         return
       }
 
-      const renderOwners = (filter = '') => {
-        const owners = this.getOwnersWithProfits()
-        const filtered = owners.filter((o) => !filter || o.name.toLowerCase().includes(filter.toLowerCase()))
-        ownerList.innerHTML = filtered.map((o) => `
+      // Admin role (role_id === 0): Allow searching and selecting any owner
+      this.renderOwnersList()
+
+      ownerInput.addEventListener('focus', () => {
+        ownerInput.select()
+        this.renderOwnersList('')
+        ownerMenu.classList.remove('hidden')
+      })
+      ownerInput.addEventListener('input', (e) => {
+        this.renderOwnersList(e.target.value)
+        ownerMenu.classList.remove('hidden')
+      })
+      document.addEventListener('click', (e) => {
+        if (!ownerInput.contains(e.target) && !ownerMenu.contains(e.target)) {
+          ownerMenu.classList.add('hidden')
+        }
+      })
+
+      this.loadOwnersFromDb()
+    }
+
+    renderOwnersList(filter = '') {
+      const ownerList = document.getElementById('req-owner-list')
+      if (!ownerList) return
+
+      const owners = this.getOwnersWithProfits()
+      const filtered = owners.filter((o) => !filter || o.name.toLowerCase().includes(filter.toLowerCase()))
+
+      if (filtered.length === 0) {
+        ownerList.innerHTML = `
+          <div class="p-3 text-center text-xs text-slate-400">
+            ${owners.length === 0 ? 'No registered unit owners found in database.' : 'No matching unit owners found.'}
+          </div>
+        `
+        return
+      }
+
+      const avatarColors = [
+        'bg-blue-100 text-blue-600 dark:bg-blue-900/60 dark:text-blue-300',
+        'bg-amber-100 text-amber-600 dark:bg-amber-900/60 dark:text-amber-300',
+        'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/60 dark:text-emerald-300',
+        'bg-purple-100 text-purple-600 dark:bg-purple-900/60 dark:text-purple-300',
+        'bg-rose-100 text-rose-600 dark:bg-rose-900/60 dark:text-rose-300'
+      ]
+
+      ownerList.innerHTML = filtered.map((o, idx) => {
+        const initial = (o.short || o.name || 'U').charAt(0).toUpperCase()
+        const colorClass = avatarColors[idx % avatarColors.length]
+        const avatarHtml = o.avatar
+          ? `<img class="w-7 h-7 rounded-full object-cover shrink-0" src="${o.avatar}" alt="${o.name}">`
+          : `<div class="w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${colorClass}">${initial}</div>`
+
+        return `
           <li>
-            <button type="button" data-select-owner="${o.name}" data-profit="${o.profit}" data-avatar="${o.avatar}" class="w-full flex items-center justify-between p-2 rounded-xl hover:bg-blue-50 dark:hover:bg-slate-700 transition text-left cursor-pointer group">
+            <button type="button" data-select-owner="${o.name}" data-owner-id="${o.id}" data-profit="${o.profit}" data-avatar="${o.avatar}" class="w-full flex items-center justify-between p-2 rounded-xl hover:bg-blue-50 dark:hover:bg-slate-700 transition text-left cursor-pointer group">
               <div class="flex items-center space-x-2.5">
-                <img class="w-7 h-7 rounded-full object-cover shrink-0" src="${o.avatar}" alt="${o.name}">
+                ${avatarHtml}
                 <div>
                   <div class="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400">${o.name}</div>
                   <div class="text-[10px] text-slate-400">Profit Pool: <span class="font-money font-semibold text-emerald-600 dark:text-emerald-400">₱${Math.ceil(Number(o.profit) || 0).toLocaleString('en-PH', { maximumFractionDigits: 0 })}</span></div>
@@ -2159,39 +2316,35 @@ export class DrawerManager {
               <svg class="w-4 h-4 text-slate-400 group-hover:text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
             </button>
           </li>
-        `).join('')
+        `
+      }).join('')
 
-        ownerList.querySelectorAll('[data-select-owner]').forEach((btn) => {
-          btn.addEventListener('click', () => {
-            const name = btn.getAttribute('data-select-owner')
-            const profit = parseFloat(btn.getAttribute('data-profit')) || 0
-            const avatar = btn.getAttribute('data-avatar')
-            this.selectOwner({ name, profit, avatar })
-          })
+      ownerList.querySelectorAll('[data-select-owner]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const name = btn.getAttribute('data-select-owner')
+          const id = btn.getAttribute('data-owner-id')
+          const profit = parseFloat(btn.getAttribute('data-profit')) || 0
+          const avatar = btn.getAttribute('data-avatar')
+          this.selectOwner({ id, name, profit, avatar })
         })
-      }
-
-      renderOwners()
-
-      ownerInput.addEventListener('focus', () => {
-        ownerInput.select()
-        renderOwners('')
-        ownerMenu.classList.remove('hidden')
-      })
-      ownerInput.addEventListener('input', (e) => {
-        renderOwners(e.target.value)
-        ownerMenu.classList.remove('hidden')
-      })
-      document.addEventListener('click', (e) => {
-        if (!ownerInput.contains(e.target) && !ownerMenu.contains(e.target)) {
-          ownerMenu.classList.add('hidden')
-        }
       })
     }
 
     initCategoryDropdown() {
       const catInput = document.getElementById('req-cat-btn')
       const addCatBtn = document.getElementById('req-cat-add-btn') || document.getElementById('add-req-cat-btn')
+      
+      const sessionRole = storageManager.session.getRole()
+      const isOwnerRole = (sessionRole !== null && sessionRole !== undefined && String(sessionRole) !== '0') ||
+        window.location.pathname.includes('/users/')
+
+      if (isOwnerRole && addCatBtn) {
+        addCatBtn.disabled = true
+        addCatBtn.setAttribute('title', 'Only administrators can create custom categories')
+        addCatBtn.classList.add('cursor-not-allowed', 'opacity-40', 'pointer-events-none', 'no-underline')
+        addCatBtn.classList.remove('hover:underline', 'cursor-pointer')
+      }
+
       this.renderCategoryList()
 
       catInput?.addEventListener('focus', () => {
@@ -2214,6 +2367,7 @@ export class DrawerManager {
       })
 
       addCatBtn?.addEventListener('click', () => {
+        if (isOwnerRole) return
         const currentVal = catInput?.value?.trim() || `Category #${this.categories.length + 1}`
         this.addNewCategory(currentVal)
       })
@@ -2230,6 +2384,10 @@ export class DrawerManager {
     renderCategoryList(filter = '') {
       const listEl = document.getElementById('req-cat-list')
       if (!listEl) return
+
+      const sessionRole = storageManager.session.getRole()
+      const isOwnerRole = (sessionRole !== null && sessionRole !== undefined && String(sessionRole) !== '0') ||
+        window.location.pathname.includes('/users/')
 
       const filtered = this.categories.filter((c) =>
         !filter || c.toLowerCase().includes(filter.toLowerCase())
@@ -2271,11 +2429,13 @@ export class DrawerManager {
                 </div>
                 <span class="truncate text-xs font-semibold text-slate-800 dark:text-slate-200">${cat}</span>
               </div>
+              ${isOwnerRole ? '' : `
               <button id="edit-req-cat-${actualIdx}" type="button" data-edit-req-cat="${actualIdx}" title="Edit category" class="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-200 dark:hover:bg-slate-600/60 rounded transition cursor-pointer">
                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                 </svg>
               </button>
+              `}
             </li>
           `
         })
@@ -2297,13 +2457,21 @@ export class DrawerManager {
       })
 
       listEl.querySelectorAll('[data-save-req-cat]').forEach((btn) => {
-        btn.addEventListener('click', (e) => {
+        btn.addEventListener('click', async (e) => {
           e.stopPropagation()
           const idx = parseInt(btn.getAttribute('data-save-req-cat'), 10)
           const input = document.getElementById('edit-req-cat-field')
           const val = input ? input.value.trim() : ''
-          if (val) {
+          const oldName = this.categories[idx]
+          if (val && oldName && val !== oldName) {
             this.categories[idx] = val
+            this.editingCategoryIndex = null
+            this.renderCategoryList('')
+            try {
+              await requestsApi.updateCategory(oldName, val)
+              this.parent.animations?.toast?.show(`Category updated to "${val}"`)
+            } catch {}
+          } else {
             this.editingCategoryIndex = null
             this.renderCategoryList('')
           }
@@ -2319,6 +2487,41 @@ export class DrawerManager {
       })
     }
 
+    async loadCategoriesFromDb() {
+      try {
+        const res = await requestsApi.getCategories()
+        if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+          this.categories = res.data.map((c) => c.name)
+        } else if (this.categories.length === 0) {
+          this.categories = [
+            'Hatag ni Mama',
+            'Food Panda / Delivery',
+            'Emergency Cash Advance',
+            'Hardware Maintenance / Chute Spare',
+            'Medicine / Pharmacy',
+            'Personal Withdrawal',
+            'Grab / Transportation',
+            'Store Supplies / Restock'
+          ]
+        }
+        this.renderCategoryList('')
+      } catch {
+        if (this.categories.length === 0) {
+          this.categories = [
+            'Hatag ni Mama',
+            'Food Panda / Delivery',
+            'Emergency Cash Advance',
+            'Hardware Maintenance / Chute Spare',
+            'Medicine / Pharmacy',
+            'Personal Withdrawal',
+            'Grab / Transportation',
+            'Store Supplies / Restock'
+          ]
+        }
+        this.renderCategoryList('')
+      }
+    }
+
     selectCategory(cat) {
       const catInput = document.getElementById('req-cat-btn')
       const hiddenInput = document.getElementById('req-category')
@@ -2328,13 +2531,22 @@ export class DrawerManager {
       this.editingCategoryIndex = null
     }
 
-    addNewCategory(name) {
+    async addNewCategory(name) {
       if (!name) return
-      if (!this.categories.includes(name)) {
-        this.categories.push(name)
+      const trimmed = name.trim()
+      if (!trimmed) return
+
+      if (!this.categories.includes(trimmed)) {
+        this.categories.push(trimmed)
       }
-      this.selectCategory(name)
+      this.selectCategory(trimmed)
       this.renderCategoryList('')
+
+      // Push to Supabase backend database
+      try {
+        const adminId = storageManager.session.getUserId()
+        await requestsApi.addCategory(trimmed, adminId)
+      } catch {}
 
       // 1. Temporarily slide close the drawer
       this.close()
@@ -2342,7 +2554,7 @@ export class DrawerManager {
       // 2. Show indicator toast on top for around 3 seconds
       const toastManager = this.parent.animations?.toast
       if (toastManager) {
-        toastManager.show(`Category "${name}" added successfully!`, 3000, () => {
+        toastManager.show(`Category "${trimmed}" saved to database!`, 3000, () => {
           // 3. Go back and reopen the drawer
           this.show()
 
@@ -2354,7 +2566,7 @@ export class DrawerManager {
           setTimeout(() => {
             const listEl = document.getElementById('req-cat-list')
             if (!listEl) return
-            const target = listEl.querySelector(`[data-cat-item="${name}"]`) || listEl.lastElementChild
+            const target = listEl.querySelector(`[data-cat-item="${trimmed}"]`) || listEl.lastElementChild
             if (target) {
               target.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
               target.classList.add('bg-blue-100', 'dark:bg-blue-950', 'ring-2', 'ring-blue-500', 'transition-all', 'duration-300')
@@ -2388,6 +2600,7 @@ export class DrawerManager {
           ctx.lineJoin = 'round'
         }
       }
+      this.resizeSignaturePad = resize
       resize()
 
       const getPos = (e) => {
@@ -2505,7 +2718,7 @@ export class DrawerManager {
       img.src = dataUrl
     }
 
-    openCreate() {
+    async openCreate() {
       this.editingId = null
       const title = document.getElementById('drawer-title')
       const form = document.getElementById('requests-form') || document.getElementById('request-form')
@@ -2516,9 +2729,31 @@ export class DrawerManager {
       if (title) title.textContent = 'Log Custom Owner Request'
       if (form) form.reset()
 
-      const owners = this.getOwnersWithProfits()
-      const defaultOwner = owners[0]
-      this.selectOwner(defaultOwner)
+      await this.loadOwnersFromDb()
+
+      const sessionRole = storageManager.session.getRole()
+      const isOwnerRole = (sessionRole !== null && sessionRole !== undefined && String(sessionRole) !== '0') ||
+        window.location.pathname.includes('/users/')
+
+      if (isOwnerRole) {
+        const loggedUser = await this.resolveCurrentLoggedUser()
+        if (loggedUser) {
+          this.selectOwner(loggedUser)
+        }
+      } else {
+        const owners = this.getOwnersWithProfits()
+        const defaultOwner = owners.length > 0 ? owners[0] : null
+        if (defaultOwner) {
+          this.selectOwner(defaultOwner)
+        } else {
+          const ownerInput = document.getElementById('req-owner-btn')
+          const hiddenInput = document.getElementById('req-owner')
+          const poolVal = document.getElementById('req-pool-val')
+          if (ownerInput) ownerInput.value = ''
+          if (hiddenInput) hiddenInput.value = ''
+          if (poolVal) poolVal.textContent = '₱0'
+        }
+      }
       this.clearSignature()
 
       if (amtInput) amtInput.value = ''
@@ -2546,11 +2781,12 @@ export class DrawerManager {
       if (title) title.textContent = `Edit Request #${entry.id}`
 
       const owners = this.getOwnersWithProfits()
-      const currentOwner = owners.find((o) => o.name === entry.owner || o.short === entry.ownerShort) || {
+      const currentOwner = owners.find((o) => o.name === entry.owner || o.short === entry.ownerShort || o.id === entry.owner_id) || {
+        id: entry.owner_id,
         name: entry.owner,
         short: entry.ownerShort || entry.owner,
-        profit: entry.profitLeft || 5000.00,
-        avatar: entry.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'
+        profit: entry.profitLeft || 0,
+        avatar: entry.avatar || ''
       }
       this.selectOwner(currentOwner)
 
@@ -2574,9 +2810,18 @@ export class DrawerManager {
       const drawer = document.getElementById('drawer-request')
       if (!drawer) return
 
-      drawer.classList.remove('translate-x-full')
-      drawer.classList.add('translate-x-0')
+      // On mobile: slides up from bottom (removes translate-y-full)
+      // On desktop (sm+): slides from right (removes sm:translate-x-full)
+      drawer.classList.remove('translate-y-full', 'sm:translate-x-full', 'translate-x-full')
+      drawer.classList.add('translate-y-0', 'sm:translate-x-0')
       this.parent.lockBodyScroll()
+
+      // Ensure signature canvas coordinates are perfectly synchronized once drawer is displayed
+      setTimeout(() => {
+        if (typeof this.resizeSignaturePad === 'function') {
+          this.resizeSignaturePad()
+        }
+      }, 150)
 
       let backdrop = document.getElementById('drawer-backdrop')
       if (!backdrop) {
@@ -2591,14 +2836,14 @@ export class DrawerManager {
     close() {
       const drawer = document.getElementById('drawer-request')
       if (drawer) {
-        drawer.classList.add('translate-x-full')
-        drawer.classList.remove('translate-x-0')
+        drawer.classList.add('translate-y-full', 'sm:translate-x-full')
+        drawer.classList.remove('translate-y-0', 'sm:translate-x-0')
       }
       document.getElementById('drawer-backdrop')?.remove()
       this.parent.unlockBodyScroll()
     }
 
-    saveEntry(e) {
+    async saveEntry(e) {
       e.preventDefault()
 
       const ownerInput = document.getElementById('req-owner-btn')
@@ -2609,7 +2854,7 @@ export class DrawerManager {
       const statusSelect = document.getElementById('req-status')
       const sigInput = document.getElementById('req-signature')
 
-      const owner = ownerInput?.value || 'Kuya Jorgy (Unit 1 & 2)'
+      const ownerName = ownerInput?.value || 'Unassigned Owner'
       const category = catInput?.value || 'Food Panda / Delivery'
       const rawAmount = (amtInput?.value || '').replace(/,/g, '')
       const amount = parseFloat(rawAmount) || 0
@@ -2627,49 +2872,102 @@ export class DrawerManager {
         return
       }
 
-      const tm = this.parent.tableManager
-      if (tm) {
-        if (this.editingId) {
-          const entry = tm.records.find((r) => r.id === this.editingId)
-          if (entry) {
-            entry.owner = owner
-            entry.ownerShort = owner.split('(')[0].trim()
-            entry.category = category
-            entry.amount = amount
-            entry.date = date
-            entry.note = note
-            entry.status = status
-            entry.signature = signature
-            entry.signatureName = signature ? owner.split('(')[0].trim() : ''
-            entry.hasSignature = Boolean(signature)
-          }
-          tm.render()
-        } else {
-          const newId = `REQ-${Math.floor(10000 + Math.random() * 90000)}`
-          const newEntry = {
-            id: newId,
-            owner: owner,
-            ownerShort: owner.split('(')[0].trim(),
-            roleId: '1',
-            avatar: ownerInput?.getAttribute('data-avatar') || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-            profitLeft: parseFloat(ownerInput?.getAttribute('data-profit')) || 5000.00,
-            category: category,
-            amount: amount,
-            status: status,
-            date: date,
-            timestamp: `${date} ${new Date().toLocaleTimeString('en-US', { hour12: false })} PHT`,
-            submittedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-            source: 'Admin Portal',
-            note: note,
-            receiptPhoto: null,
-            hasSignature: Boolean(signature),
-            signature: signature,
-            signatureName: signature ? owner.split('(')[0].trim() : '',
-            policy: 'Standard Owner Personal Expense Request',
-            policyCheck: 'Within limit'
-          }
-          tm.records.unshift(newEntry)
+      // Match selected owner to their Supabase user ID
+      let ownerId = ownerInput?.getAttribute('data-owner-id') || null
+      let profitVal = parseFloat(ownerInput?.getAttribute('data-profit')) || 0
+
+      if (!ownerId && Array.isArray(this.ownersList) && this.ownersList.length > 0) {
+        const found = this.ownersList.find(
+          (o) =>
+            o.name === ownerName ||
+            o.short === ownerName ||
+            ownerName.toLowerCase().includes(o.short?.toLowerCase())
+        )
+        if (found) {
+          ownerId = found.id
+          profitVal = found.profit
         }
+      }
+
+      // If still not matched, check session storage directly
+      if (!ownerId) {
+        ownerId = storageManager.session.getUserId()
+      }
+
+      if (!ownerId) {
+        this.parent.animations?.toast?.show('Error: Please select a valid unit owner from the list')
+        return
+      }
+
+      const tm = this.parent.tableManager
+      if (this.editingId) {
+        const item = tm?.records?.find((r) => r.id === this.editingId)
+        const targetDbId = item?.dbId || this.editingId
+
+        const updateRes = await requestsApi.update(targetDbId, {
+          category,
+          amount,
+          status,
+          request_date: date,
+          note,
+          signature_url: signature,
+          ...(ownerId ? { owner_id: ownerId } : {})
+        })
+
+        if (!updateRes.success) {
+          this.parent.animations?.toast?.show(`Update failed: ${updateRes.error || 'Server error'}`)
+          return
+        }
+
+        this.parent.animations?.toast?.show('Request updated successfully!')
+      } else {
+        // Dynamic count: if only 1 data in DB, next is 1. If 2, next is 2. If 0, next is 0 (or 1st entry).
+        const existingCount = tm?.records?.length || 0
+        const seqNumber = existingCount + 1
+        const refCode = `REQ-${(10000 + seqNumber).toString()}`
+
+        const createRes = await requestsApi.create({
+          ref_code: refCode,
+          owner_id: ownerId,
+          category,
+          amount,
+          status,
+          request_date: date,
+          note,
+          signature_url: signature,
+          pool_value: profitVal,
+          policy_label: 'Standard Owner Allowance',
+          policy_check: 'Within limit'
+        })
+
+        if (!createRes.success) {
+          this.parent.animations?.toast?.show(`Failed to log request: ${createRes.error || 'Database error'}`)
+          return
+        }
+
+        this.parent.animations?.toast?.show('Request logged to database!')
+
+        // Proactively notify Admin in realtime via notifications table
+        try {
+          const allUsers = await usersApi.getAll()
+          const admin = allUsers.data?.find((u) => u.role_id === 0)
+          if (admin) {
+            await notificationsApi.create({
+              user_id: admin.id,
+              type: 'request',
+              title: `New Request: ${category}`,
+              message: `${ownerName} submitted a deduction request for ₱${amount.toLocaleString('en-PH', { minimumFractionDigits: 2 })}.`,
+              ref_id: createRes.data?.id,
+              ref_table: 'requests'
+            })
+          }
+        } catch {
+          // Notification push non-blocking
+        }
+      }
+
+      if (tm) {
+        await tm.loadFromSupabase()
         tm.render()
       }
 
@@ -2761,9 +3059,6 @@ export class DrawerManager {
           titleEl.textContent = `#${entry.id} - ${entry.desc}`
         }
       }
-      if (metaEl) {
-        metaEl.textContent = `${entry.date} • Logged by ${entry.attendant || 'Admin'}`
-      }
       if (catEl) {
         catEl.textContent = entry.category || 'General Bill'
       }
@@ -2835,8 +3130,35 @@ export class DrawerManager {
         dateEl.innerHTML = `<span class="font-semibold text-slate-900 dark:text-white">${formattedDate}</span><span class="text-xs text-slate-400 font-mono mt-0.5 block">(${formattedTime})</span>`
       }
 
+      const getAdminName = () => {
+        if (this.adminFullName) return this.adminFullName
+        const cached = sessionStorage.getItem('jn_admin_fullname')
+        if (cached) {
+          this.adminFullName = cached
+          return cached
+        }
+        usersApi.getAll().then((res) => {
+          if (res.success && Array.isArray(res.data)) {
+            const admin = res.data.find((u) => u.role_id === 0)
+            if (admin?.full_name) {
+              this.adminFullName = admin.full_name
+              sessionStorage.setItem('jn_admin_fullname', admin.full_name)
+              if (attendantEl) attendantEl.textContent = admin.full_name
+              if (metaEl) metaEl.textContent = `${entry.date} • Logged by ${admin.full_name}`
+            }
+          }
+        }).catch(() => {})
+        return 'Admin Jorgie'
+      }
+
+      const activeAdminName = getAdminName()
+
+      if (metaEl) {
+        metaEl.textContent = `${entry.date} • Logged by ${activeAdminName}`
+      }
+
       if (attendantEl) {
-        attendantEl.textContent = entry.attendant || 'Admin Leo'
+        attendantEl.textContent = activeAdminName
       }
 
       // Populate breakdown in Viewer Drawer with Owner Full Names and Deducted amounts
@@ -3279,8 +3601,8 @@ export class DrawerManager {
       this.parent = parent
       this.editingId = null
       this.categories = [
-        'Standard Pisonet',
         'VIP Gaming Rig',
+        'Standard Pisonet',
         'Dual Coin Slot',
         'High-Yield Terminal',
         'Coin Slot Arcade'
@@ -3299,7 +3621,7 @@ export class DrawerManager {
       addBtn?.addEventListener('click', () => this.openCreate())
       closeViewBtn?.addEventListener('click', () => this.closeView())
 
-      // Auto trim username from Name input during typing if creating
+      // Auto trim username from Name input during typing if creating (plain title / name)
       const nameInput = document.getElementById('owner-name')
       const userInput = document.getElementById('owner-user')
       nameInput?.addEventListener('input', (e) => {
@@ -3307,6 +3629,9 @@ export class DrawerManager {
           userInput.value = userAccountManager.generateUsername(e.target.value)
         }
       })
+
+      // Subchild phone formatter: 09## -> 9###, hyphen formatting, capped at 11 raw digits
+      this.initPhoneFormatter()
 
       // Password visibility toggle in Owner drawer
       const togglePassBtn = document.getElementById('toggle-owner-pass')
@@ -3356,6 +3681,42 @@ export class DrawerManager {
       })
     }
 
+    // Subchild phone formatter for owner-phone: +63 prefix static, auto convert 09## -> 9###, hyphen formatting
+    initPhoneFormatter() {
+      const phoneInput = document.getElementById('owner-phone')
+      if (!phoneInput) return
+
+      phoneInput.addEventListener('input', (e) => {
+        let val = e.target.value.replace(/\D/g, '') // extract digits only
+
+        // If user typed 09##..., convert to 9###...
+        if (val.startsWith('09')) {
+          val = val.slice(1)
+        } else if (val.startsWith('0')) {
+          val = val.slice(1)
+        }
+
+        // Limit to max 10 digits (9XXXXXXXXX) since +63 is static
+        if (val.length > 10) {
+          val = val.slice(0, 10)
+        }
+
+        // Auto format with hyphens: 9XX-XXX-XXXX
+        let formatted = ''
+        if (val.length > 0) {
+          formatted = val.substring(0, 3)
+        }
+        if (val.length >= 4) {
+          formatted += '-' + val.substring(3, 6)
+        }
+        if (val.length >= 7) {
+          formatted += '-' + val.substring(6, 10)
+        }
+
+        e.target.value = formatted
+      })
+    }
+
     setCategory(val) {
       const catInput = document.getElementById('owner-category')
       const catLabel = document.getElementById('owner-category-label')
@@ -3389,6 +3750,9 @@ export class DrawerManager {
       const passInput = document.getElementById('owner-pass')
       if (passInput) passInput.value = userAccountManager.defaultPassword
 
+      const unitsInput = document.getElementById('owner-units')
+      if (unitsInput) unitsInput.value = '1'
+
       const dateInput = document.getElementById('owner-date')
       if (dateInput) dateInput.value = new Date().toISOString().slice(0, 10)
 
@@ -3413,8 +3777,19 @@ export class DrawerManager {
       if (nameInput) nameInput.value = entry.name || ''
       if (userInput) userInput.value = entry.username || ''
       if (passInput) passInput.value = entry.password || userAccountManager.defaultPassword
-      if (phoneInput) phoneInput.value = entry.phone || ''
-      if (unitsInput) unitsInput.value = entry.units || ''
+      
+      // Clean phone prefix if already present for editing input
+      if (phoneInput) {
+        let p = (entry.phone || '').replace(/^\+63\s*/, '')
+        phoneInput.value = p
+      }
+
+      // Extract number of units
+      if (unitsInput) {
+        const numMatch = String(entry.units || '1').match(/\d+/)
+        unitsInput.value = numMatch ? numMatch[0] : '1'
+      }
+
       if (dateInput) dateInput.value = entry.dateCreated || new Date().toISOString().slice(0, 10)
 
       this.setCategory(entry.category || this.categories[0])
@@ -3443,11 +3818,13 @@ export class DrawerManager {
       if (nameEl) nameEl.textContent = entry.name || 'Owner Profile'
       if (userEl) userEl.textContent = `@${entry.username || 'user'}`
       if (idEl) idEl.textContent = entry.id || 'USR-1'
-      if (phoneEl) phoneEl.textContent = entry.phone || '0917-000-0000'
-      if (catEl) catEl.textContent = entry.category || 'Standard Pisonet'
-      if (unitsEl) unitsEl.textContent = entry.units || 'Unassigned Units'
-      if (dateEl) dateEl.textContent = entry.dateCreated || '2026-10-31'
-      if (passEl) passEl.textContent = entry.password ? `•••••••• (${entry.password === userAccountManager.defaultPassword ? 'Default' : 'Modified'})` : 'Default (@JorgyPisonets#123)'
+      
+      const phoneDisplay = entry.phone ? (entry.phone.startsWith('+63') ? entry.phone : `+63 ${entry.phone}`) : '+63 917-000-0000'
+      if (phoneEl) phoneEl.textContent = phoneDisplay
+
+      if (catEl) catEl.textContent = entry.category || 'VIP Gaming Rig'
+      if (unitsEl) unitsEl.textContent = entry.units || '1 Unit'
+      if (dateEl) dateEl.textContent = entry.dateCreated || new Date().toISOString().slice(0, 10)
 
       if (statusBadge) {
         const curStatus = entry.status || 'Pending'
@@ -3475,10 +3852,13 @@ export class DrawerManager {
           approveBtn.disabled = false
           approveBtn.className = 'w-full py-2.5 px-4 text-xs sm:text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 rounded-xl shadow-md shadow-emerald-600/30 transition flex items-center justify-center space-x-2 cursor-pointer'
           if (approveLabel) approveLabel.textContent = 'Approve'
-          approveBtn.onclick = () => {
+          approveBtn.onclick = async () => {
             entry.status = 'Approved'
-            userAccountManager.updateUser(entry.id, { status: 'Approved' })
-            this.parent.tableManager?.render()
+            await userAccountManager.updateUser(entry.id, { status: 'Approved' })
+            if (this.parent.tableManager) {
+              await this.parent.tableManager.loadFromSupabase()
+              this.parent.tableManager.render()
+            }
             this.parent.tableManager?.animations?.toast?.show(`Owner "${entry.name}" approved successfully!`)
             this.openView(entry)
           }
@@ -3539,22 +3919,28 @@ export class DrawerManager {
       this.parent.unlockBodyScroll()
     }
 
-    saveEntry(e) {
+    async saveEntry(e) {
       e.preventDefault()
       const name = document.getElementById('owner-name')?.value.trim() || 'New Owner'
       const username = document.getElementById('owner-user')?.value.trim() || userAccountManager.generateUsername(name)
       const password = document.getElementById('owner-pass')?.value.trim() || userAccountManager.defaultPassword
-      const phone = document.getElementById('owner-phone')?.value.trim() || '0917-000-0000'
-      const category = document.getElementById('owner-category')?.value || 'Standard Pisonet'
-      const units = document.getElementById('owner-units')?.value.trim() || 'Unassigned Units'
+      
+      const rawPhone = document.getElementById('owner-phone')?.value.trim() || ''
+      const phone = rawPhone ? `+63 ${rawPhone.replace(/^\+63\s*/, '')}` : '+63 917-000-0000'
+
+      const category = document.getElementById('owner-category')?.value || 'VIP Gaming Rig'
+      
+      const unitNum = parseInt(document.getElementById('owner-units')?.value, 10) || 1
+      const units = unitNum === 1 ? '1 Unit' : `${unitNum} Units`
+
       const dateCreated = document.getElementById('owner-date')?.value || new Date().toISOString().slice(0, 10)
-      const status = document.getElementById('owner-status')?.value || 'Pending'
+      const status = document.getElementById('owner-status')?.value || 'Approved'
 
       const tableManager = this.parent.tableManager
 
       if (this.editingId) {
         // Update existing owner
-        const updated = userAccountManager.updateUser(this.editingId, {
+        await userAccountManager.updateUser(this.editingId, {
           name,
           username,
           password,
@@ -3566,17 +3952,14 @@ export class DrawerManager {
         })
 
         if (tableManager) {
-          const idx = tableManager.records.findIndex((r) => r.id === this.editingId)
-          if (idx !== -1 && updated) {
-            tableManager.records[idx] = { ...updated }
-          }
+          await tableManager.loadFromSupabase()
           tableManager.render()
         }
 
         this.parent.animations?.toast?.show(`Owner "${name}" updated successfully!`)
       } else {
         // Create new owner
-        const newUser = userAccountManager.createUser({
+        await userAccountManager.createUser({
           name,
           username,
           password,
@@ -3588,7 +3971,7 @@ export class DrawerManager {
         })
 
         if (tableManager) {
-          tableManager.records.unshift(newUser)
+          await tableManager.loadFromSupabase()
           tableManager.render()
         }
 

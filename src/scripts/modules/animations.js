@@ -5,6 +5,7 @@ export class AnimationsManager {
     this.refreshAnimator = new this.AutoExpandRefresh(this)
     this.skeleton = new this.SkeletonManager(this)
     this.toast = new this.ToastManager(this)
+    this.shake = new this.InputShakeManager(this)
   }
 
   // START: AnimationsManager.init - Bootstraps all registered animation subchildren
@@ -260,6 +261,12 @@ export class AnimationsManager {
         })}${suffix}`
       }
 
+      // If target is 0 and current element already has content, format immediately
+      if (target === 0) {
+        element.textContent = formatVal(0)
+        return
+      }
+
       const step = (timestamp) => {
         if (!startTimestamp) startTimestamp = timestamp
         const progress = Math.min((timestamp - startTimestamp) / duration, 1)
@@ -472,5 +479,82 @@ export class AnimationsManager {
     // END: ToastManager.showUndo
   }
   // END: ToastManager - Subchild ready
+
+  // START: InputShakeManager - OOP subchild for smooth sudden-shake error animations on inputs and wrappers
+  InputShakeManager = class {
+    constructor(parent) {
+      this.parent = parent
+    }
+
+    /**
+     * Triggers a smooth sudden-shake animation on an element, changes borders and labels to rose,
+     * and automatically reverts back cleanly when animation finishes or user starts typing.
+     * @param {HTMLElement|string} target - Element or selector to shake (e.g. #pass-wrapper or #user-field)
+     * @param {HTMLElement|string|null} labelTarget - Label element or selector (e.g. for="pass-field" or for="user-field")
+     * @param {number} duration - Duration in milliseconds (default 600ms)
+     */
+    shake(target, labelTarget = null, duration = 650) {
+      const el = typeof target === 'string' ? document.querySelector(target) : target
+      const label = typeof labelTarget === 'string' ? document.querySelector(labelTarget) : labelTarget
+
+      if (!el) return
+
+      // Find the inner input element if wrapper was passed
+      const inputEl = el.tagName === 'INPUT' ? el : el.querySelector('input')
+
+      // Clear any previous ongoing animation or timeout
+      if (el._shakeTimeout) {
+        clearTimeout(el._shakeTimeout)
+      }
+
+      // Add sudden-shake animation class and rose error border styling
+      el.classList.remove('animate-sudden-shake')
+      // Force reflow for restart
+      void el.offsetWidth
+      el.classList.add('animate-sudden-shake')
+
+      // Border and focus ring styling in Tailwind rose colors
+      if (el.tagName === 'INPUT') {
+        el.classList.add('!border-rose-500', '!ring-rose-500', '!ring-2', 'dark:!border-rose-500')
+      } else {
+        el.classList.add('!border-rose-500', '!ring-2', '!ring-rose-500', 'rounded-lg')
+        if (inputEl) {
+          inputEl.classList.add('!border-rose-500', '!ring-rose-500', '!ring-2', 'dark:!border-rose-500')
+        }
+      }
+
+      // Turn label font red/rose
+      if (label) {
+        label.classList.add('!text-rose-600', 'dark:!text-rose-400')
+      }
+
+      const resetStyles = () => {
+        el.classList.remove('animate-sudden-shake')
+        if (el.tagName === 'INPUT') {
+          el.classList.remove('!border-rose-500', '!ring-rose-500', '!ring-2', 'dark:!border-rose-500')
+        } else {
+          el.classList.remove('!border-rose-500', '!ring-2', '!ring-rose-500')
+          if (inputEl) {
+            inputEl.classList.remove('!border-rose-500', '!ring-rose-500', '!ring-2', 'dark:!border-rose-500')
+          }
+        }
+        if (label) {
+          label.classList.remove('!text-rose-600', 'dark:!text-rose-400')
+        }
+      }
+
+      // Automatically reset when user types or focuses
+      if (inputEl && !inputEl._hasShakeResetListener) {
+        inputEl._hasShakeResetListener = true
+        inputEl.addEventListener('input', resetStyles, { once: true })
+      }
+
+      // Revert after timeout
+      el._shakeTimeout = setTimeout(() => {
+        el.classList.remove('animate-sudden-shake')
+      }, duration)
+    }
+  }
+  // END: InputShakeManager
 }
 // END: AnimationsManager - Animations module ready
