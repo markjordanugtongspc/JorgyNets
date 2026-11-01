@@ -970,6 +970,42 @@
     </form>
   </div>
 
+  <!-- Flowbite Signature Preview Modal -->
+  <div id="sig-preview-modal" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full bg-slate-900/60 backdrop-blur-xs">
+    <div class="relative p-4 w-full max-w-md max-h-full">
+      <div class="relative bg-white rounded-2xl shadow-xl dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+        <!-- Modal header -->
+        <div class="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700 rounded-t-2xl">
+          <div class="flex items-center space-x-2.5">
+            <div class="w-7 h-7 rounded-lg bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+            </div>
+            <div>
+              <h3 id="sig-modal-title" class="text-sm font-bold text-slate-900 dark:text-white font-averta">E-Signature Verification</h3>
+              <p id="sig-modal-subtitle" class="text-[11px] text-slate-400 font-mono">Digital Signature</p>
+            </div>
+          </div>
+          <button id="close-sig-modal" type="button" class="text-slate-400 bg-transparent hover:bg-slate-200 hover:text-slate-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-slate-700 dark:hover:text-white cursor-pointer">
+            <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+            </svg>
+            <span class="sr-only">Close modal</span>
+          </button>
+        </div>
+        <!-- Modal body -->
+        <div class="p-5 space-y-4">
+          <div id="sig-modal-content" class="min-h-[160px] flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-900/80 rounded-xl border border-slate-200 dark:border-slate-700">
+            <img id="sig-modal-img" src="" alt="Full E-Signature" class="max-h-44 max-w-full object-contain filter dark:brightness-150 rounded" />
+          </div>
+          <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+            <span id="sig-modal-signer" class="font-semibold text-slate-700 dark:text-slate-300">Signed digitally by Owner</span>
+            <span class="font-mono text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">✓ Authenticated</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Scripts: Flowbite CDN, theme, tables, and drawer module initialization -->
   <script src="https://cdn.jsdelivr.net/npm/flowbite@4.0.2/dist/flowbite.min.js"></script>
   <script type="module">

@@ -207,28 +207,21 @@ export class DashboardManager {
     const statusMeta = document.getElementById('status-percent-meta')
     const fleetTitle = document.getElementById('fleet-title')
 
-    // Filter habwa and bills according to selected month or all-time if empty
+    // Filter habwa and bills according to selected month
     const selectedMonth = this.selectedDate.getMonth()
     const selectedYear = this.selectedDate.getFullYear()
 
-    let filteredHabwa = this.habwaRecords.filter((h) => {
-      if (!h.harvested_at) return true
+    const filteredHabwa = this.habwaRecords.filter((h) => {
+      if (!h.harvested_at) return false
       const d = new Date(h.harvested_at)
       return d.getMonth() === selectedMonth && d.getFullYear() === selectedYear
     })
-    // If no records in chosen month, fallback to full dataset so stats aren't blank
-    if (filteredHabwa.length === 0) {
-      filteredHabwa = this.habwaRecords
-    }
 
-    let filteredBills = this.billsRecords.filter((b) => {
-      if (!b.bill_date) return true
+    const filteredBills = this.billsRecords.filter((b) => {
+      if (!b.bill_date) return false
       const d = new Date(b.bill_date)
       return d.getMonth() === selectedMonth && d.getFullYear() === selectedYear
     })
-    if (filteredBills.length === 0) {
-      filteredBills = this.billsRecords
-    }
 
     // Gross Revenue
     const grossRevenue = filteredHabwa.reduce((sum, h) => sum + (Number(h.amount) || 0), 0)
@@ -310,15 +303,13 @@ export class DashboardManager {
       this.chartsInstance.updateExpensesBreakdown(filteredBills, grossRevenue, totalDeductions)
     }
 
-    // Filter requests according to selected month or all-time if empty
-    let filteredRequests = this.requestsRecords.filter((r) => {
-      if (!r.created_at) return true
-      const d = new Date(r.created_at)
+    // Filter requests according to selected month
+    const filteredRequests = this.requestsRecords.filter((r) => {
+      const dateStr = r.created_at || r.request_date
+      if (!dateStr) return false
+      const d = new Date(dateStr)
       return d.getMonth() === selectedMonth && d.getFullYear() === selectedYear
     })
-    if (filteredRequests.length === 0) {
-      filteredRequests = this.requestsRecords
-    }
 
     // Render live Supabase transactions in #fleet-table
     this.renderFleetTable(filteredHabwa, filteredBills, filteredRequests)

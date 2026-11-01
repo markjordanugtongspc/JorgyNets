@@ -3301,7 +3301,8 @@ export class DrawerManager {
         noteTitleEl.textContent = `${firstName}'s Note`
       }
       if (noteEl) {
-        noteEl.textContent = entry.notes ? `"${entry.notes}"` : '"Deduct from this month\'s pisonet profit share please."'
+        const rawNote = entry.note || entry.notes
+        noteEl.textContent = rawNote ? `"${rawNote}"` : 'No note provided for this request.'
       }
 
       // Receipt Card preview
@@ -3347,11 +3348,42 @@ export class DrawerManager {
         `
       }
 
-      // E-Signature Proof
+      // E-Signature Proof with Flowbite Modal Viewer
       const sigWrap = document.getElementById('view-req-signature-wrap')
       if (sigWrap) {
         if (entry.signature && entry.signature.startsWith('data:image/png;base64')) {
-          sigWrap.innerHTML = `<img src="${entry.signature}" alt="E-Signature" class="h-8 max-w-[140px] object-contain filter dark:brightness-150 inline-block rounded" />`
+          sigWrap.innerHTML = `
+            <button id="open-sig-modal-btn" type="button" class="group flex items-center space-x-1 px-2 py-1 rounded-lg bg-white dark:bg-slate-700/80 border border-slate-200 dark:border-slate-600 hover:border-blue-500 shadow-2xs transition cursor-pointer" title="Click to view full signature">
+              <img src="${entry.signature}" alt="E-Signature" class="h-6 max-w-[110px] object-contain filter dark:brightness-150 inline-block rounded" />
+              <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+            </button>
+          `
+          const modal = document.getElementById('sig-preview-modal')
+          const modalImg = document.getElementById('sig-modal-img')
+          const modalSigner = document.getElementById('sig-modal-signer')
+          const closeBtn = document.getElementById('close-sig-modal')
+
+          const openBtn = document.getElementById('open-sig-modal-btn')
+          openBtn?.addEventListener('click', () => {
+            if (modalImg) modalImg.src = entry.signature
+            if (modalSigner) modalSigner.textContent = `Signed digitally by ${entry.owner || 'Owner'}`
+            if (modal) {
+              modal.classList.remove('hidden')
+              modal.classList.add('flex')
+            }
+          })
+
+          const hideModal = () => {
+            if (modal) {
+              modal.classList.add('hidden')
+              modal.classList.remove('flex')
+            }
+          }
+
+          closeBtn?.addEventListener('click', hideModal)
+          modal?.addEventListener('click', (e) => {
+            if (e.target === modal) hideModal()
+          })
         } else if (entry.signatureName) {
           sigWrap.innerHTML = `<span class="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 font-bold">✓ Signed by ${entry.signatureName}</span>`
         } else {
