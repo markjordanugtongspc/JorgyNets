@@ -205,7 +205,7 @@ export class RequestsApiController {
     }
   }
 
-  async addCategory(name, createdBy = null) {
+  async addCategory(name) {
     try {
       const trimmed = (name || '').trim()
       if (!trimmed) throw new Error('Category name cannot be empty')
@@ -213,8 +213,7 @@ export class RequestsApiController {
       const { data, error } = await supabase
         .from('request_categories')
         .insert({
-          name: trimmed,
-          ...(createdBy ? { created_by: createdBy } : {})
+          name: trimmed
         })
         .select()
         .single()

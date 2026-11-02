@@ -14,201 +14,21 @@ export class ExportsManager {
 
     // Default Filter Criteria
     this.currentFilters = {
-      scope: this.isUserPortal ? 'My Owner Ledger & Units' : 'ALL SYSTEM DATA (Full Combined Ledger)',
-      owner: this.isUserPortal ? 'Kuya Jorgy (Unit 1 & 2)' : 'ALL OWNERS (Full Fleet)',
-      units: this.isUserPortal ? 'Unit 1 & 2' : 'ALL PISONETS (Complete Fleet Units 1 to 10)',
-      startDate: '2026-01-01',
-      endDate: '2026-10-31'
+      scope: this.isUserPortal ? 'My Combined Ledger' : 'ALL SYSTEM DATA (Full Combined Ledger)',
+      owner: this.isUserPortal ? this.currentOwnerName : 'ALL OWNERS (Full Fleet)',
+      units: 'ALL PISONET UNITS',
+      startDate: '',
+      endDate: ''
     }
 
-    // Comprehensive Master Telemetry Records across all categories
-    this.masterRecords = [
-      {
-        id: 'TXN-901',
-        category: 'Coin Revenue & Habwa',
-        desc: 'End-Month Coin Harvest - Main Hub Counter',
-        owner: 'Kuya Jorgy (Unit 1 & 2)',
-        units: 'Unit 1 & 2',
-        amount: 8450.00,
-        type: 'credit',
-        date: '2026-10-30',
-        attendant: 'Admin Leo',
-        status: 'Audited'
-      },
-      {
-        id: 'TXN-902',
-        category: 'Operational Bills',
-        desc: 'PLDT Commercial Fiber 300 Mbps Shared Line',
-        owner: 'ALL OWNERS (Full Fleet)',
-        units: 'All Pisonets',
-        amount: -3649.75,
-        type: 'debit',
-        date: '2026-10-28',
-        attendant: 'Admin Leo',
-        status: 'Audited'
-      },
-      {
-        id: 'TXN-903',
-        category: 'Coin Revenue & Habwa',
-        desc: 'Weekend VIP Rig Coin Box Clearance',
-        owner: 'Boss Roldan (Unit 3 & 4)',
-        units: 'Unit 3 & 4',
-        amount: 9820.00,
-        type: 'credit',
-        date: '2026-10-27',
-        attendant: 'Marc C.',
-        status: 'Audited'
-      },
-      {
-        id: 'TXN-904',
-        category: 'Operational Bills',
-        desc: 'VECO Electricity Sub-Metered Fleet Power',
-        owner: 'ALL OWNERS (Full Fleet)',
-        units: 'All Pisonets',
-        amount: -4872.86,
-        type: 'debit',
-        date: '2026-10-26',
-        attendant: 'Leo B.',
-        status: 'Audited'
-      },
-      {
-        id: 'TXN-905',
-        category: 'Coin Revenue & Habwa',
-        desc: 'Mid-Month Habwa Collection - Side Alley',
-        owner: 'Ate Gina (Unit 5 & 6)',
-        units: 'Unit 5 & 6',
-        amount: 5640.00,
-        type: 'credit',
-        date: '2026-10-25',
-        attendant: 'Marc C.',
-        status: 'Audited'
-      },
-      {
-        id: 'TXN-906',
-        category: 'Owner Expense Requests',
-        desc: 'Dual Coin Slot Sensor Replacements & Chute Calibrations',
-        owner: 'Kuya Jorgy (Unit 1 & 2)',
-        units: 'Unit 1 & 2',
-        amount: -1245.73,
-        type: 'debit',
-        date: '2026-10-24',
-        attendant: 'Admin Leo',
-        status: 'Approved'
-      },
-      {
-        id: 'TXN-907',
-        category: 'Coin Revenue & Habwa',
-        desc: 'Weekly Dual Slot Arcade Harvest',
-        owner: 'Nanay Tessie (Unit 7 & 8)',
-        units: 'Unit 7 & 8',
-        amount: 6780.00,
-        type: 'credit',
-        date: '2026-10-23',
-        attendant: 'Marc C.',
-        status: 'Audited'
-      },
-      {
-        id: 'TXN-908',
-        category: 'Operational Bills',
-        desc: 'Converge Failover VIP Gaming Line',
-        owner: 'Boss Roldan (Unit 3 & 4)',
-        units: 'Unit 3 & 4',
-        amount: -1538.50,
-        type: 'debit',
-        date: '2026-10-22',
-        attendant: 'Admin Leo',
-        status: 'Audited'
-      },
-      {
-        id: 'TXN-909',
-        category: 'Coin Revenue & Habwa',
-        desc: 'High-Yield Rig Weekend Coin Clearance',
-        owner: 'Uncle Dan (Unit 9 & 10)',
-        units: 'Unit 9 & 10',
-        amount: 11240.00,
-        type: 'credit',
-        date: '2026-10-20',
-        attendant: 'Leo B.',
-        status: 'Audited'
-      },
-      {
-        id: 'TXN-910',
-        category: 'Owner Expense Requests',
-        desc: 'Storefront Bottled Water Dispenser & Sanitation Supply',
-        owner: 'Ate Gina (Unit 5 & 6)',
-        units: 'Unit 5 & 6',
-        amount: -628.40,
-        type: 'debit',
-        date: '2026-10-18',
-        attendant: 'Admin Leo',
-        status: 'Approved'
-      },
-      {
-        id: 'TXN-911',
-        category: 'Coin Revenue & Habwa',
-        desc: 'Mid-Month Coin Hopper Drop',
-        owner: 'Kuya Jorgy (Unit 1 & 2)',
-        units: 'Unit 1 & 2',
-        amount: 7000.00,
-        type: 'credit',
-        date: '2026-10-15',
-        attendant: 'Marc C.',
-        status: 'Audited'
-      },
-      {
-        id: 'TXN-912',
-        category: 'Operational Bills',
-        desc: 'TP-Link Gigabit 16-Port Switch Hardware Replacement',
-        owner: 'Kuya Jorgy (Unit 1 & 2)',
-        units: 'Unit 1 & 2',
-        amount: -1849.90,
-        type: 'debit',
-        date: '2026-10-12',
-        attendant: 'Admin Leo',
-        status: 'Audited'
-      },
-      {
-        id: 'TXN-913',
-        category: 'Terminal Hardware & Fleet',
-        desc: 'Unit 3 Mechanical Keyboard & Headset Servicing',
-        owner: 'Boss Roldan (Unit 3 & 4)',
-        units: 'Unit 3 & 4',
-        amount: -950.00,
-        type: 'debit',
-        date: '2026-10-10',
-        attendant: 'Marc C.',
-        status: 'Audited'
-      },
-      {
-        id: 'TXN-914',
-        category: 'Owner Expense Requests',
-        desc: 'Overtime Night Shift Attendant Meal Allowance',
-        owner: 'ALL OWNERS (Full Fleet)',
-        units: 'All Pisonets',
-        amount: -450.00,
-        type: 'debit',
-        date: '2026-10-08',
-        attendant: 'Admin Leo',
-        status: 'Approved'
-      },
-      {
-        id: 'TXN-915',
-        category: 'Coin Revenue & Habwa',
-        desc: 'Early October Initial Coin Harvest',
-        owner: 'Nanay Tessie (Unit 7 & 8)',
-        units: 'Unit 7 & 8',
-        amount: 4800.00,
-        type: 'credit',
-        date: '2026-10-05',
-        attendant: 'Leo B.',
-        status: 'Audited'
-      }
-    ]
+    // Live Telemetry Records initialized empty (wiped mock data)
+    this.masterRecords = []
   }
 
   // START: ExportsManager.init - Injects print sheet component, binds events, and renders live preview
   async init() {
     await this.mountPrintComponent()
+    await this.loadFromSupabase()
     this.bindEvents()
     this.renderPreview()
   }
@@ -217,24 +37,27 @@ export class ExportsManager {
   // START: ExportsManager.loadFromSupabase - Queries live records across habwa, bills, and requests
   async loadFromSupabase() {
     try {
+      const currentUid = sessionStorage.getItem('jn_session_uid') || storageManager.session.getUserId()
+
       const [habwaRes, billsRes, reqRes] = await Promise.all([
-        habwaApi.getAll(),
-        billsApi.getAll(),
-        requestsApi.getAll()
+        this.isUserPortal && currentUid ? habwaApi.getByOwner(currentUid) : habwaApi.getAll(),
+        this.isUserPortal && currentUid ? billsApi.getByOwner(currentUid) : billsApi.getAll(),
+        this.isUserPortal && currentUid ? requestsApi.getByOwner(currentUid) : requestsApi.getAll()
       ])
 
       const records = []
       if (habwaRes.success && Array.isArray(habwaRes.data)) {
         habwaRes.data.forEach((h) => {
+          const unitDigits = (h.users?.units || '1 Unit').replace(/[^0-9]/g, '')
           records.push({
             id: h.ref_code,
             category: 'Coin Revenue & Habwa',
-            desc: h.description,
-            owner: h.users ? `${h.users.full_name} (${h.users.units || 'Units'})` : 'Unit Owner',
-            units: h.users?.units || 'Unit 1 & 2',
+            desc: h.description || 'Pisonet Coin Harvest Deposit',
+            owner: h.users ? `${h.users.full_name} (${unitDigits ? unitDigits + ' Units' : '1 Unit'})` : 'Unit Owner',
+            units: unitDigits ? `Unit ${unitDigits}` : 'All Units',
             amount: Number(h.amount),
             type: 'credit',
-            date: h.harvested_at ? h.harvested_at.slice(0, 10) : '2026-10-04',
+            date: h.harvested_at ? h.harvested_at.slice(0, 10) : '2026-11-03',
             attendant: h.attendant || 'Admin Leo',
             status: h.status || 'Audited'
           })
@@ -242,15 +65,25 @@ export class ExportsManager {
       }
       if (billsRes.success && Array.isArray(billsRes.data)) {
         billsRes.data.forEach((b) => {
+          let userAmount = Number(b.total_amount)
+          if (this.isUserPortal && currentUid) {
+            const breakdown = Array.isArray(b.detailed_breakdown) ? b.detailed_breakdown : []
+            const userShare = breakdown.find((item) => item.owner_id === currentUid)
+            if (userShare && userShare.shareAmount) {
+              userAmount = Number(userShare.shareAmount)
+            } else if (b.owner_ids && b.owner_ids.includes(currentUid)) {
+              userAmount = Number(b.total_amount) / (b.owner_ids.length || 1)
+            }
+          }
           records.push({
             id: b.ref_code,
             category: 'Operational Bills',
-            desc: b.description,
-            owner: 'ALL OWNERS (Full Fleet)',
-            units: 'All Pisonets',
-            amount: -Number(b.total_amount),
+            desc: b.category ? `${b.category}${b.description ? ': ' + b.description : ''}` : (b.description || 'Operational Expense'),
+            owner: (b.owner_ids && b.owner_ids.length > 1) ? `ALL (${b.owner_ids.length} OWNERS)` : (b.detailed_breakdown?.[0]?.name || 'Unit Owner'),
+            units: 'All Units',
+            amount: -Math.abs(userAmount),
             type: 'debit',
-            date: b.bill_date || '2026-10-04',
+            date: b.bill_date || '2026-11-03',
             attendant: b.attendant || 'Admin Leo',
             status: b.status || 'Audited'
           })
@@ -258,15 +91,16 @@ export class ExportsManager {
       }
       if (reqRes.success && Array.isArray(reqRes.data)) {
         reqRes.data.forEach((r) => {
+          const unitDigits = (r.users?.units || '1 Unit').replace(/[^0-9]/g, '')
           records.push({
             id: r.ref_code,
             category: 'Owner Expense Requests',
-            desc: r.category,
-            owner: r.users ? `${r.users.full_name} (${r.users.units || 'Units'})` : 'Unit Owner',
-            units: r.users?.units || 'Unit 1 & 2',
-            amount: -Number(r.amount),
+            desc: r.category || 'Advance / Withdrawal Request',
+            owner: r.users ? `${r.users.full_name} (${unitDigits ? unitDigits + ' Units' : '1 Unit'})` : 'Unit Owner',
+            units: unitDigits ? `Unit ${unitDigits}` : 'All Units',
+            amount: -Math.abs(Number(r.amount)),
             type: 'debit',
-            date: r.request_date || '2026-10-04',
+            date: r.request_date || '2026-11-03',
             attendant: 'Attendant Verified',
             status: r.status || 'Pending'
           })
@@ -274,8 +108,8 @@ export class ExportsManager {
       }
 
       this.masterRecords = records.sort((a, b) => new Date(b.date) - new Date(a.date))
-    } catch {
-      // Fallback
+    } catch (err) {
+      console.warn('Exports loadFromSupabase error:', err)
     }
   }
   // END: ExportsManager.loadFromSupabase
@@ -323,25 +157,31 @@ export class ExportsManager {
     return this.masterRecords.filter(item => {
       // 1. Filter by Scope
       let matchScope = true
-      if (!scope.includes('ALL SYSTEM DATA')) {
-        if (scope.includes('Coin Revenue') && !item.category.includes('Coin Revenue')) matchScope = false
-        if (scope.includes('Operational Expenses') && !item.category.includes('Operational Bills')) matchScope = false
-        if (scope.includes('Owner Expense Requests') && !item.category.includes('Expense Requests')) matchScope = false
-        if (scope.includes('Terminal Hardware') && !item.category.includes('Terminal Hardware')) matchScope = false
+      if (scope) {
+        const s = scope.toLowerCase()
+        if (s.includes('all') || s.includes('combined')) {
+          matchScope = true
+        } else if (s.includes('bill') || s.includes('deduction')) {
+          matchScope = item.category === 'Operational Bills'
+        } else if (s.includes('habwa') || s.includes('revenue') || s.includes('coin')) {
+          matchScope = item.category === 'Coin Revenue & Habwa'
+        } else if (s.includes('request') || s.includes('advance')) {
+          matchScope = item.category === 'Owner Expense Requests'
+        }
       }
 
       // 2. Filter by Owner
       let matchOwner = true
-      if (!owner.includes('ALL OWNERS')) {
+      if (owner && !owner.toUpperCase().includes('ALL OWNERS')) {
         const ownerClean = owner.split('(')[0].trim().toLowerCase()
-        matchOwner = item.owner.toLowerCase().includes(ownerClean) || item.owner.includes('ALL')
+        matchOwner = item.owner.toLowerCase().includes(ownerClean) || item.owner.toUpperCase().includes('ALL')
       }
 
       // 3. Filter by Units
       let matchUnits = true
-      if (!units.includes('ALL PISONETS')) {
-        const unitNumber = units.replace(/[^0-9& ]/g, '').trim()
-        matchUnits = item.units.includes(unitNumber) || item.units.includes('All Pisonets')
+      if (units && !units.toUpperCase().includes('ALL')) {
+        const unitNumber = units.replace(/[^0-9]/g, '').trim()
+        matchUnits = item.units.includes(unitNumber) || item.units.toLowerCase().includes('all')
       }
 
       // 4. Filter by Date Range

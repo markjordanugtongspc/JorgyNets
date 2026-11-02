@@ -66,12 +66,17 @@ export class TableManager {
             id: b.ref_code,
             dbId: b.id,
             category: b.category,
+            category_color: b.category_color || 'blue',
             desc: b.description,
-            owner: (b.owner_ids && b.owner_ids.length > 1) ? 'ALL' : 'Unit Owner',
+            owner: (b.owner_ids && b.owner_ids.length > 1)
+              ? `ALL (${b.owner_ids.length} OWNERS)`
+              : (b.detailed_breakdown?.[0]?.name || 'Unit Owner'),
             owner_ids: b.owner_ids || [],
-            roles: ['1', '2', '3'],
+            roles: Array.isArray(b.detailed_breakdown) ? b.detailed_breakdown.map((d) => d.role) : ['1', '2', '3'],
             amount: Number(b.total_amount),
-            shares: '',
+            shares: Array.isArray(b.detailed_breakdown) && b.detailed_breakdown.length > 0
+              ? b.detailed_breakdown.map((d) => `${d.role || d.name} = -₱${(Math.round((d.shareAmount || 0) * 100) / 100).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`).join(' | ')
+              : '',
             detailedBreakdown: Array.isArray(b.detailed_breakdown) ? b.detailed_breakdown : [],
             date: b.bill_date,
             timestamp: b.created_at || '',
@@ -689,13 +694,32 @@ export class TableManager {
     }
     // END: BillsController.init - BillsController initialized
 
-    // START: BillsController.deleteEntry - Removes entry and re-renders table
-    deleteEntry(id) {
-      const idx = this.parent.records.findIndex((r) => r.id === id)
-      if (idx !== -1) {
-        this.parent.records.splice(idx, 1)
-        this.parent.selectedIds.delete(id)
+    // START: BillsController.deleteEntry - Removes entry from database, resets identity if empty, and re-renders
+    async deleteEntry(id) {
+      const entry = this.parent.records.find((r) => r.id === id || r.dbId === id)
+      const targetDbId = entry?.dbId || id
+      const targetRefCode = entry?.id || id
+
+      // Optimistic instant UI removal
+      const prevRecords = [...this.parent.records]
+      this.parent.records = this.parent.records.filter((r) => r.id !== id && r.dbId !== id)
+      this.parent.selectedIds.delete(id)
+      if (entry?.id) this.parent.selectedIds.delete(entry.id)
+      this.parent.render()
+
+      try {
+        const res = await billsApi.delete(targetDbId || targetRefCode)
+        if (!res.success) {
+          throw new Error(res.error || 'Failed to delete deduction bill')
+        }
+        await this.parent.loadFromSupabase()
         this.parent.render()
+        this.parent.animations?.toast?.show('Bill deduction wiped & reset successfully!')
+      } catch (err) {
+        console.error('Delete bill failed:', err)
+        this.parent.records = prevRecords
+        this.parent.render()
+        this.parent.animations?.toast?.show('Error deleting bill: ' + err.message, 'error')
       }
     }
     // END: BillsController.deleteEntry
@@ -780,7 +804,7 @@ export class TableManager {
                 </div>
               </td>
 
-              <!-- Col 2: Bill Category & Description (Regular Column, NO BIL ID) -->
+              <!-- Col 2: Bill Category & Description (Regular Column, Clean Title & Subtitle Without Badge) -->
               <th scope="row" class="px-6 py-4 font-medium text-slate-900 dark:text-white whitespace-nowrap">
                 <div class="flex items-center space-x-3">
                   <div class="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 flex items-center justify-center font-bold text-xs shrink-0 font-money">
@@ -1937,7 +1961,31 @@ export class TableManager {
     // END: SelectionController.updateBatchBar - Batch bar updated
 
     // START: SelectionController.deleteSelected - Deletes all selected records
-    deleteSelected() {
+    async deleteSelected() {
+      const selectedIds = Array.from(this.parent.selectedIds)
+      if (selectedIds.length === 0) return
+
+      if (this.parent.mode === 'bills') {
+        const toDelete = selectedIds.map(id => {
+          const item = this.parent.records.find(r => r.id === id || r.dbId === id)
+          return item?.dbId || id
+        })
+        this.parent.records = this.parent.records.filter((r) => !this.parent.selectedIds.has(r.id))
+        this.parent.selectedIds.clear()
+        this.parent.render()
+        this.updateBatchBar()
+
+        try {
+          await Promise.all(toDelete.map(id => billsApi.delete(id)))
+          await this.parent.loadFromSupabase()
+          this.parent.render()
+          this.parent.animations?.toast?.show('Selected deduction bills wiped successfully!')
+        } catch (err) {
+          console.error('Batch delete bills failed:', err)
+        }
+        return
+      }
+
       this.parent.records = this.parent.records.filter(
         (r) => !this.parent.selectedIds.has(r.id)
       )

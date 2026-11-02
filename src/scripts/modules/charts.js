@@ -129,6 +129,9 @@ export class ChartsManager {
   updateExpensesBreakdown(billsList = [], grossRevenue = 0, totalDeductions = 0) {
     if (!this.expensesChartInstance) return
 
+    const isClient = (sessionStorage.getItem('jn_session_role') && sessionStorage.getItem('jn_session_role') !== '0') || window.location.pathname.includes('/users/')
+    const currentUid = sessionStorage.getItem('jn_session_uid')
+
     let electricity = 0
     let internet = 0
     let maintenance = 0
@@ -136,12 +139,27 @@ export class ChartsManager {
 
     billsList.forEach((b) => {
       const cat = (b.category || '').toUpperCase()
-      const amt = Number(b.total_amount || 0)
-      if (cat.includes('ELEC') || cat.includes('VECO') || cat.includes('POWER')) {
+      let amt = 0
+
+      if (isClient && currentUid) {
+        const breakdown = Array.isArray(b.detailed_breakdown) ? b.detailed_breakdown : []
+        const userShare = breakdown.find((item) => item.owner_id === currentUid)
+        if (userShare && userShare.shareAmount) {
+          amt = Number(userShare.shareAmount || 0)
+        } else if (b.owner_ids && b.owner_ids.includes(currentUid)) {
+          amt = Number(b.total_amount || 0) / (b.owner_ids.length || 1)
+        } else if (breakdown.length === 0 && (!b.owner_ids || b.owner_ids.length === 0)) {
+          amt = Number(b.total_amount || 0)
+        }
+      } else {
+        amt = Number(b.total_amount || 0)
+      }
+
+      if (cat.includes('ELEC') || cat.includes('VECO') || cat.includes('POWER') || cat.includes('LIGHT') || cat.includes('ILIGAN')) {
         electricity += amt
       } else if (cat.includes('PLDT') || cat.includes('CONVERGE') || cat.includes('INTERNET') || cat.includes('FIBER')) {
         internet += amt
-      } else if (cat.includes('CHUTE') || cat.includes('REPAIR') || cat.includes('HARDWARE') || cat.includes('SWITCH')) {
+      } else if (cat.includes('CHUTE') || cat.includes('REPAIR') || cat.includes('HARDWARE') || cat.includes('SWITCH') || cat.includes('PERIPHERAL') || cat.includes('MOUSE') || cat.includes('KEYBOARD') || cat.includes('MAINTENANCE')) {
         maintenance += amt
       } else {
         other += amt

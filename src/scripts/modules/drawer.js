@@ -1111,21 +1111,27 @@ export class DrawerManager {
 
       // Default bill categories with edit & add capabilities
       this.categories = [
-        'PLDT FIBR INTERNET',
-        'VECO ELECTRICITY',
+        'PLDT HOME FIBR INTERNET',
+        'ILIGAN LIGHT',
+        'Peripherals (Mouse, Keyboard, etc.)',
         'CONVERGE BACKUP FIBER',
         'COIN CHUTE CLEANING & REPAIRS',
-        'WATER UTILITY',
-        'NETWORK SWITCH UPGRADE',
-        'STOREFRONT MAINTENANCE',
-        'HARDWARE REPLACEMENT'
+        'STOREFRONT MAINTENANCE'
       ]
+      this.categoryObjects = []
 
+      this.ownersList = []
+      this.ownerHabwaMap = {}
       this.ownerSearchQuery = ''
     }
 
+    // Helper: Current Date in GMT+08 Philippines Asia/Manila Timezone (YYYY-MM-DD)
+    getTodayManilaDate() {
+      return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Manila' }).format(new Date())
+    }
+
     // START: BillsDrawerController.init - Binds action buttons, form submission, and amount formatters
-    init() {
+    async init() {
       const addBtn = document.getElementById('add-btn')
       const closeBtn = document.getElementById('close-drawer')
       const cancelBtn = document.getElementById('cancel-btn')
@@ -1169,7 +1175,10 @@ export class DrawerManager {
       this.initOwnerChecklist()
       this.initDatepicker()
 
-      // Listen to category or role checkbox changes for real-time split recalculation
+      // Load initial categories from Supabase database
+      await this.loadCategoriesFromDb()
+
+      // Listen to category input changes for real-time split recalculation
       document.getElementById('bill-category')?.addEventListener('input', () => this.updateLiveSplitPreview())
     }
     // END: BillsDrawerController.init
@@ -1177,24 +1186,29 @@ export class DrawerManager {
     // START: BillsDrawerController.initDatepicker - Instantiates Flowbite Datepicker instance with dynamic viewport auto-placement
     initDatepicker() {
       const dateEl = document.getElementById('bill-date')
-      if (dateEl && window.Datepicker) {
-        if (dateEl._datepicker) return
-
-        // If Flowbite already registered an instance on this element, detach cleanly
-        if (typeof dateEl.datepicker === 'object' && dateEl.datepicker) {
-          dateEl._datepicker = dateEl.datepicker
-          this.bindDatepickerAutoFlip(dateEl, dateEl._datepicker)
-          return
+      if (dateEl) {
+        if (!dateEl.value) {
+          dateEl.value = this.getTodayManilaDate()
         }
 
-        const pickerInstance = new window.Datepicker(dateEl, {
-          autohide: true,
-          format: 'yyyy-mm-dd',
-          orientation: 'auto'
-        })
+        if (window.Datepicker) {
+          if (dateEl._datepicker) return
 
-        dateEl._datepicker = pickerInstance
-        this.bindDatepickerAutoFlip(dateEl, pickerInstance)
+          if (typeof dateEl.datepicker === 'object' && dateEl.datepicker) {
+            dateEl._datepicker = dateEl.datepicker
+            this.bindDatepickerAutoFlip(dateEl, dateEl._datepicker)
+            return
+          }
+
+          const pickerInstance = new window.Datepicker(dateEl, {
+            autohide: true,
+            format: 'yyyy-mm-dd',
+            orientation: 'auto'
+          })
+
+          dateEl._datepicker = pickerInstance
+          this.bindDatepickerAutoFlip(dateEl, pickerInstance)
+        }
       }
     }
 
@@ -1234,15 +1248,12 @@ export class DrawerManager {
         inputEl.addEventListener(evt, () => setTimeout(adjustPosition, 10))
       })
 
-      // Observe picker view size changes (e.g. clicking year/month switch changes height)
-      // to immediately re-anchor and prevent any white-space gap or clipping
       const setupPickerObserver = () => {
         const pickerEl = pickerInstance?.picker?.element || document.querySelector('.datepicker.dropdown')
         if (pickerEl && !pickerEl._hasSizeObserver) {
           pickerEl._hasSizeObserver = true
           const observer = new ResizeObserver(() => throttledAdjust())
           observer.observe(pickerEl)
-          // Also listen to view clicks directly inside the picker header
           pickerEl.addEventListener('click', () => setTimeout(adjustPosition, 15))
         }
       }
@@ -1250,7 +1261,6 @@ export class DrawerManager {
       inputEl.addEventListener('focus', () => setTimeout(setupPickerObserver, 50))
       inputEl.addEventListener('click', () => setTimeout(setupPickerObserver, 50))
 
-      // Instant dismiss on ANY scroll or wheel outside the datepicker
       const dismissPicker = (e) => {
         const pickerEl = pickerInstance?.picker?.element || document.querySelector('.datepicker.dropdown.active')
         if (pickerEl && !pickerEl.contains(e.target) && e.target !== inputEl) {
@@ -1263,7 +1273,6 @@ export class DrawerManager {
         }
       }
 
-      // Capture all scroll and wheel events on document, window, and any scrolling container (drawers)
       window.addEventListener('scroll', dismissPicker, { capture: true, passive: true })
       document.addEventListener('scroll', dismissPicker, { capture: true, passive: true })
       document.addEventListener('wheel', dismissPicker, { capture: true, passive: true })
@@ -1276,15 +1285,32 @@ export class DrawerManager {
     }
     // END: BillsDrawerController.initDatepicker
 
-    // START: BillsDrawerController.initCategoryDropdown - Category dropdown with search, add, edit, and delete
+    // ==========================================
+    // Category Dropdown Management (Supabase)
+    // ==========================================
+    async loadCategoriesFromDb() {
+      try {
+        const res = await billsApi.getCategories()
+        if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+          this.categoryObjects = res.data
+          this.categories = res.data.map((c) => c.name)
+        }
+        this.renderCategoryList('')
+      } catch {
+        this.renderCategoryList('')
+      }
+    }
+
     initCategoryDropdown() {
       const catInput = document.getElementById('bill-cat-btn')
-      const addCatBtn = document.getElementById('add-bill-cat-btn')
+      const addCatBtn = document.getElementById('add-bill-cat-btn') || document.getElementById('bill-cat-add-btn')
+
       this.renderCategoryList()
 
       catInput?.addEventListener('focus', () => {
         catInput.select()
         this.renderCategoryList('')
+        document.getElementById('bill-cat-menu')?.classList.remove('hidden')
       })
 
       catInput?.addEventListener('click', () => {
@@ -1299,21 +1325,38 @@ export class DrawerManager {
         if (hiddenInput) hiddenInput.value = val
         this.renderCategoryList(val)
         document.getElementById('bill-cat-menu')?.classList.remove('hidden')
+
+        // Auto-suggest PLDT default amount if user types PLDT
+        if (val.toUpperCase().includes('PLDT')) {
+          const amountInput = document.getElementById('bill-amount')
+          if (amountInput && (!amountInput.value || amountInput.value === '0' || amountInput.value === '0.00')) {
+            amountInput.value = '1,806.00'
+          }
+        }
+
         this.updateLiveSplitPreview()
       })
 
       catInput?.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
           e.preventDefault()
-          const val = catInput.value.trim().toUpperCase()
+          const val = catInput.value.trim()
           if (val) this.addNewCategory(val)
           document.getElementById('bill-cat-menu')?.classList.add('hidden')
         }
       })
 
       addCatBtn?.addEventListener('click', () => {
-        const val = catInput?.value.trim().toUpperCase() || 'NEW SERVICE BILL'
+        const val = catInput?.value.trim() || `Bill Category #${this.categories.length + 1}`
         this.addNewCategory(val)
+      })
+
+      document.addEventListener('click', (e) => {
+        const menu = document.getElementById('bill-cat-menu')
+        if (catInput && menu && !catInput.contains(e.target) && !menu.contains(e.target)) {
+          menu.classList.add('hidden')
+          this.editingCategoryIndex = null
+        }
       })
     }
 
@@ -1326,8 +1369,8 @@ export class DrawerManager {
 
       if (filtered.length === 0) {
         listEl.innerHTML = `
-          <li class="p-2 text-center text-slate-400 text-xs">
-            No matching categories. Press "Add new category" below.
+          <li class="px-3 py-2 text-center text-slate-400 text-xs">
+            No categories match "${filter}". Click "+ Add New" to create.
           </li>
         `
         return
@@ -1337,21 +1380,32 @@ export class DrawerManager {
         .map((cat) => {
           const actualIdx = this.categories.indexOf(cat)
           const isEditing = this.editingCategoryIndex === actualIdx
+          const catUpper = cat.toUpperCase()
+
+          // Color theme mapping for category icon badges
+          let badgeColor = 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20'
+          if (catUpper.includes('LIGHT') || catUpper.includes('ELECTRIC') || catUpper.includes('VECO')) {
+            badgeColor = 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
+          } else if (catUpper.includes('PERIPHERAL') || catUpper.includes('MOUSE') || catUpper.includes('KEYBOARD') || catUpper.includes('HARDWARE')) {
+            badgeColor = 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20'
+          } else if (catUpper.includes('CLEAN') || catUpper.includes('CHUTE') || catUpper.includes('REPAIR')) {
+            badgeColor = 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+          } else if (catUpper.includes('WATER') || catUpper.includes('CONVERGE')) {
+            badgeColor = 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20'
+          } else if (catUpper.includes('STOREFRONT') || catUpper.includes('MAINTENANCE')) {
+            badgeColor = 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20'
+          }
 
           if (isEditing) {
             return `
-              <li class="flex items-center justify-between p-1.5 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-300 dark:border-rose-700 space-x-2">
-                <input id="edit-bill-cat-field" type="text" value="${cat}" class="w-full text-xs font-semibold text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-1 focus:ring-2 focus:ring-rose-500 focus:outline-none uppercase" />
-                <div class="flex items-center space-x-1 shrink-0">
-                  <button id="save-bill-cat-btn" type="button" data-save-bill-cat="${actualIdx}" title="Save changes" class="p-1 text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-950/80 rounded transition cursor-pointer">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
-                    </svg>
+              <li class="p-1">
+                <div class="flex items-center space-x-1.5">
+                  <input id="edit-bill-cat-field" type="text" value="${cat}" class="w-full px-2 py-1 text-xs bg-slate-100 dark:bg-slate-700 border border-rose-500 rounded-lg text-slate-900 dark:text-white font-medium focus:outline-none uppercase">
+                  <button id="save-bill-cat-${actualIdx}" type="button" data-save-bill-cat="${actualIdx}" title="Save" class="p-1 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 rounded cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                   </button>
-                  <button id="cancel-bill-cat-btn" type="button" data-cancel-bill-cat="${actualIdx}" title="Cancel" class="p-1 text-rose-500 hover:text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-950/80 rounded transition cursor-pointer">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
+                  <button id="cancel-bill-cat-${actualIdx}" type="button" data-cancel-bill-cat="${actualIdx}" title="Cancel" class="p-1 text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 rounded cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                   </button>
                 </div>
               </li>
@@ -1359,40 +1413,24 @@ export class DrawerManager {
           }
 
           return `
-            <li class="group flex items-center justify-between p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/60 transition cursor-pointer" data-bill-cat-item="${cat}">
-              <div class="flex items-center space-x-2.5 truncate flex-1" data-select-bill-cat="${cat}">
-                <div class="w-6 h-6 rounded-lg bg-rose-100 dark:bg-rose-950/80 text-rose-600 dark:text-rose-400 flex items-center justify-center font-bold text-[10px] shrink-0 uppercase">
+            <li class="group flex items-center justify-between px-3 py-2 rounded-xl hover:bg-rose-50 dark:hover:bg-slate-700/80 transition cursor-pointer" data-bill-cat-item="${cat}">
+              <div class="flex items-center space-x-2.5 truncate flex-1 min-w-0" data-select-bill-cat="${cat}">
+                <div class="w-6 h-6 rounded-lg ${badgeColor} border flex items-center justify-center font-bold text-[10px] shrink-0 uppercase">
                   ${cat.slice(0, 1)}
                 </div>
                 <span class="truncate text-xs font-semibold text-slate-800 dark:text-slate-200 uppercase">${cat}</span>
               </div>
-              <button id="edit-bill-cat-${actualIdx}" type="button" data-edit-bill-cat="${actualIdx}" title="Edit category title" class="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-slate-200 dark:hover:bg-slate-600/60 rounded transition cursor-pointer">
-                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                </svg>
-              </button>
+              <div class="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition">
+                <button id="edit-bill-cat-${actualIdx}" type="button" data-edit-bill-cat="${actualIdx}" title="Edit category" class="p-1 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-200 dark:hover:bg-slate-600/60 rounded cursor-pointer">
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                  </svg>
+                </button>
+              </div>
             </li>
           `
         })
         .join('')
-
-      if (this.editingCategoryIndex !== null) {
-        const input = document.getElementById('edit-bill-cat-field')
-        if (input) {
-          input.focus()
-          input.select()
-          input.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault()
-              this.submitCategoryEdit(this.editingCategoryIndex, input.value.trim().toUpperCase())
-            } else if (e.key === 'Escape') {
-              e.preventDefault()
-              this.editingCategoryIndex = null
-              this.renderCategoryList(filter)
-            }
-          })
-        }
-      }
 
       listEl.querySelectorAll('[data-select-bill-cat]').forEach((el) => {
         el.addEventListener('click', () => {
@@ -1410,12 +1448,12 @@ export class DrawerManager {
       })
 
       listEl.querySelectorAll('[data-save-bill-cat]').forEach((btn) => {
-        btn.addEventListener('click', (e) => {
+        btn.addEventListener('click', async (e) => {
           e.stopPropagation()
           const idx = parseInt(btn.getAttribute('data-save-bill-cat'), 10)
           const input = document.getElementById('edit-bill-cat-field')
-          const val = input ? input.value.trim().toUpperCase() : ''
-          this.submitCategoryEdit(idx, val)
+          const val = input ? input.value.trim() : ''
+          await this.submitCategoryEdit(idx, val)
         })
       })
 
@@ -1428,34 +1466,36 @@ export class DrawerManager {
       })
     }
 
-    submitCategoryEdit(index, newValue) {
+    async submitCategoryEdit(index, newValue) {
       const oldName = this.categories[index]
       if (!newValue) {
-        this.categories.splice(index, 1)
         this.editingCategoryIndex = null
-        const hiddenInput = document.getElementById('bill-category')
-        const catInput = document.getElementById('bill-cat-btn')
-        if (hiddenInput && hiddenInput.value === oldName) {
-          const nextVal = this.categories[0] || 'GENERAL BILL'
-          hiddenInput.value = nextVal
-          if (catInput) catInput.value = nextVal
-        }
         this.renderCategoryList('')
-        this.updateLiveSplitPreview()
         return
       }
 
-      this.categories[index] = newValue
-      this.editingCategoryIndex = null
+      if (oldName && newValue !== oldName) {
+        try {
+          await billsApi.updateCategory(oldName, newValue)
+          this.parent.animations?.toast?.show(`Category updated to "${newValue}"`)
+        } catch {}
 
-      const hiddenInput = document.getElementById('bill-category')
-      const catInput = document.getElementById('bill-cat-btn')
-      if (hiddenInput && hiddenInput.value === oldName) {
-        hiddenInput.value = newValue
-        if (catInput) catInput.value = newValue
+        this.categories[index] = newValue
+        this.editingCategoryIndex = null
+
+        const hiddenInput = document.getElementById('bill-category')
+        const catInput = document.getElementById('bill-cat-btn')
+        if (hiddenInput && hiddenInput.value === oldName) {
+          hiddenInput.value = newValue
+          if (catInput) catInput.value = newValue
+        }
+
+        await this.loadCategoriesFromDb()
+        this.updateLiveSplitPreview()
+      } else {
+        this.editingCategoryIndex = null
+        this.renderCategoryList('')
       }
-      this.renderCategoryList('')
-      this.updateLiveSplitPreview()
     }
 
     selectCategory(val) {
@@ -1464,33 +1504,89 @@ export class DrawerManager {
       if (hiddenInput) hiddenInput.value = val
       if (catInput) catInput.value = val
       document.getElementById('bill-cat-menu')?.classList.add('hidden')
+      this.editingCategoryIndex = null
+
+      const valUpper = (val || '').toUpperCase()
+
+      // RULE 1: If PLDT is selected, default suggestion input at id="bill-amount" is always ₱1,806
+      if (valUpper.includes('PLDT')) {
+        const amountInput = document.getElementById('bill-amount')
+        if (amountInput) {
+          amountInput.value = '1,806.00'
+        }
+      }
+
+      // RULE 2: If Peripherals is selected, DO NOT SELECT ALL at id="owners-checkbox-group"
+      // Instead, uncheck all or only select the first owner for individual 1:1 attribution
+      if (valUpper.includes('PERIPHERAL') || valUpper.includes('MOUSE') || valUpper.includes('KEYBOARD')) {
+        const checkboxes = document.querySelectorAll('input[name="owner-role"]')
+        checkboxes.forEach((c, idx) => {
+          c.checked = idx === 0 // only select single active owner
+        })
+      }
+
       this.updateLiveSplitPreview()
     }
 
-    addNewCategory(name) {
+    async addNewCategory(name) {
       if (!name) return
-      if (!this.categories.includes(name)) {
-        this.categories.push(name)
+      const trimmed = name.trim()
+      if (!trimmed) return
+
+      if (!this.categories.includes(trimmed)) {
+        this.categories.push(trimmed)
       }
-      this.selectCategory(name)
+      this.selectCategory(trimmed)
+
+      // Push to Supabase backend database
+      try {
+        await billsApi.addCategory(trimmed)
+        await this.loadCategoriesFromDb()
+        this.parent.animations?.toast?.show(`Category "${trimmed}" saved to database!`)
+      } catch {}
+
       this.renderCategoryList('')
     }
-    // END: BillsDrawerController.initCategoryDropdown
 
+    // ==========================================
+    // Owners & Habwa Logs Management
+    // ==========================================
     async loadOwnersFromDb() {
       try {
-        const res = await usersApi.getOwners()
-        if (res.success && Array.isArray(res.data)) {
-          this.ownersList = res.data
-          this.renderOwnerCheckboxes()
-          this.updateLiveSplitPreview()
+        const [ownersRes, habwaRes] = await Promise.all([
+          usersApi.getOwners(),
+          habwaApi.getAll()
+        ])
+
+        if (ownersRes.success && Array.isArray(ownersRes.data)) {
+          this.ownersList = ownersRes.data
         }
+
+        const habwaLogs = (habwaRes.success && Array.isArray(habwaRes.data)) ? habwaRes.data : []
+        this.ownerHabwaMap = {}
+
+        // Group habwa amount and array of amounts per owner
+        habwaLogs.forEach((h) => {
+          const ownerId = h.owner_id
+          const amt = typeof h.amount === 'number' ? h.amount : (parseFloat(h.amount) || 0)
+          if (!this.ownerHabwaMap[ownerId]) {
+            this.ownerHabwaMap[ownerId] = {
+              amounts: [],
+              total: 0
+            }
+          }
+          this.ownerHabwaMap[ownerId].amounts.push(amt)
+          this.ownerHabwaMap[ownerId].total += amt
+        })
+
+        this.renderOwnerCheckboxes()
+        this.updateLiveSplitPreview()
       } catch {
         // Fallback gracefully
       }
     }
 
-    // START: BillsDrawerController.initOwnerChecklist - Fetches owners from Habwa list with searchable filter
+    // START: BillsDrawerController.initOwnerChecklist - Fetches owners and Habwa logs with live search filter
     initOwnerChecklist() {
       const searchInput = document.getElementById('owner-search-input')
       searchInput?.addEventListener('input', (e) => {
@@ -1523,12 +1619,12 @@ export class DrawerManager {
       const hasInitialSelection = currentlyChecked.size > 0
 
       const badgeColors = [
-        'text-amber-500',
-        'text-sky-500',
-        'text-indigo-500',
-        'text-emerald-500',
-        'text-purple-500',
-        'text-pink-500'
+        'text-amber-500 bg-amber-500/10 border-amber-500/20',
+        'text-sky-500 bg-sky-500/10 border-sky-500/20',
+        'text-indigo-500 bg-indigo-500/10 border-indigo-500/20',
+        'text-emerald-500 bg-emerald-500/10 border-emerald-500/20',
+        'text-purple-500 bg-purple-500/10 border-purple-500/20',
+        'text-pink-500 bg-pink-500/10 border-pink-500/20'
       ]
 
       const filtered = owners.filter((u) => {
@@ -1545,19 +1641,43 @@ export class DrawerManager {
         return
       }
 
+      const activeCat = (document.getElementById('bill-category')?.value || document.getElementById('bill-cat-btn')?.value || '').toUpperCase()
+      const isPeripherals = activeCat.includes('PERIPHERAL') || activeCat.includes('MOUSE') || activeCat.includes('KEYBOARD')
+
       container.innerHTML = filtered
         .map((u, idx) => {
           const roleIndex = (idx + 1).toString()
           const colorClass = badgeColors[idx % badgeColors.length]
-          const isChecked = hasInitialSelection ? currentlyChecked.has(roleIndex) : true
-          const displayStr = `${u.full_name}${u.units ? ` (${u.units})` : ''}`
+          
+          // Default selection rule: If Peripherals, default only first owner checked (not select all)
+          const isChecked = hasInitialSelection
+            ? currentlyChecked.has(roleIndex)
+            : (isPeripherals ? idx === 0 : true)
+
+          const parsedUnits = parseInt(u.units, 10) || 1
+          const unitLabel = `${parsedUnits} Unit${parsedUnits > 1 ? 's' : ''}`
+          const habwaData = this.ownerHabwaMap[u.id] || { amounts: [], total: 0 }
+          const formattedHabwa = habwaData.total.toLocaleString('en-PH', { maximumFractionDigits: 0 })
 
           return `
-            <label class="flex items-center space-x-2.5 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700/50 p-1.5 rounded-lg transition">
-              <input type="checkbox" name="owner-role" value="${roleIndex}" data-owner-id="${u.id}" data-owner-name="${displayStr}" ${isChecked ? 'checked' : ''} class="w-4 h-4 text-rose-600 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 rounded-sm focus:ring-rose-500">
-              <span class="text-xs font-medium text-slate-800 dark:text-slate-200">
-                <span class="font-bold ${colorClass}">${roleIndex}</span> - ${displayStr}
-              </span>
+            <label class="flex items-center justify-between p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 transition cursor-pointer border border-transparent hover:border-slate-200 dark:hover:border-slate-700">
+              <div class="flex items-center space-x-2.5 min-w-0">
+                <input type="checkbox" name="owner-role" value="${roleIndex}" data-owner-id="${u.id}" data-owner-name="${u.full_name}" data-units="${parsedUnits}" ${isChecked ? 'checked' : ''} class="w-4 h-4 text-rose-600 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 rounded-sm focus:ring-rose-500 cursor-pointer">
+                <span class="inline-flex items-center justify-center w-5 h-5 rounded-md text-[10px] font-bold border ${colorClass}">
+                  ${roleIndex}
+                </span>
+                <span class="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate">
+                  ${u.full_name}
+                </span>
+              </div>
+              <div class="flex items-center space-x-1.5 shrink-0">
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-200/80 dark:bg-slate-700 text-slate-700 dark:text-slate-300">
+                  ${unitLabel}
+                </span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20" title="Total Habwa Harvested">
+                  ₱${formattedHabwa}
+                </span>
+              </div>
             </label>
           `
         })
@@ -1570,71 +1690,68 @@ export class DrawerManager {
     }
     // END: BillsDrawerController.initOwnerChecklist
 
-    // START: BillsDrawerController.getOwnerStatsFromHabwa - Dynamically tallies revenue and unit count per owner from Habwa records
+    // START: BillsDrawerController.getOwnerStatsFromHabwa - Dynamically tallies revenue and unit count per owner
     getOwnerStatsFromHabwa() {
       const owners = Array.isArray(this.ownersList) ? this.ownersList : []
       const ownerStats = {}
 
       owners.forEach((u, idx) => {
         const roleId = (idx + 1).toString()
-        const fullName = `${u.full_name}${u.units ? ` (${u.units})` : ''}`
+        const parsedUnits = parseInt(u.units, 10) || 1
+        const habwaData = this.ownerHabwaMap[u.id] || { amounts: [], total: 0 }
+
         ownerStats[roleId] = {
           role: roleId,
           id: u.id,
           name: u.full_name,
-          fullName: fullName,
-          totalIncome: 0,
-          units: 1
+          fullName: `${u.full_name} (${parsedUnits} Unit${parsedUnits > 1 ? 's' : ''})`,
+          totalIncome: habwaData.total,
+          habwaAmounts: habwaData.amounts,
+          units: parsedUnits
         }
       })
-
-      const masterHabwa = (this.parent.tableManager && this.parent.tableManager.masterHabwaRecords)
-        ? this.parent.tableManager.masterHabwaRecords
-        : []
-
-      if (masterHabwa && masterHabwa.length > 0) {
-        masterHabwa.forEach((rec) => {
-          const rawOwner = rec.owner || ''
-          const amt = typeof rec.amount === 'number' ? rec.amount : (parseFloat(rec.amount) || 0)
-
-          owners.forEach((u, idx) => {
-            const roleId = (idx + 1).toString()
-            if (rec.owner_id === u.id || rawOwner.toLowerCase().includes(u.full_name.toLowerCase())) {
-              ownerStats[roleId].totalIncome += amt
-            }
-          })
-        })
-      }
 
       return ownerStats
     }
     // END: BillsDrawerController.getOwnerStatsFromHabwa
-    // END: BillsDrawerController.getOwnerStatsFromHabwa
 
-    // START: BillsDrawerController.calculateSplit - Implements dynamic Option C splitting based on actual Habwa income
+    // START: BillsDrawerController.calculateSplit - Implements dynamic splitting formulas
     calculateSplit(amount, category, checkedRoles) {
       const ownerStats = this.getOwnerStatsFromHabwa()
-
       const catUpper = (category || '').toUpperCase()
-      const isElectricity = catUpper.includes('ELECTRICITY') || catUpper.includes('VECO') || catUpper.includes('POWER')
 
       if (checkedRoles.length === 0) {
         return {
-          isElectricity,
+          categoryType: 'none',
           detailedBreakdown: [],
           shares: 'None',
           ruleText: 'No owners selected'
         }
       }
 
+      // Check category logic rules
+      const isElectricity = catUpper.includes('LIGHT') || catUpper.includes('ELECTRIC') || catUpper.includes('VECO') || catUpper.includes('POWER')
+      const isInternet = catUpper.includes('PLDT') || catUpper.includes('INTERNET') || catUpper.includes('FIBR') || catUpper.includes('CONVERGE')
+      const isPeripherals = catUpper.includes('PERIPHERAL') || catUpper.includes('MOUSE') || catUpper.includes('KEYBOARD') || catUpper.includes('HARDWARE')
+
+      // FORMULA 1: ELECTRICITY / ILIGAN LIGHT
+      // Rule: Proportional to Habwa profit earned (higher profit & active runtime covers more electricity, protecting lower earners from brutal wipeout)
       if (isElectricity) {
-        // Automatic electricity split: Proportional to monthly Habwa income
         const totalIncomePool = checkedRoles.reduce((sum, r) => sum + (ownerStats[r]?.totalIncome || 0), 0)
+        const totalUnitsPool = checkedRoles.reduce((sum, r) => sum + (ownerStats[r]?.units || 1), 0)
 
         const detailedBreakdown = checkedRoles.map((r) => {
           const owner = ownerStats[r] || { name: `Owner ${r}`, totalIncome: 0, units: 1 }
-          const income = owner.totalIncome
-          const sharePercent = totalIncomePool > 0 ? (income / totalIncomePool) : (1 / checkedRoles.length)
+          const ownerUnits = owner.units || 1
+          const income = owner.totalIncome || 0
+
+          let sharePercent = 0
+          if (totalIncomePool > 0) {
+            sharePercent = income / totalIncomePool
+          } else {
+            sharePercent = totalUnitsPool > 0 ? (ownerUnits / totalUnitsPool) : (1 / checkedRoles.length)
+          }
+
           const shareAmt = amount * sharePercent
           const percentFormatted = (sharePercent * 100).toFixed(1)
 
@@ -1642,9 +1759,11 @@ export class DrawerManager {
             role: r,
             name: owner.name,
             income: income,
-            units: owner.units || 1,
+            units: ownerUnits,
             shareAmount: shareAmt,
-            method: `Income-weighted (${percentFormatted}% of ₱${totalIncomePool.toLocaleString('en-PH', { maximumFractionDigits: 0 })} Habwa)`
+            method: totalIncomePool > 0
+              ? `Profit-scaled: ₱${income.toLocaleString('en-PH', { maximumFractionDigits: 0 })} (${percentFormatted}%)`
+              : `Unit-weighted: ${ownerUnits}/${totalUnitsPool} units (${percentFormatted}%)`
           }
         })
 
@@ -1653,14 +1772,90 @@ export class DrawerManager {
           .join(' | ')
 
         return {
-          isElectricity: true,
+          categoryType: 'electricity',
           detailedBreakdown,
           shares,
-          ruleText: `Auto-Split by Habwa Income (₱${(Math.round(totalIncomePool * 100) / 100).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})`
+          ruleText: totalIncomePool > 0
+            ? `Profit-Scaled Electricity Split (₱${totalIncomePool.toLocaleString('en-PH', { maximumFractionDigits: 0 })} Habwa Pool)`
+            : `Unit-Weighted Electricity Split (${totalUnitsPool} total units)`
         }
       }
 
-      // Shared costs (Internet, Maintenance, Water, Switch): split equally among active owners
+      // FORMULA 2: PLDT / INTERNET
+      // Rule: Depends on units: 1 unit pays equal base share, >1 unit pays a bit higher (+0.5 per extra unit)
+      if (isInternet) {
+        // Calculate weighted shares: base weight = 1 for 1 unit, additional 0.5 per unit over 1
+        const weights = {}
+        checkedRoles.forEach((r) => {
+          const u = ownerStats[r]?.units || 1
+          weights[r] = u <= 1 ? 1 : 1 + (u - 1) * 0.5
+        })
+
+        const totalWeightPool = checkedRoles.reduce((sum, r) => sum + weights[r], 0)
+
+        const detailedBreakdown = checkedRoles.map((r) => {
+          const owner = ownerStats[r] || { name: `Owner ${r}`, totalIncome: 0, units: 1 }
+          const ownerUnits = owner.units || 1
+          const weight = weights[r] || 1
+          const sharePercent = totalWeightPool > 0 ? (weight / totalWeightPool) : (1 / checkedRoles.length)
+          const shareAmt = amount * sharePercent
+          const percentFormatted = (sharePercent * 100).toFixed(1)
+
+          return {
+            role: r,
+            name: owner.name,
+            income: owner.totalIncome,
+            units: ownerUnits,
+            shareAmount: shareAmt,
+            method: ownerUnits > 1
+              ? `Multi-Unit Tier (${ownerUnits} units, higher share: ${percentFormatted}%)`
+              : `1-Unit Base Tier (Equal base: ${percentFormatted}%)`
+          }
+        })
+
+        const shares = detailedBreakdown
+          .map((d) => `${d.role} = -₱${(Math.round(d.shareAmount * 100) / 100).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`)
+          .join(' | ')
+
+        return {
+          categoryType: 'internet',
+          detailedBreakdown,
+          shares,
+          ruleText: `Internet Split by Units (1-Unit Equal Base, >1 Unit Scaled Higher)`
+        }
+      }
+
+      // FORMULA 3: PERIPHERALS (MOUSE, KEYBOARD, ETC.)
+      // Rule: 1:1 direct unit expense for selected owner(s), no shared cost across everyone
+      if (isPeripherals) {
+        const count = checkedRoles.length
+        const perOwnerShare = count > 0 ? (amount / count) : 0
+
+        const detailedBreakdown = checkedRoles.map((r) => {
+          const owner = ownerStats[r] || { name: `Owner ${r}`, totalIncome: 0, units: 1 }
+          return {
+            role: r,
+            name: owner.name,
+            income: owner.totalIncome,
+            units: owner.units || 1,
+            shareAmount: perOwnerShare,
+            method: `1:1 Unit Expense (Direct cost, no shared pool)`
+          }
+        })
+
+        const shares = detailedBreakdown
+          .map((d) => `${d.role} = -₱${(Math.round(d.shareAmount * 100) / 100).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`)
+          .join(' | ')
+
+        return {
+          categoryType: 'peripherals',
+          detailedBreakdown,
+          shares,
+          ruleText: `Direct 1:1 Expense (${count} owner${count > 1 ? 's' : ''} paying own units)`
+        }
+      }
+
+      // FORMULA 4: GENERAL / OTHER EXPENSES (Equal split among active selected owners)
       const count = checkedRoles.length
       const perShare = count > 0 ? (amount / count) : 0
       const detailedBreakdown = checkedRoles.map((r) => {
@@ -1674,12 +1869,13 @@ export class DrawerManager {
           method: `Shared equally (1/${count})`
         }
       })
+
       const shares = detailedBreakdown
         .map((d) => `${d.role} = -₱${(Math.round(d.shareAmount * 100) / 100).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`)
         .join(' | ')
 
       return {
-        isElectricity: false,
+        categoryType: 'general',
         detailedBreakdown,
         shares,
         ruleText: `Shared equally among ${count} owners`
@@ -1691,6 +1887,7 @@ export class DrawerManager {
     updateLiveSplitPreview() {
       const amountInput = document.getElementById('bill-amount')
       const categoryInput = document.getElementById('bill-category')
+      const catBtn = document.getElementById('bill-cat-btn')
       const previewCards = document.getElementById('preview-split-cards')
       const ruleLabel = document.getElementById('preview-calc-rule')
 
@@ -1698,7 +1895,7 @@ export class DrawerManager {
 
       const rawAmount = (amountInput?.value || '0').replace(/,/g, '')
       const amount = parseFloat(rawAmount) || 0
-      const category = categoryInput?.value || ''
+      const category = (categoryInput?.value || catBtn?.value || '').trim()
       const checkedRoles = Array.from(document.querySelectorAll('input[name="owner-role"]:checked')).map((c) => c.value)
 
       const splitResult = this.calculateSplit(amount, category, checkedRoles)
@@ -1726,20 +1923,23 @@ export class DrawerManager {
         .map((item) => {
           const color = roleBadgeColors[item.role] || 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
           const formatted = (Math.round(item.shareAmount * 100) / 100).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-          const formattedIncome = (Math.round((item.income || 0) * 100) / 100).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+          const formattedIncome = (Math.round((item.income || 0) * 100) / 100).toLocaleString('en-PH', { minimumFractionDigits: 0, maximumFractionDigits: 0 })
           return `
             <div class="p-2.5 rounded-lg border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-900 shadow-2xs">
               <div class="flex items-center justify-between mb-1">
                 <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold border ${color}">
                   ${item.role}
                 </span>
-                <span class="text-[10px] text-slate-400 font-mono">₱${formattedIncome} rev</span>
+                <span class="text-[10px] text-slate-400 font-mono">₱${formattedIncome} habwa</span>
               </div>
               <div class="text-[11px] font-bold text-slate-800 dark:text-slate-200 truncate">
-                ${item.name}
+                ${item.name} (${item.units}U)
               </div>
               <div class="text-xs font-black font-money text-rose-600 dark:text-rose-400 mt-1">
                 -₱${formatted}
+              </div>
+              <div class="text-[9px] text-slate-400 truncate mt-0.5">
+                ${item.method}
               </div>
             </div>
           `
@@ -1777,23 +1977,33 @@ export class DrawerManager {
       const titleEl = document.getElementById('drawer-title')
       if (titleEl) titleEl.textContent = 'Log New Bill Deduction'
 
-      const defaultCat = this.categories[0] || 'PLDT FIBR INTERNET'
+      // Default category to PLDT HOME FIBR INTERNET or first from list
+      const defaultCat = this.categories[0] || 'PLDT HOME FIBR INTERNET'
       const catHidden = document.getElementById('bill-category')
       const catBtn = document.getElementById('bill-cat-btn')
       if (catHidden) catHidden.value = defaultCat
       if (catBtn) catBtn.value = defaultCat
 
-      // Default date to today
+      // Default PLDT amount to ₱1,806
+      const amountInput = document.getElementById('bill-amount')
+      if (amountInput) {
+        amountInput.value = defaultCat.toUpperCase().includes('PLDT') ? '1,806.00' : ''
+      }
+
+      // Default date to current today in GMT+08 Philippines Asia/Manila Timezone
       const dateInput = document.getElementById('bill-date')
       if (dateInput) {
-        dateInput.value = new Date().toISOString().slice(0, 10)
+        dateInput.value = this.getTodayManilaDate()
       }
 
       // Re-render dynamic owners checklist
       this.loadOwnersFromDb()
 
-      // Check all owners by default
-      document.querySelectorAll('input[name="owner-role"]').forEach((c) => (c.checked = true))
+      // Selection rule: Check all unless it's Peripherals
+      const isPeripherals = defaultCat.toUpperCase().includes('PERIPHERAL') || defaultCat.toUpperCase().includes('MOUSE') || defaultCat.toUpperCase().includes('KEYBOARD')
+      document.querySelectorAll('input[name="owner-role"]').forEach((c, idx) => {
+        c.checked = isPeripherals ? idx === 0 : true
+      })
 
       this.updateLiveSplitPreview()
       this.show()
@@ -1822,7 +2032,7 @@ export class DrawerManager {
           maximumFractionDigits: 2
         })
       }
-      if (dateInput) dateInput.value = entry.date || ''
+      if (dateInput) dateInput.value = entry.date || this.getTodayManilaDate()
       if (notesInput) notesInput.value = entry.notes || entry.desc || ''
 
       // Re-render owner checkboxes to ensure latest list
@@ -1882,27 +2092,27 @@ export class DrawerManager {
     // START: BillsDrawerController.saveEntry - Validates and saves deduction bill to Supabase
     async saveEntry() {
       const categoryInput = document.getElementById('bill-category')
+      const catBtn = document.getElementById('bill-cat-btn')
       const descInput = document.getElementById('bill-desc')
       const amountInput = document.getElementById('bill-amount')
       const dateInput = document.getElementById('bill-date')
       const notesInput = document.getElementById('bill-notes')
 
-      const category = categoryInput?.value.trim().toUpperCase() || 'GENERAL BILL'
+      const category = (categoryInput?.value || catBtn?.value || 'GENERAL BILL').trim()
       const desc = descInput?.value.trim() || 'Operational Deduction'
       const rawAmount = (amountInput?.value || '0').replace(/,/g, '')
       const amount = parseFloat(rawAmount) || 0
-      const date = dateInput?.value || new Date().toISOString().slice(0, 10)
+      const date = dateInput?.value || this.getTodayManilaDate()
       const notes = notesInput?.value.trim() || ''
 
       const ownerStats = this.getOwnerStatsFromHabwa()
-      const allRoles = Object.keys(ownerStats)
 
       // Collect selected role IDs and their Supabase user UUIDs
       const checkedBoxes = Array.from(document.querySelectorAll('input[name="owner-role"]:checked'))
       const checkedRoles = checkedBoxes.map((c) => c.value)
       const ownerIds = checkedBoxes.map((c) => c.getAttribute('data-owner-id')).filter(Boolean)
 
-      // Execute Option C splitting
+      // Execute dynamic formula splitting
       const splitResult = this.calculateSplit(amount, category, checkedRoles)
       const detailedBreakdown = splitResult.detailedBreakdown
 
@@ -1918,7 +2128,7 @@ export class DrawerManager {
       const tm = this.parent.tableManager
       if (this.editingId) {
         const item = tm?.records?.find((r) => r.id === this.editingId)
-        const targetDbId = item?.dbId || this.editingId
+        const targetDbId = item?.dbId ?? this.editingId
 
         await billsApi.update(targetDbId, {
           category,
@@ -2544,8 +2754,7 @@ export class DrawerManager {
 
       // Push to Supabase backend database
       try {
-        const adminId = storageManager.session.getUserId()
-        await requestsApi.addCategory(trimmed, adminId)
+        await requestsApi.addCategory(trimmed)
       } catch {}
 
       // 1. Temporarily slide close the drawer
@@ -4070,14 +4279,24 @@ export class DrawerManager {
     ScopeDropdownController = class {
       constructor(drawer) {
         this.drawer = drawer
-        this.scopes = [
-          { value: 'all', title: 'ALL SYSTEM DATA (Full Combined Ledger)', subtitle: 'All categories, logs, and telemetry combined' },
-          { value: 'revenue', title: 'Coin Revenue & Habwa Collections', subtitle: 'Pisonet coin drop harvests & gross earnings' },
-          { value: 'bills', title: 'Operational Expenses & Bills Deductions', subtitle: 'Electricity, fiber internet, water & repairs' },
-          { value: 'requests', title: 'Owner Expense Requests & Advances', subtitle: 'Cash advances, meals, and allowances' },
-          { value: 'terminals', title: 'Terminal Hardware & Pisonet Fleet', subtitle: 'Pisonet unit status, components & dual coin slots' },
-          { value: 'owners', title: 'Registered Unit Owners & Credentials', subtitle: 'Partner owners, contact numbers & units assigned' }
-        ]
+        const isClient = (sessionStorage.getItem('jn_session_role') && sessionStorage.getItem('jn_session_role') !== '0') || window.location.pathname.includes('/users/')
+
+        if (isClient) {
+          this.scopes = [
+            { value: 'all', title: 'My Combined Ledger', subtitle: 'All personal telemetry and transactions' },
+            { value: 'bills', title: 'My Bill Allocations & Deductions', subtitle: 'Assigned utilities, internet & operational expenses' },
+            { value: 'habwa', title: 'My Habwa Logs & Collections', subtitle: 'Personal coin drop harvests & gross earnings' },
+            { value: 'requests', title: 'My Custom Expense Requests', subtitle: 'Personal cash advances, meals & withdrawals' }
+          ]
+        } else {
+          this.scopes = [
+            { value: 'all', title: 'ALL SYSTEM DATA (Full Combined Ledger)', subtitle: 'All categories, logs, and telemetry combined' },
+            { value: 'bills', title: 'All Monthly Bills & Deductions', subtitle: 'Operational expenses, internet, utilities & attendants' },
+            { value: 'habwa', title: 'All Habwa Logs & Collections', subtitle: 'Pisonet coin drop harvests & gross earnings' },
+            { value: 'requests', title: 'All Custom Expense Requests', subtitle: 'Cash advances, meals, withdrawals & allowances' },
+            { value: 'owners', title: 'All Registered Owners & Fleet', subtitle: 'Partner owners, contact numbers & units assigned' }
+          ]
+        }
         this.selectedScope = this.scopes[0]
       }
 
@@ -4169,19 +4388,49 @@ export class DrawerManager {
     OwnerDropdownController = class {
       constructor(drawer) {
         this.drawer = drawer
+        this.isClient = (sessionStorage.getItem('jn_session_role') && sessionStorage.getItem('jn_session_role') !== '0') || window.location.pathname.includes('/users/')
+        this.currentOwner = sessionStorage.getItem('jn_session_user') || 'Ate Darling'
         this.owners = [
-          { value: 'all', title: 'ALL OWNERS (Full Fleet)', subtitle: 'System-wide telemetry across all partners' },
-          { value: 'Kuya Jorgy', title: 'Kuya Jorgy (Unit 1 & 2)', subtitle: 'Station 1 & 2 • Dual coin slots' },
-          { value: 'Boss Roldan', title: 'Boss Roldan (Unit 3 & 4)', subtitle: 'Station 3 & 4 • VIP Gaming rig' },
-          { value: 'Ate Gina', title: 'Ate Gina (Unit 5 & 6)', subtitle: 'Station 5 & 6 • Standard pisonets' },
-          { value: 'Nanay Tessie', title: 'Nanay Tessie (Unit 7 & 8)', subtitle: 'Station 7 & 8 • Dual coin units' },
-          { value: 'Uncle Dan', title: 'Uncle Dan (Unit 9 & 10)', subtitle: 'Station 9 & 10 • High-yield rigs' }
+          { value: 'all', title: 'ALL OWNERS (Full Fleet)', subtitle: 'System-wide telemetry across all partners' }
         ]
         this.selectedOwner = this.owners[0]
       }
 
-      init() {
+      async init() {
         const input = document.getElementById('owner-btn')
+        const hidden = document.getElementById('export-owner')
+
+        // If in User / Owner portal, lock and disable the dropdown to current login owner
+        if (this.isClient) {
+          if (input) {
+            input.value = `${this.currentOwner} (Personal Fleet)`
+            input.disabled = true
+            input.classList.add('cursor-not-allowed', 'opacity-75', 'bg-slate-100', 'dark:bg-slate-800')
+          }
+          if (hidden) hidden.value = this.currentOwner
+          this.selectedOwner = { value: this.currentOwner, title: `${this.currentOwner} (Personal Fleet)`, subtitle: 'Current Logged-in Owner' }
+          return
+        }
+
+        // Fetch live owners from users table
+        try {
+          const res = await usersApi.getOwners()
+          if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+            this.owners = [
+              { value: 'all', title: 'ALL OWNERS (Full Fleet)', subtitle: 'System-wide telemetry across all partners' },
+              ...res.data.map(u => {
+                const numericUnits = (u.units || '').replace(/[^0-9]/g, '')
+                const unitLabel = numericUnits ? `${numericUnits} Unit${numericUnits === '1' ? '' : 's'}` : '1 Unit'
+                return {
+                  value: u.full_name,
+                  title: `${u.full_name} (${unitLabel})`,
+                  subtitle: `Phone: ${u.phone || 'N/A'} • Role: ${u.roles?.label || 'Unit Owner'}`
+                }
+              })
+            ]
+          }
+        } catch {}
+
         this.render()
 
         input?.addEventListener('focus', () => {
@@ -4269,18 +4518,38 @@ export class DrawerManager {
       constructor(drawer) {
         this.drawer = drawer
         this.units = [
-          { value: 'all', title: 'ALL PISONETS (Complete Fleet Units 1 to 10)', subtitle: 'Full 10-terminal gaming & coin slot network' },
-          { value: '1 & 2', title: 'Unit 1 & 2 (Main Counter Units)', subtitle: 'Kuya Jorgy • High-traffic storefront' },
-          { value: '3 & 4', title: 'Unit 3 & 4 (VIP Gaming Setup)', subtitle: 'Boss Roldan • Curved monitors & gaming rigs' },
-          { value: '5 & 6', title: 'Unit 5 & 6 (Side Alley Terminal)', subtitle: 'Ate Gina • Standard pisonet units' },
-          { value: '7 & 8', title: 'Unit 7 & 8 (Dual Coin Terminal)', subtitle: 'Nanay Tessie • Dual coin chutes' },
-          { value: '9 & 10', title: 'Unit 9 & 10 (High-Yield Terminal)', subtitle: 'Uncle Dan • High uptime performance' }
+          { value: 'all', title: 'ALL PISONET UNITS', subtitle: 'Full pisonet gaming & coin slot network' }
         ]
         this.selectedUnits = this.units[0]
       }
 
-      init() {
+      async init() {
         const input = document.getElementById('units-btn')
+
+        // Fetch live owners and extract numeric unit digits (skipping Units/Unit text)
+        try {
+          const res = await usersApi.getOwners()
+          if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+            const unitNumbers = new Set()
+            let totalUnitCount = 0
+            res.data.forEach(u => {
+              const num = parseInt((u.units || '').replace(/[^0-9]/g, ''), 10) || 1
+              totalUnitCount += num
+            })
+            for (let i = 1; i <= Math.max(totalUnitCount, 4); i++) {
+              unitNumbers.add(i)
+            }
+            this.units = [
+              { value: 'all', title: 'ALL PISONET UNITS', subtitle: 'Full pisonet gaming & coin slot network' },
+              ...Array.from(unitNumbers).sort((a,b) => a - b).map(n => ({
+                value: `Unit ${n}`,
+                title: `Unit ${n}`,
+                subtitle: `Station ${n} Active Terminal`
+              }))
+            ]
+          }
+        } catch {}
+
         this.render()
 
         input?.addEventListener('focus', () => {
@@ -4385,18 +4654,26 @@ export class DrawerManager {
             btn.classList.remove('bg-slate-100', 'dark:bg-slate-800', 'text-slate-700', 'dark:text-slate-300')
 
             const preset = btn.getAttribute('data-date-preset')
+            const now = new Date()
+            const curY = now.getFullYear()
+            const curM = now.getMonth()
+
             if (preset === 'all') {
-              if (startInput) startInput.value = '2026-01-01'
-              if (endInput) endInput.value = '2026-10-31'
+              if (startInput) startInput.value = ''
+              if (endInput) endInput.value = ''
             } else if (preset === 'month') {
-              if (startInput) startInput.value = '2026-10-01'
-              if (endInput) endInput.value = '2026-10-31'
+              const startOfMonth = new Date(curY, curM, 1).toISOString().slice(0, 10)
+              const endOfMonth = new Date(curY, curM + 1, 0).toISOString().slice(0, 10)
+              if (startInput) startInput.value = startOfMonth
+              if (endInput) endInput.value = endOfMonth
             } else if (preset === 'prev-month') {
-              if (startInput) startInput.value = '2026-09-01'
-              if (endInput) endInput.value = '2026-09-30'
+              const startOfPrev = new Date(curY, curM - 1, 1).toISOString().slice(0, 10)
+              const endOfPrev = new Date(curY, curM, 0).toISOString().slice(0, 10)
+              if (startInput) startInput.value = startOfPrev
+              if (endInput) endInput.value = endOfPrev
             } else if (preset === 'year') {
-              if (startInput) startInput.value = '2026-01-01'
-              if (endInput) endInput.value = '2026-12-31'
+              if (startInput) startInput.value = `${curY}-01-01`
+              if (endInput) endInput.value = `${curY}-12-31`
             }
 
             this.drawer.onFilterChanged()
@@ -4422,8 +4699,8 @@ export class DrawerManager {
       const scope = this.scopeDropdown.selectedScope
       const owner = this.ownerDropdown.selectedOwner
       const units = this.unitsDropdown.selectedUnits
-      const start = document.getElementById('export-start-date')?.value || '2026-01-01'
-      const end = document.getElementById('export-end-date')?.value || '2026-10-31'
+      const start = document.getElementById('export-start-date')?.value?.trim() || ''
+      const end = document.getElementById('export-end-date')?.value?.trim() || ''
 
       if (this.parent.tableManager && typeof this.parent.tableManager.updatePreviewFilters === 'function') {
         this.parent.tableManager.updatePreviewFilters({
@@ -4453,8 +4730,8 @@ export class DrawerManager {
 
       const startInput = document.getElementById('export-start-date')
       const endInput = document.getElementById('export-end-date')
-      if (startInput) startInput.value = '2026-01-01'
-      if (endInput) endInput.value = '2026-10-31'
+      if (startInput) startInput.value = ''
+      if (endInput) endInput.value = ''
 
       this.show()
     }

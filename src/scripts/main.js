@@ -260,7 +260,7 @@ export async function initializeApp(pageModule) {
     }
   }
 
-  // Mobile Bottom Navigation Tab Active States (Dual theme with solid/outline icon switching matching sidebar)
+  // Mobile Bottom Navigation Tab Active States & Role Route Sync
   const navHome = document.getElementById('nav-home')
   const navHabwaTab = document.getElementById('nav-habwa')
   const navBillsTab = document.getElementById('nav-bills')
@@ -271,6 +271,14 @@ export async function initializeApp(pageModule) {
   const habwaSolid = document.getElementById('habwa-icon-solid')
   const billsOutline = document.getElementById('bills-icon-outline')
   const billsSolid = document.getElementById('bills-icon-solid')
+
+  // If user is Admin (role === '0'), dynamically set mobile nav destinations to admin pages
+  if (!isClient) {
+    if (navHome) navHome.setAttribute('href', '/frontend/pages/dashboard/')
+    if (navHabwaTab) navHabwaTab.setAttribute('href', '/frontend/pages/habwa/')
+    if (navBillsTab) navBillsTab.setAttribute('href', '/frontend/pages/bills/')
+    if (navNewBtn) navNewBtn.setAttribute('href', '/frontend/pages/requests/?action=add')
+  }
 
   if (path.includes('habwa')) {
     if (navHabwaTab) {
@@ -384,7 +392,7 @@ export async function initializeApp(pageModule) {
   }
 
   if (sidebar) {
-    // Observe class changes on sidebar (Flowbite adds/removes translate-x-full)
+    // Observe class changes on sidebar (Flowbite adds/removes translate-x-full for right-placed drawer)
     const observer = new MutationObserver(() => {
       const isMobile = window.innerWidth < 640
       const isClosed = sidebar.classList.contains('translate-x-full')
@@ -409,10 +417,17 @@ export async function initializeApp(pageModule) {
       const clickedToggle = e.target.closest('#sidebar-toggle')
 
       if (!clickedInsideSidebar && !clickedToggle) {
-        sidebar.classList.add('translate-x-full')
-        mobileNav?.classList.remove('translate-y-24', 'opacity-0', 'pointer-events-none')
-        // Remove Flowbite backdrop if present
-        document.querySelector('[drawer-backdrop]')?.remove()
+        // Trigger drawer close via Flowbite instance if available, or classList fallback
+        const drawerInstance = window.FlowbiteInstances?.getInstance('Drawer', 'pisonet-sidebar')
+        if (drawerInstance) {
+          drawerInstance.hide()
+        } else {
+          sidebar.classList.add('translate-x-full')
+          sidebar.classList.remove('transform-none')
+          mobileNav?.classList.remove('translate-y-24', 'opacity-0', 'pointer-events-none')
+          document.querySelector('[drawer-backdrop]')?.remove()
+          document.body.classList.remove('overflow-hidden')
+        }
       }
     })
   }
