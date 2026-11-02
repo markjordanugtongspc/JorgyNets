@@ -673,7 +673,7 @@ export class AnimationsManager {
         <button id="dot-kpi-0" type="button" class="w-6 h-1.5 rounded-full bg-emerald-500 transition-all duration-300" aria-label="Habwa card"></button>
         <button id="dot-kpi-1" type="button" class="w-2 h-1.5 rounded-full bg-slate-300 dark:bg-slate-700 transition-all duration-300" aria-label="Deductions card"></button>
         <button id="dot-kpi-2" type="button" class="w-2 h-1.5 rounded-full bg-slate-300 dark:bg-slate-700 transition-all duration-300" aria-label="Payout card"></button>
-        <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 ms-2">Swipe or tap to flip</span>
+        <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 ms-2">Tap to flip</span>
       `
 
       container.after(indicatorWrap)

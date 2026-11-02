@@ -198,11 +198,98 @@
 
         </div>
 
+        <!-- Quick Access Icon Grid: 2x3 Grid with Clean, Borderless Rounded Squircle Action Buttons & Bold Labels Below -->
+        <div id="quick-grid" class="grid grid-cols-3 gap-y-4 gap-x-3 max-w-md mx-auto my-3 px-1">
+          
+          <!-- Item 1: CASH OUT (amber/orange warm squircle) -->
+          <a id="btn-cashout" href="/frontend/pages/requests/?action=add"
+            class="flex flex-col items-center justify-start group cursor-pointer focus:outline-none">
+            <div class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center shadow-xs transition-all duration-200 group-hover:scale-105 group-hover:bg-amber-200 dark:group-hover:bg-amber-900/60 group-active:scale-95">
+              <!-- Cashout Philippine Peso Icon -->
+              <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
+                <path d="M9 6h5.5c2.2 0 3.8 1.4 3.8 3.5s-1.6 3.5-3.8 3.5H11v5H9V6zm2 5h3.3c1.1 0 1.9-.6 1.9-1.5s-.8-1.5-1.9-1.5H11V11z"/>
+                <path d="M7.5 8h8.5v1.4H7.5zm0 2.8h8.5v1.4H7.5z"/>
+              </svg>
+            </div>
+            <span class="mt-1.5 text-xs font-bold text-slate-800 dark:text-slate-100 tracking-tight text-center font-averta group-hover:text-amber-600 dark:group-hover:text-amber-400">
+              Cash Out
+            </span>
+          </a>
+
+          <!-- Item 2: HABWA (emerald soft squircle) -->
+          <a id="btn-habwa" href="/frontend/pages/habwa/"
+            class="flex flex-col items-center justify-start group cursor-pointer focus:outline-none">
+            <div class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shadow-xs transition-all duration-200 group-hover:scale-105 group-hover:bg-emerald-200 dark:group-hover:bg-emerald-900/60 group-active:scale-95">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+              </svg>
+            </div>
+            <span class="mt-1.5 text-xs font-bold text-slate-800 dark:text-slate-100 tracking-tight text-center font-averta group-hover:text-emerald-600 dark:group-hover:text-emerald-400">
+              Habwa
+            </span>
+          </a>
+
+          <!-- Item 3: BILLS (rose/pink soft squircle) -->
+          <a id="btn-bills" href="/frontend/pages/bills/"
+            class="flex flex-col items-center justify-start group cursor-pointer focus:outline-none">
+            <div class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center shadow-xs transition-all duration-200 group-hover:scale-105 group-hover:bg-rose-200 dark:group-hover:bg-rose-900/60 group-active:scale-95">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/>
+              </svg>
+            </div>
+            <span class="mt-1.5 text-xs font-bold text-slate-800 dark:text-slate-100 tracking-tight text-center font-averta group-hover:text-rose-600 dark:group-hover:text-rose-400">
+              Bills
+            </span>
+          </a>
+
+          <!-- Item 4: NOTIFS (violet/indigo soft squircle) -->
+          <a id="btn-notif" href="/frontend/users/notifications/"
+            class="flex flex-col items-center justify-start group cursor-pointer focus:outline-none">
+            <div class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shadow-xs transition-all duration-200 group-hover:scale-105 group-hover:bg-indigo-200 dark:group-hover:bg-indigo-900/60 group-active:scale-95">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+              </svg>
+            </div>
+            <span class="mt-1.5 text-xs font-bold text-slate-800 dark:text-slate-100 tracking-tight text-center font-averta group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
+              Notifs
+            </span>
+          </a>
+
+          <!-- Item 5: EXPORTS (sky/cyan soft squircle) -->
+          <a id="btn-export" href="/frontend/users/exports/"
+            class="flex flex-col items-center justify-start group cursor-pointer focus:outline-none">
+            <div class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-sky-100 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 flex items-center justify-center shadow-xs transition-all duration-200 group-hover:scale-105 group-hover:bg-sky-200 dark:group-hover:bg-sky-900/60 group-active:scale-95">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+              </svg>
+            </div>
+            <span class="mt-1.5 text-xs font-bold text-slate-800 dark:text-slate-100 tracking-tight text-center font-averta group-hover:text-sky-600 dark:group-hover:text-sky-400">
+              Exports
+            </span>
+          </a>
+
+          <!-- Item 6: SETTINGS (slate/gray neutral squircle) -->
+          <button id="quick-settings" type="button"
+            class="flex flex-col items-center justify-start group cursor-pointer focus:outline-none">
+            <div class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-slate-200/80 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center shadow-xs transition-all duration-200 group-hover:scale-105 group-hover:bg-slate-300 dark:group-hover:bg-slate-700 group-active:scale-95">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+              </svg>
+            </div>
+            <span class="mt-1.5 text-xs font-bold text-slate-800 dark:text-slate-100 tracking-tight text-center font-averta group-hover:text-blue-600 dark:group-hover:text-blue-400">
+              Settings
+            </span>
+          </button>
+
+        </div>
+
         <!-- ApexCharts Interactive Expandable Analytics Grid (With Flowbite Widget Placeholder Skeleton) -->
         <div id="charts-grid" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
           
           <!-- Large Chart: Monthly 12-Month Revenue & Net Trends in ₱ (With Flowbite Widget Placeholder Skeleton) -->
-          <div id="sales-chart-card" class="lg:col-span-8 p-5 rounded-xl bg-slate-50 border border-slate-200 shadow-sm relative overflow-hidden">
+          <div id="sales-chart-card" class="lg:col-span-12 p-5 rounded-xl bg-slate-50 border border-slate-200 shadow-sm relative overflow-hidden">
             <!-- Widget Placeholder Skeleton Faithfully Matching Area Line Chart -->
             <div id="sales-chart-skeleton" role="status" class="w-full animate-pulse">
               <!-- Header Telemetry Skeleton (Soft neutral gray matching kpi-grid) -->
@@ -280,124 +367,6 @@
             </div>
           </div>
 
-          <!-- User Quick Action Hub: Replaces Admin Expense Donut Chart with Bold, High-Visibility Shortcut Card -->
-          <div id="quick-card" class="lg:col-span-4 p-5 rounded-2xl bg-white dark:bg-slate-900 border-2 border-blue-500/30 dark:border-blue-500/40 shadow-xl flex flex-col justify-between relative overflow-hidden">
-            <!-- Top Glow Flare Accent -->
-            <div class="absolute -top-12 -right-12 w-32 h-32 bg-blue-500/10 dark:bg-blue-500/20 rounded-full blur-2xl pointer-events-none"></div>
-
-            <!-- Card Header -->
-            <div id="quick-header" class="flex items-center justify-between pb-3 mb-3 border-b border-slate-100 dark:border-slate-800 relative z-10">
-              <div class="flex items-center space-x-2.5">
-                <div class="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center font-black shadow-md shadow-blue-600/30 shrink-0">
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                  </svg>
-                </div>
-                <div>
-                  <h3 id="quick-heading" class="text-sm font-black text-slate-900 dark:text-white font-averta tracking-tight">
-                    Quick Operations Hub
-                  </h3>
-                  <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Direct actions for your assigned units</p>
-                </div>
-              </div>
-              <span class="text-[10px] font-black px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300/40 uppercase tracking-wider">
-                Owner Access
-              </span>
-            </div>
-
-            <!-- Bold 2x3 Quick Action Grid -->
-            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 my-auto py-1 relative z-10">
-              
-              <!-- Action 1: NEW REQUESTS (Cash out profit / advances) - Primary Bold Colored -->
-              <a id="btn-cashout" href="/frontend/pages/requests/?action=add"
-                class="flex flex-col items-center justify-center p-3 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-600 text-white shadow-md shadow-amber-500/30 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition duration-150 cursor-pointer text-center group col-span-2 sm:col-span-1">
-                <div class="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center mb-1.5 backdrop-blur-xs">
-                  <!-- Philippine Peso (₱) Icon (Replaces Dollar Icon) -->
-                  <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
-                    <path d="M9 6h5.5c2.2 0 3.8 1.4 3.8 3.5s-1.6 3.5-3.8 3.5H11v5H9V6zm2 5h3.3c1.1 0 1.9-.6 1.9-1.5s-.8-1.5-1.9-1.5H11V11z"/>
-                    <path d="M7.5 8h8.5v1.4H7.5zm0 2.8h8.5v1.4H7.5z"/>
-                  </svg>
-                </div>
-                <span class="text-[11px] font-black tracking-tight uppercase font-averta">
-                  CASH OUT
-                </span>
-                <span class="text-[9px] text-amber-100 font-semibold leading-none mt-0.5">New Request</span>
-              </a>
-
-              <!-- Action 2: VIEW HABWA -->
-              <a id="btn-habwa" href="/frontend/pages/habwa/"
-                class="flex flex-col items-center justify-center p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 hover:border-emerald-500 dark:hover:border-emerald-400 hover:bg-emerald-50/50 dark:hover:bg-slate-800 hover:-translate-y-0.5 transition duration-150 cursor-pointer text-center group">
-                <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 group-hover:bg-emerald-600 group-hover:text-white flex items-center justify-center mb-1.5 transition">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                  </svg>
-                </div>
-                <span class="text-[10px] font-black text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 uppercase tracking-tight">
-                  VIEW HABWA
-                </span>
-              </a>
-
-              <!-- Action 3: VIEW BILLS -->
-              <a id="btn-bills" href="/frontend/pages/bills/"
-                class="flex flex-col items-center justify-center p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 hover:border-rose-500 dark:hover:border-rose-400 hover:bg-rose-50/50 dark:hover:bg-slate-800 hover:-translate-y-0.5 transition duration-150 cursor-pointer text-center group">
-                <div class="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 group-hover:bg-rose-600 group-hover:text-white flex items-center justify-center mb-1.5 transition">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/>
-                  </svg>
-                </div>
-                <span class="text-[10px] font-black text-slate-800 dark:text-slate-100 group-hover:text-rose-600 dark:group-hover:text-rose-400 uppercase tracking-tight">
-                  VIEW BILLS
-                </span>
-              </a>
-
-              <!-- Action 4: VIEW NOTIFICATIONS -->
-              <a id="btn-notif" href="/frontend/users/notifications/"
-                class="flex flex-col items-center justify-center p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 hover:border-indigo-500 dark:hover:border-indigo-400 hover:bg-indigo-50/50 dark:hover:bg-slate-800 hover:-translate-y-0.5 transition duration-150 cursor-pointer text-center group">
-                <div class="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 group-hover:bg-indigo-600 group-hover:text-white flex items-center justify-center mb-1.5 transition">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-                  </svg>
-                </div>
-                <span class="text-[10px] font-black text-slate-800 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 uppercase tracking-tight">
-                  NOTIFS
-                </span>
-              </a>
-
-              <!-- Action 5: EXPORTS -->
-              <a id="btn-export" href="/frontend/users/exports/"
-                class="flex flex-col items-center justify-center p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 hover:border-sky-500 dark:hover:border-sky-400 hover:bg-sky-50/50 dark:hover:bg-slate-800 hover:-translate-y-0.5 transition duration-150 cursor-pointer text-center group">
-                <div class="w-8 h-8 rounded-lg bg-sky-500/10 text-sky-600 dark:text-sky-400 group-hover:bg-sky-600 group-hover:text-white flex items-center justify-center mb-1.5 transition">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                  </svg>
-                </div>
-                <span class="text-[10px] font-black text-slate-800 dark:text-slate-100 group-hover:text-sky-600 dark:group-hover:text-sky-400 uppercase tracking-tight">
-                  EXPORTS
-                </span>
-              </a>
-
-              <!-- Action 6: SETTINGS (Wider on mobile since it is the only one left in the last row) -->
-              <button id="quick-settings" type="button"
-                class="flex flex-row sm:flex-col items-center justify-center space-x-2 sm:space-x-0 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50/50 dark:hover:bg-slate-800 hover:-translate-y-0.5 transition duration-150 cursor-pointer text-center group col-span-2 sm:col-span-1">
-                <div class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 group-hover:bg-blue-600 group-hover:text-white flex items-center justify-center sm:mb-1.5 transition shrink-0">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                  </svg>
-                </div>
-                <span class="text-[10px] font-black text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 uppercase tracking-tight">
-                  SETTINGS
-                </span>
-              </button>
-
-            </div>
-
-            <!-- Footer Payout Telemetry -->
-            <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs mt-2 relative z-10">
-              <span class="text-[10px] font-medium text-slate-400">Available Payout Balance:</span>
-              <span class="font-black text-emerald-600 dark:text-emerald-400 font-money text-sm">₱3,430.00</span>
-            </div>
           </div>
 
         </div>
