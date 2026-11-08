@@ -508,8 +508,8 @@ export class TableManager {
 
       if (items.length === 0) {
         tbody.innerHTML = `
-          <tr>
-            <td colspan="7" class="px-6 py-12 text-center text-slate-500 dark:text-slate-400">
+          <tr class="block sm:table-row">
+            <td colspan="7" class="block sm:table-cell px-6 py-12 text-center text-slate-500 dark:text-slate-400">
               <div class="flex flex-col items-center justify-center space-y-2">
                 <svg class="w-10 h-10 text-slate-400 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -535,11 +535,91 @@ export class TableManager {
         .map((item, idx) => {
           const isChecked = this.parent.selectedIds.has(item.id)
           const tooltipId = `tooltip-date-${item.id}`
+          const mobileTooltipId = `tooltip-date-mobile-${item.id}`
 
           return `
-            <tr class="border-b border-slate-200 dark:border-slate-800/80 hover:bg-blue-50/70 dark:hover:bg-slate-800/70 transition-colors duration-150">
+            <!-- Mobile Card Layout (< sm) & Desktop Stripped Table Row (>= sm) -->
+            <tr class="block sm:table-row p-4 sm:p-0 mb-3 sm:mb-0 rounded-2xl sm:rounded-none bg-white sm:bg-transparent dark:bg-slate-900 sm:dark:bg-transparent border border-slate-200/90 sm:border-0 sm:border-b sm:border-slate-200 dark:border-slate-800/90 sm:dark:border-slate-800/80 shadow-xs sm:shadow-none hover:bg-blue-50/70 sm:hover:bg-blue-50/70 dark:hover:bg-slate-800/50 sm:dark:hover:bg-slate-800/70 transition-all duration-150">
+              
+              <!-- Mobile-Only Stacked Card Body (< sm) -->
+              <td class="block sm:hidden p-0 border-0">
+                <div class="space-y-3">
+                  <!-- Header: Habwa Amount & Highlighted Batch ID Badge -->
+                  <div class="flex items-center justify-between gap-3">
+                    <div>
+                      <span class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider font-averta">Habwa Amount (₱)</span>
+                      <div class="font-money text-xl font-extrabold text-emerald-600 dark:text-emerald-400" data-count-money="${item.amount}" data-prefix="₱" data-duration="1100" data-delay="${100 + idx * 40}">
+                        ₱0.00
+                      </div>
+                    </div>
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono font-bold bg-indigo-50 text-indigo-700 dark:bg-indigo-950/80 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 shrink-0 shadow-2xs">
+                      <svg class="w-3.5 h-3.5 text-indigo-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+                      </svg>
+                      <span>${item.id}</span>
+                    </span>
+                  </div>
+
+                  <!-- Key-Value Rows Container -->
+                  <div class="divide-y divide-slate-100 dark:divide-slate-800/80 border-t border-slate-100 dark:border-slate-800/80 text-xs">
+                    <!-- Row 1: Transaction Details -->
+                    <div class="py-2.5 flex items-start justify-between gap-3">
+                      <span class="text-slate-400 dark:text-slate-500 font-medium whitespace-nowrap shrink-0 text-[11px]">Transaction Details</span>
+                      <div class="text-right max-w-[65%]">
+                        <div class="text-xs font-bold text-slate-900 dark:text-white font-averta hover:text-blue-600 dark:hover:text-blue-400 transition cursor-pointer inline-flex items-center justify-end gap-1.5 break-words whitespace-normal text-right" data-action="view" data-id="${item.id}">
+                          <span class="break-words">${item.desc}</span>
+                          <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Row 2: Pisonet Owner / Unit -->
+                    <div class="py-2.5 flex items-center justify-between gap-3">
+                      <span class="text-slate-400 dark:text-slate-500 font-medium whitespace-nowrap shrink-0 text-[11px]">Pisonet Owner / Unit</span>
+                      <div class="flex items-center space-x-1.5 text-right font-semibold text-slate-800 dark:text-slate-200">
+                        <svg class="w-3.5 h-3.5 text-blue-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                        <span class="text-xs">${item.owner}</span>
+                      </div>
+                    </div>
+
+                    <!-- Row 3: Date & Audit -->
+                    <div class="py-2.5 flex items-center justify-between gap-3">
+                      <span class="text-slate-400 dark:text-slate-500 font-medium whitespace-nowrap shrink-0 text-[11px]">Date & Audit</span>
+                      <div class="relative inline-flex items-center space-x-1.5 cursor-help" data-tooltip-target="${mobileTooltipId}">
+                        <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span class="text-xs text-slate-700 dark:text-slate-300 font-medium">${item.date}</span>
+                      </div>
+                      <!-- Flowbite Tooltip for Mobile -->
+                      <div id="${mobileTooltipId}" role="tooltip" class="absolute z-50 invisible inline-block px-3 py-2 text-xs font-medium text-white transition-opacity duration-300 bg-slate-900 rounded-lg shadow-xl opacity-0 tooltip dark:bg-slate-800 border border-slate-700">
+                        <div class="font-bold text-amber-300 font-averta">Recorded Timestamp</div>
+                        <div class="text-[11px] text-slate-200">${item.timestamp}</div>
+                        <div class="text-[10px] text-slate-400 mt-0.5">Audited by: ${item.attendant}</div>
+                        <div class="tooltip-arrow" data-popper-arrow></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Mobile Card Action Button: View Details -->
+                  <div class="pt-1">
+                    <button id="view-card-${item.id}" type="button" data-action="view" data-id="${item.id}" title="View Details" class="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-900/60 active:bg-blue-200 dark:active:bg-blue-900 border border-blue-200 dark:border-blue-800/70 transition-all cursor-pointer font-averta">
+                      <span>View Details</span>
+                      <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </td>
+
+              <!-- Desktop-Only Regular Table Columns (Hidden on mobile < sm, visible on sm+) -->
               <!-- Col 1: Checkbox (Stripped Soft Column) -->
-              <td class="w-4 p-4 bg-slate-200/50 dark:bg-slate-800/40">
+              <td class="hidden sm:table-cell w-4 p-4 bg-slate-200/50 dark:bg-slate-800/40">
                 <div class="flex items-center">
                   <input id="check-${item.id}" data-id="${item.id}" type="checkbox" ${isChecked ? 'checked' : ''} class="row-checkbox w-4 h-4 text-blue-600 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 rounded-sm focus:ring-blue-500 cursor-pointer">
                   <label for="check-${item.id}" class="sr-only">Select ${item.id}</label>
@@ -547,7 +627,7 @@ export class TableManager {
               </td>
 
               <!-- Col 2: Transaction Details (Regular Column) with auto-incrementing numbering badge -->
-              <th scope="row" class="px-6 py-4 font-medium text-slate-900 dark:text-white whitespace-nowrap">
+              <th scope="row" class="hidden sm:table-cell px-6 py-4 font-medium text-slate-900 dark:text-white whitespace-nowrap">
                 <div class="flex items-center space-x-3">
                   <div class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 flex items-center justify-center font-bold text-xs shrink-0 font-money">
                     ${offset + idx + 1}
@@ -569,7 +649,7 @@ export class TableManager {
               </th>
 
               <!-- Col 3: Owner & Pisonet Unit (Stripped Soft Column) -->
-              <td class="px-6 py-4 bg-slate-200/50 dark:bg-slate-800/40">
+              <td class="hidden sm:table-cell px-6 py-4 bg-slate-200/50 dark:bg-slate-800/40">
                 <div class="flex items-center space-x-2">
                   <svg class="w-3.5 h-3.5 text-blue-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -579,7 +659,7 @@ export class TableManager {
               </td>
 
               <!-- Col 4: Category (Regular Column) - Temporarily commented out for future deductions
-              <td class="px-6 py-4">
+              <td class="hidden sm:table-cell px-6 py-4">
                 <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60">
                   ${item.category}
                 </span>
@@ -587,7 +667,7 @@ export class TableManager {
               -->
 
               <!-- Col 4: Amount (Regular Column) -->
-              <td class="px-6 py-4">
+              <td class="hidden sm:table-cell px-6 py-4">
                 <div class="font-money text-sm font-bold text-emerald-600 dark:text-emerald-400" data-count-money="${item.amount}" data-prefix="₱" data-duration="1100" data-delay="${100 + idx * 40}">
                   ₱0.00
                 </div>
@@ -597,7 +677,7 @@ export class TableManager {
               </td>
 
               <!-- Col 5: Date & Timestamp via Flowbite Tooltip (Stripped Soft Column) -->
-              <td class="px-6 py-4 bg-slate-200/50 dark:bg-slate-800/40">
+              <td class="hidden sm:table-cell px-6 py-4 bg-slate-200/50 dark:bg-slate-800/40">
                 <div class="relative inline-flex items-center space-x-1.5 cursor-help" data-tooltip-target="${tooltipId}">
                   <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -615,7 +695,7 @@ export class TableManager {
               </td>
 
               <!-- Col 6: Actions (Regular Column: View Details for Owner Portal; Edit & Delete for Admin) -->
-              <td class="px-6 py-4 text-right">
+              <td class="hidden sm:table-cell px-6 py-4 text-right">
                 <div class="flex items-center justify-end space-x-1.5">
                   ${this.parent.isUserPortal ? `
                     <!-- Inspect / View Details Button (View-only for Unit Owners) -->
@@ -769,7 +849,7 @@ export class TableManager {
           const isChecked = this.parent.selectedIds.has(item.id)
           const tooltipId = `tooltip-bill-${item.id}`
 
-          // Render formatted role badges (e.g. 1 = -₱1,200.00 | 2 = -₱1,200.00 | 3 = -₱1,200.00)
+          // Render formatted role badges for desktop view
           const sharesHtml = (item.shares || '')
             .split('|')
             .map((chunk) => {
@@ -794,10 +874,162 @@ export class TableManager {
             })
             .join(' ')
 
+          // Render formatted role badges for mobile card view:
+          // In a 3-badge scenario, badge 1 and 2 sit side-by-side (w-1/2 or grid), and badge 3 spans the full combined width
+          const rawChunks = (item.shares || '')
+            .split('|')
+            .map((c) => c.trim())
+            .filter(Boolean)
+
+          const mobileSharesHtml = rawChunks.length === 3 ? `
+            <div class="grid grid-cols-2 gap-1.5 w-auto">
+              ${rawChunks.map((chunk, cIdx) => {
+                const [roleId, rawShare] = chunk.split('=').map((s) => s.trim())
+                const formattedShare = rawShare.startsWith('-') ? rawShare : `-${rawShare}`
+                const roleColors = {
+                  '1': 'text-amber-700 dark:text-amber-300 bg-amber-500/10 border-amber-500/20',
+                  '2': 'text-sky-700 dark:text-sky-300 bg-sky-500/10 border-sky-500/20',
+                  '3': 'text-indigo-700 dark:text-indigo-300 bg-indigo-500/10 border-indigo-500/20'
+                }
+                const colorClass = roleColors[roleId] || 'text-slate-600 dark:text-slate-300 bg-slate-500/10 border-slate-500/20'
+                const isThird = cIdx === 2
+                return `
+                  <div class="${isThird ? 'col-span-2' : 'col-span-1'} flex items-center justify-center py-0.5 px-2 rounded-md text-[10px] font-mono font-semibold border ${colorClass} whitespace-nowrap">
+                    <span class="font-bold mr-1">${roleId}</span>= ${formattedShare}
+                  </div>
+                `
+              }).join('')}
+            </div>
+          ` : `
+            <div class="flex items-center flex-wrap justify-end gap-1">
+              ${rawChunks.map((chunk) => {
+                const [roleId, rawShare] = chunk.split('=').map((s) => s.trim())
+                const formattedShare = rawShare.startsWith('-') ? rawShare : `-${rawShare}`
+                const roleColors = {
+                  '1': 'text-amber-700 dark:text-amber-300 bg-amber-500/10 border-amber-500/20',
+                  '2': 'text-sky-700 dark:text-sky-300 bg-sky-500/10 border-sky-500/20',
+                  '3': 'text-indigo-700 dark:text-indigo-300 bg-indigo-500/10 border-indigo-500/20'
+                }
+                const colorClass = roleColors[roleId] || 'text-slate-600 dark:text-slate-300 bg-slate-500/10 border-slate-500/20'
+                return `
+                  <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold border ${colorClass}">
+                    <span class="font-bold mr-1">${roleId}</span>= ${formattedShare}
+                  </span>
+                `
+              }).join('')}
+            </div>
+          `
+
+          const mobileTooltipId = `tooltip-mobile-bill-${item.id}`
+
           return `
-            <tr class="border-b border-slate-200 dark:border-slate-800/80 hover:bg-slate-50/70 dark:hover:bg-slate-800/70 transition-colors duration-150">
+            <!-- Mobile Card Layout (< sm) & Desktop Stripped Table Row (>= sm) -->
+            <tr class="block sm:table-row p-4 sm:p-0 mb-3 sm:mb-0 rounded-2xl sm:rounded-none bg-white sm:bg-transparent dark:bg-slate-900 sm:dark:bg-transparent border border-slate-200/90 sm:border-0 sm:border-b sm:border-slate-200 dark:border-slate-800/90 sm:dark:border-slate-800/80 shadow-xs sm:shadow-none hover:bg-slate-50/70 sm:hover:bg-slate-50/70 dark:hover:bg-slate-800/50 sm:dark:hover:bg-slate-800/70 transition-all duration-150">
+              
+              <!-- Mobile-Only Stacked Card Body (< sm) -->
+              <td class="block sm:hidden p-0 border-0">
+                <div class="space-y-3">
+                  <!-- Header: Deducted Amount & Highlighted Category / Record Badge -->
+                  <div class="flex items-center justify-between gap-3">
+                    <div>
+                      <span class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider font-averta">Deducted Amount (₱)</span>
+                      <div class="font-money text-xl font-extrabold text-rose-600 dark:text-rose-400" data-count-money="${item.amount}" data-prefix="-₱" data-duration="1100" data-delay="${100 + idx * 40}">
+                        -₱0.00
+                      </div>
+                    </div>
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono font-bold bg-rose-50 text-rose-700 dark:bg-rose-950/80 dark:text-rose-300 border border-rose-200 dark:border-rose-800 shrink-0 shadow-2xs">
+                      <svg class="w-3.5 h-3.5 text-rose-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+                      </svg>
+                      <span>${item.id}</span>
+                    </span>
+                  </div>
+
+                  <!-- Key-Value Rows Container -->
+                  <div class="divide-y divide-slate-100 dark:divide-slate-800/80 border-t border-slate-100 dark:border-slate-800/80 text-xs">
+                    <!-- Row 1: Bill Category & Breakdown Details -->
+                    <div class="py-2.5 flex items-start justify-between gap-3">
+                      <span class="text-slate-400 dark:text-slate-500 font-medium whitespace-nowrap shrink-0 text-[11px]">Bill Category & Breakdown</span>
+                      <div class="text-right max-w-[65%]">
+                        <div class="text-xs font-bold text-slate-900 dark:text-white font-averta hover:text-rose-600 dark:hover:text-rose-400 transition cursor-pointer inline-flex items-center justify-end gap-1.5 break-words whitespace-normal text-right" data-action="view" data-id="${item.id}">
+                          <span class="break-words">${item.category}</span>
+                          <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                          </svg>
+                        </div>
+                        ${item.desc ? `<div class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 break-words whitespace-normal">${item.desc}</div>` : ''}
+                      </div>
+                    </div>
+
+                    <!-- Row 2: Deduction Breakdown Shares -->
+                    ${rawChunks.length > 0 ? `
+                    <div class="py-2.5 flex items-center justify-between gap-3">
+                      <span class="text-slate-400 dark:text-slate-500 font-medium whitespace-nowrap shrink-0 text-[11px]">Deduction Shares</span>
+                      <div class="w-full max-w-[65%] flex justify-end">
+                        ${mobileSharesHtml}
+                      </div>
+                    </div>
+                    ` : ''}
+
+                    <!-- Row 3: Pisonet Allocation -->
+                    <div class="py-2.5 flex items-center justify-between gap-3">
+                      <span class="text-slate-400 dark:text-slate-500 font-medium whitespace-nowrap shrink-0 text-[11px]">Pisonet Allocation</span>
+                      <div class="flex items-center space-x-1.5 text-right font-semibold text-slate-800 dark:text-slate-200">
+                        <svg class="w-3.5 h-3.5 text-blue-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        <span class="text-xs uppercase">${item.owner}</span>
+                      </div>
+                    </div>
+
+                    <!-- Row 4: Date & Audit -->
+                    <div class="py-2.5 flex items-center justify-between gap-3">
+                      <span class="text-slate-400 dark:text-slate-500 font-medium whitespace-nowrap shrink-0 text-[11px]">Date & Audit</span>
+                      <div class="relative inline-flex items-center space-x-1.5 cursor-help" data-tooltip-target="${mobileTooltipId}">
+                        <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span class="text-xs text-slate-700 dark:text-slate-300 font-medium">${item.date}</span>
+                      </div>
+                      <!-- Flowbite Tooltip for Mobile -->
+                      <div id="${mobileTooltipId}" role="tooltip" class="absolute z-50 invisible inline-block px-3 py-2 text-xs font-medium text-white transition-opacity duration-300 bg-slate-900 rounded-lg shadow-xl opacity-0 tooltip dark:bg-slate-800 border border-slate-700">
+                        <div class="font-bold text-rose-300 font-averta">Billing Recorded</div>
+                        <div class="text-[11px] text-slate-200">${item.timestamp}</div>
+                        <div class="text-[10px] text-slate-400 mt-0.5">Logged by: ${item.attendant}</div>
+                        <div class="tooltip-arrow" data-popper-arrow></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Mobile Card Action Buttons -->
+                  <div class="pt-1 flex items-center gap-2">
+                    <button id="view-card-${item.id}" type="button" data-action="view" data-id="${item.id}" title="View Details" class="flex-1 inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 active:bg-rose-200 dark:active:bg-rose-900 border border-rose-200 dark:border-rose-800/70 transition-all cursor-pointer font-averta">
+                      <span>View Details</span>
+                      <svg class="w-3.5 h-3.5 text-rose-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                      </svg>
+                    </button>
+                    ${!this.parent.isUserPortal ? `
+                      <button id="edit-card-${item.id}" type="button" data-action="edit" data-id="${item.id}" title="Edit Deduction Bill" class="p-2.5 rounded-xl text-white bg-amber-500 hover:bg-amber-600 active:bg-amber-700 transition cursor-pointer shadow-xs shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                        <span class="sr-only">Edit ${item.id}</span>
+                      </button>
+                      <button id="del-card-${item.id}" type="button" data-action="delete" data-id="${item.id}" title="Delete Record" class="p-2.5 rounded-xl text-white bg-rose-600 hover:bg-rose-700 active:bg-rose-800 transition cursor-pointer shadow-xs shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        <span class="sr-only">Delete ${item.id}</span>
+                      </button>
+                    ` : ''}
+                  </div>
+                </div>
+              </td>
+
+              <!-- Desktop-Only Regular Table Columns (Hidden on mobile < sm, visible on sm+) -->
               <!-- Col 1: Checkbox (Stripped Soft Column) -->
-              <td class="w-4 p-4 bg-slate-200/50 dark:bg-slate-800/40">
+              <td class="hidden sm:table-cell w-4 p-4 bg-slate-200/50 dark:bg-slate-800/40">
                 <div class="flex items-center">
                   <input id="check-${item.id}" data-id="${item.id}" type="checkbox" ${isChecked ? 'checked' : ''} class="row-checkbox w-4 h-4 text-rose-600 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 rounded-sm focus:ring-rose-500 cursor-pointer">
                   <label for="check-${item.id}" class="sr-only">Select ${item.id}</label>
@@ -805,7 +1037,7 @@ export class TableManager {
               </td>
 
               <!-- Col 2: Bill Category & Description (Regular Column, Clean Title & Subtitle Without Badge) -->
-              <th scope="row" class="px-6 py-4 font-medium text-slate-900 dark:text-white whitespace-nowrap">
+              <th scope="row" class="hidden sm:table-cell px-6 py-4 font-medium text-slate-900 dark:text-white whitespace-nowrap">
                 <div class="flex items-center space-x-3">
                   <div class="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 flex items-center justify-center font-bold text-xs shrink-0 font-money">
                     ${offset + idx + 1}
@@ -825,7 +1057,7 @@ export class TableManager {
               </th>
 
               <!-- Col 3: Owner / Allocation Units (Stripped Soft Column) -->
-              <td class="px-6 py-4 bg-slate-200/50 dark:bg-slate-800/40">
+              <td class="hidden sm:table-cell px-6 py-4 bg-slate-200/50 dark:bg-slate-800/40">
                 <div class="flex items-center space-x-2">
                   <svg class="w-3.5 h-3.5 text-blue-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -835,7 +1067,7 @@ export class TableManager {
               </td>
 
               <!-- Col 4: Deducted Amount & Shares (Regular Column in ROSE Negative with Breakdown Below) -->
-              <td class="px-6 py-4">
+              <td class="hidden sm:table-cell px-6 py-4">
                 <div class="font-money text-sm font-black text-rose-600 dark:text-rose-400" data-count-money="${item.amount}" data-prefix="-₱" data-duration="1100" data-delay="${100 + idx * 40}">
                   -₱0.00
                 </div>
@@ -849,7 +1081,7 @@ export class TableManager {
               </td>
 
               <!-- Col 5: Date & Timestamp via Flowbite Tooltip (Stripped Soft Column) -->
-              <td class="px-6 py-4 bg-slate-200/50 dark:bg-slate-800/40">
+              <td class="hidden sm:table-cell px-6 py-4 bg-slate-200/50 dark:bg-slate-800/40">
                 <div class="relative inline-flex items-center space-x-1.5 cursor-help" data-tooltip-target="${tooltipId}">
                   <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -867,7 +1099,7 @@ export class TableManager {
               </td>
 
               <!-- Col 6: Actions (Regular Column: View Details for Owner Portal; Edit & Delete for Admin) -->
-              <td class="px-6 py-4 text-right">
+              <td class="hidden sm:table-cell px-6 py-4 text-right">
                 <div class="flex items-center justify-end space-x-1.5">
                   ${this.parent.isUserPortal ? `
                     <!-- Inspect / View Details Button (View-only for Unit Owners) -->
@@ -1108,9 +1340,104 @@ export class TableManager {
           }
 
           return `
-            <tr class="border-b border-slate-200 dark:border-slate-800/80 hover:bg-slate-50/70 dark:hover:bg-slate-800/70 transition-colors duration-150">
+            <!-- Mobile Card Layout (< sm) & Desktop Stripped Table Row (>= sm) -->
+            <tr class="block sm:table-row p-4 sm:p-0 mb-3 sm:mb-0 rounded-2xl sm:rounded-none bg-white sm:bg-transparent dark:bg-slate-900 sm:dark:bg-transparent border border-slate-200/90 sm:border-0 sm:border-b sm:border-slate-200 dark:border-slate-800/90 sm:dark:border-slate-800/80 shadow-xs sm:shadow-none hover:bg-slate-50/70 sm:hover:bg-slate-50/70 dark:hover:bg-slate-800/50 sm:dark:hover:bg-slate-800/70 transition-all duration-150">
+              
+              <!-- Mobile-Only Stacked Card Body (< sm) -->
+              <td class="block sm:hidden p-0 border-0">
+                <div class="space-y-3">
+                  <!-- Header: Requested Deduction Amount & Status Badge -->
+                  <div class="flex items-center justify-between gap-3">
+                    <div>
+                      <span class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider font-averta">Requested Deduction (₱)</span>
+                      <div class="font-money text-xl font-extrabold text-rose-600 dark:text-rose-400" data-count-money="${item.amount}" data-prefix="-₱" data-duration="1100" data-delay="${100 + idx * 40}">
+                        -₱0.00
+                      </div>
+                    </div>
+                    <div class="shrink-0">
+                      ${statusBadge}
+                    </div>
+                  </div>
+
+                  <!-- Key-Value Rows Container -->
+                  <div class="divide-y divide-slate-100 dark:divide-slate-800/80 border-t border-slate-100 dark:border-slate-800/80 text-xs">
+                    <!-- Row 1: Unit Owner -->
+                    <div class="py-2.5 flex items-center justify-between gap-3">
+                      <span class="text-slate-400 dark:text-slate-500 font-medium whitespace-nowrap shrink-0 text-[11px]">Unit Owner</span>
+                      <div class="flex items-center space-x-2 text-right">
+                        <img class="w-6 h-6 rounded-full object-cover ring-1 ring-slate-200 dark:ring-slate-700 shrink-0" src="${item.avatar}" alt="${item.owner}">
+                        <div class="text-xs font-bold text-slate-900 dark:text-white font-averta hover:text-blue-600 dark:hover:text-blue-400 transition cursor-pointer inline-flex items-center justify-end gap-1" data-action="view" data-id="${item.id}">
+                          <span>${item.owner}</span>
+                          <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Row 2: Category & Note -->
+                    <div class="py-2.5 flex items-start justify-between gap-3">
+                      <span class="text-slate-400 dark:text-slate-500 font-medium whitespace-nowrap shrink-0 text-[11px]">Category & Details</span>
+                      <div class="text-right max-w-[65%]">
+                        <span class="text-xs font-bold text-slate-800 dark:text-slate-200">${item.category}</span>
+                        ${item.note ? `<div class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 break-words whitespace-normal">${item.note}</div>` : ''}
+                      </div>
+                    </div>
+
+                    <!-- Row 3: Current Profit Left -->
+                    <div class="py-2.5 flex items-center justify-between gap-3">
+                      <span class="text-slate-400 dark:text-slate-500 font-medium whitespace-nowrap shrink-0 text-[11px]">Habwa Balance</span>
+                      <div class="font-money text-xs font-extrabold text-emerald-600 dark:text-emerald-400" data-count-money="${item.profitLeft}" data-prefix="₱" data-duration="1100" data-delay="${100 + idx * 40}">
+                        ₱0.00
+                      </div>
+                    </div>
+
+                    <!-- Row 4: Request ID & Date -->
+                    <div class="py-2.5 flex items-center justify-between gap-3">
+                      <span class="text-slate-400 dark:text-slate-500 font-medium whitespace-nowrap shrink-0 text-[11px]">Request Ref & Date</span>
+                      <div class="text-right flex items-center space-x-1.5 font-mono text-[11px]">
+                        <span class="text-blue-600 dark:text-blue-400 font-bold">${item.id}</span>
+                        <span class="text-slate-300 dark:text-slate-600">•</span>
+                        <span class="text-slate-600 dark:text-slate-400 font-medium">${item.date}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Mobile Card Action Buttons -->
+                  <div class="pt-1 flex items-center gap-2">
+                    <button id="view-card-${item.id}" type="button" data-action="view" data-id="${item.id}" title="View Details" class="flex-1 inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-900/60 active:bg-blue-200 dark:active:bg-blue-900 border border-blue-200 dark:border-blue-800/70 transition-all cursor-pointer font-averta">
+                      <span>View Details</span>
+                      <svg class="w-3.5 h-3.5 text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                      </svg>
+                    </button>
+                    ${!this.parent.isUserPortal ? `
+                      <button id="approve-card-${item.id}" type="button" data-action="approve" data-id="${item.id}" title="${item.status === 'Approved' ? 'Already Approved' : 'Approve Request'}" ${item.status === 'Approved' ? 'disabled' : ''} class="p-2.5 rounded-xl transition cursor-pointer shadow-xs shrink-0 ${item.status === 'Approved' ? 'text-slate-400 bg-slate-200 dark:bg-slate-800 dark:text-slate-600 cursor-not-allowed border border-slate-300 dark:border-slate-700 opacity-60' : 'text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800'}">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span class="sr-only">Approve ${item.id}</span>
+                      </button>
+                      <button id="edit-card-${item.id}" type="button" data-action="edit" data-id="${item.id}" title="Edit Request" class="p-2.5 rounded-xl text-white bg-amber-500 hover:bg-amber-600 active:bg-amber-700 transition cursor-pointer shadow-xs shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                        <span class="sr-only">Edit ${item.id}</span>
+                      </button>
+                      <button id="del-card-${item.id}" type="button" data-action="delete" data-id="${item.id}" title="Delete Record" class="p-2.5 rounded-xl text-white bg-rose-600 hover:bg-rose-700 active:bg-rose-800 transition cursor-pointer shadow-xs shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        <span class="sr-only">Delete ${item.id}</span>
+                      </button>
+                    ` : ''}
+                  </div>
+                </div>
+              </td>
+
+              <!-- Desktop-Only Regular Table Columns (Hidden on mobile < sm, visible on sm+) -->
               <!-- Col 1: Checkbox -->
-              <td class="w-4 p-4 bg-slate-200/50 dark:bg-slate-800/40">
+              <td class="hidden sm:table-cell w-4 p-4 bg-slate-200/50 dark:bg-slate-800/40">
                 <div class="flex items-center">
                   <input id="check-${item.id}" data-id="${item.id}" type="checkbox" ${isChecked ? 'checked' : ''} class="row-checkbox w-4 h-4 text-blue-600 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 rounded-sm focus:ring-blue-500 cursor-pointer">
                   <label for="check-${item.id}" class="sr-only">Select ${item.id}</label>
@@ -1118,7 +1445,7 @@ export class TableManager {
               </td>
 
               <!-- Col 2: Owner Name & Profile (First Column, Bolder) -->
-              <th scope="row" class="px-6 py-4 font-bold text-slate-900 dark:text-white whitespace-nowrap">
+              <th scope="row" class="hidden sm:table-cell px-6 py-4 font-bold text-slate-900 dark:text-white whitespace-nowrap">
                 <div class="flex items-center space-x-3">
                   <img class="w-9 h-9 rounded-full object-cover ring-2 ring-slate-200 dark:ring-slate-700 shrink-0" src="${item.avatar}" alt="${item.owner}">
                   <div>
@@ -1138,7 +1465,7 @@ export class TableManager {
               </th>
 
               <!-- Col 3: Current Profit Left (Stripped Soft Column) -->
-              <td class="px-6 py-4 bg-slate-200/50 dark:bg-slate-800/40">
+              <td class="hidden sm:table-cell px-6 py-4 bg-slate-200/50 dark:bg-slate-800/40">
                 <div class="font-money text-sm font-extrabold text-emerald-600 dark:text-emerald-400" data-count-money="${item.profitLeft}" data-prefix="₱" data-duration="1100" data-delay="${100 + idx * 40}">
                   ₱0.00
                 </div>
@@ -1148,7 +1475,7 @@ export class TableManager {
               </td>
 
               <!-- Col 4: Category & Status Badge -->
-              <td class="px-6 py-4">
+              <td class="hidden sm:table-cell px-6 py-4">
                 <div class="flex items-center space-x-2">
                   <span class="text-xs font-bold text-slate-800 dark:text-slate-200">
                     ${item.category}
@@ -1161,7 +1488,7 @@ export class TableManager {
               </td>
 
               <!-- Col 5: Amount Deducted (Stripped Soft Column, Negative Rose) -->
-              <td class="px-6 py-4 bg-slate-200/50 dark:bg-slate-800/40">
+              <td class="hidden sm:table-cell px-6 py-4 bg-slate-200/50 dark:bg-slate-800/40">
                 <div class="font-money text-sm font-black text-rose-600 dark:text-rose-400" data-count-money="${item.amount}" data-prefix="-₱" data-duration="1100" data-delay="${120 + idx * 40}">
                   -₱0.00
                 </div>
@@ -1171,7 +1498,7 @@ export class TableManager {
               </td>
 
               <!-- Col 6: Actions (View Drawer Preview for Owner; Approve/Edit/Delete for Admin) -->
-              <td class="px-6 py-4 text-right">
+              <td class="hidden sm:table-cell px-6 py-4 text-right">
                 <div class="flex items-center justify-end space-x-1.5">
                   ${this.parent.isUserPortal ? `
                     <!-- View Details Action Button (Owner View Only - Finalized & Signed) -->
