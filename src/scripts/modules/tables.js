@@ -472,13 +472,31 @@ export class TableManager {
     }
     // END: HabwaController.init - HabwaController initialized
 
-    // START: HabwaController.deleteEntry - Removes entry and re-renders table
-    deleteEntry(id) {
-      const idx = this.parent.records.findIndex((r) => r.id === id)
-      if (idx !== -1) {
-        this.parent.records.splice(idx, 1)
-        this.parent.selectedIds.delete(id)
+    // START: HabwaController.deleteEntry - Removes entry from database and re-renders table
+    async deleteEntry(id) {
+      const entry = this.parent.records.find((r) => r.id === id || r.dbId === id)
+      const targetDbId = entry?.dbId || id
+
+      // Optimistic instant UI removal
+      const prevRecords = [...this.parent.records]
+      this.parent.records = this.parent.records.filter((r) => r.id !== id && r.dbId !== id)
+      this.parent.selectedIds.delete(id)
+      if (entry?.id) this.parent.selectedIds.delete(entry.id)
+      this.parent.render()
+
+      try {
+        const res = await habwaApi.delete(targetDbId)
+        if (!res.success) {
+          throw new Error(res.error || 'Failed to delete habwa entry')
+        }
+        await this.parent.loadFromSupabase()
         this.parent.render()
+        this.parent.animations?.toast?.show('Habwa entry deleted permanently!')
+      } catch (err) {
+        console.error('Delete habwa entry failed:', err)
+        this.parent.records = prevRecords
+        this.parent.render()
+        this.parent.animations?.toast?.show('Error deleting habwa entry: ' + err.message, 'error')
       }
     }
     // END: HabwaController.deleteEntry - Entry deleted
@@ -2313,12 +2331,30 @@ export class TableManager {
         return
       }
 
+      const prevRecords = [...this.parent.records]
+      const toDelete = selectedIds.map(id => {
+        const item = this.parent.records.find(r => r.id === id || r.dbId === id)
+        return item?.dbId || id
+      })
+
       this.parent.records = this.parent.records.filter(
         (r) => !this.parent.selectedIds.has(r.id)
       )
       this.parent.selectedIds.clear()
       this.parent.render()
       this.updateBatchBar()
+
+      try {
+        await Promise.all(toDelete.map(id => habwaApi.delete(id)))
+        await this.parent.loadFromSupabase()
+        this.parent.render()
+        this.parent.animations?.toast?.show('Selected habwa entries deleted permanently!')
+      } catch (err) {
+        console.error('Batch delete habwa failed:', err)
+        this.parent.records = prevRecords
+        this.parent.render()
+        this.parent.animations?.toast?.show('Error deleting selected entries: ' + err.message, 'error')
+      }
     }
     // END: SelectionController.deleteSelected - Selected deleted
 
